@@ -1,11 +1,7 @@
 [build]
-builder = "nixpacks"
-nixpacksVersion = "1.38.0"
-
-[build.nixpacksEnvironment]
-NIXPACKS_NODE_VERSION = "22"
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "npx prisma migrate deploy && npm start"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 30
