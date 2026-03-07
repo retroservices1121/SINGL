@@ -9,15 +9,30 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.4.2",
+    "@prisma/client": "^7.4.2",
+    "@privy-io/react-auth": "^3.16.0",
+    "@solana-program/memo": "^0.11.0",
+    "@solana/kit": "^6.1.0",
+    "@solana/web3.js": "^1.98.4",
+    "@virtuals-protocol/game": "^0.1.14",
+    "@wallet-standard/app": "^1.1.0",
+    "@walletconnect/ethereum-provider": "^2.23.7",
+    "@walletconnect/universal-provider": "^2.23.7",
     "next": "16.1.6",
+    "pg": "^8.20.0",
+    "prisma": "^7.4.2",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.18.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.3.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",

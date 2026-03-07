@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  subtitle    String?
+  emoji       String?
+  color       String?
+  searchTerms String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  markets   Market[]
+  newsItems NewsItem[]
+  xPosts    XPost[]
+  videos    Video[]
+}
+
+model Market {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+  ticker    String
+  title     String
+  yesPrice  Float
+  noPrice   Float
+  volume    Float?
+  change24h Float?
+  category  String?
+  dflowData Json?
+  updatedAt DateTime @updatedAt
+}
+
+model NewsItem {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+  title     String
+  summary   String
+  source    String
+  sentiment String
+  time      String
+  url       String?
+  fetchedAt DateTime @default(now())
+}
+
+model XPost {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+  name      String
+  handle    String
+  text      String
+  time      String
+  likes     String?
+  retweets  String?
+  tweetId   String?  @unique
+  fetchedAt DateTime @default(now())
+}
+
+model Video {
+  id         String   @id @default(cuid())
+  eventId    String
+  event      Event    @relation(fields: [eventId], references: [id])
+  title      String
+  channel    String
+  youtubeUrl String
+  youtubeId  String?
+  duration   String?
+  views      String?
+  thumbnail  String?
+  fetchedAt  DateTime @default(now())
+}
+
+model TradeFee {
+  id            String   @id @default(cuid())
+  walletAddress String
+  marketTicker  String
+  side          String
+  grossAmount   Float
+  feeAmount     Float
+  netAmount     Float
+  txSignature   String?
+  createdAt     DateTime @default(now())
+}
