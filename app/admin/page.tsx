@@ -199,17 +199,35 @@ export default function AdminPage() {
                   <div className="flex-1">
                     <h3 className="font-semibold text-white">{event.title}</h3>
                     {event.subtitle && <p className="text-sm text-gray-400 mt-0.5">{event.subtitle}</p>}
-                    <p className="text-xs text-gray-500 mt-1">
-                      {event.marketCount} markets &middot; Ticker: {event.ticker}
-                    </p>
+                    {(() => {
+                      const activeCount = event.markets.filter(m => m.status !== 'finalized' && m.status !== 'settled').length;
+                      return (
+                        <p className="text-xs mt-1">
+                          <span className={activeCount > 0 ? 'text-green-400' : 'text-red-400'}>
+                            {activeCount} active
+                          </span>
+                          <span className="text-gray-500"> / {event.marketCount} total markets</span>
+                        </p>
+                      );
+                    })()}
                   </div>
-                  <button
-                    onClick={() => handleSetEvent(event)}
-                    disabled={setting === event.ticker}
-                    className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
-                  >
-                    {setting === event.ticker ? 'Setting...' : 'Set Active'}
-                  </button>
+                  {(() => {
+                    const activeCount = event.markets.filter(m => m.status !== 'finalized' && m.status !== 'settled').length;
+                    return (
+                      <button
+                        onClick={() => handleSetEvent(event)}
+                        disabled={setting === event.ticker || activeCount === 0}
+                        className={`text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
+                          activeCount === 0
+                            ? 'bg-gray-600 cursor-not-allowed'
+                            : 'bg-orange-500 hover:bg-orange-600 disabled:opacity-50'
+                        }`}
+                      >
+                        {setting === event.ticker ? 'Setting...' : activeCount === 0 ? 'No Active Markets' : 'Set Active'}
+                      </button>
+                    );
+                  })()}
+
                 </div>
 
                 {event.markets.length > 0 && (
