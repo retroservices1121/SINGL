@@ -102,7 +102,8 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (data.ok) {
-        setMessage(`Active event set to "${event.title}"`);
+        const d = data.debug || {};
+        setMessage(`Active event set to "${event.title}" — Received: ${d.receivedMarkets} markets, Saved: ${d.savedMarkets} markets${d.marketError ? ` | Error: ${d.marketError}` : ''}`);
         fetchActive(secret);
       } else {
         setMessage(data.error || 'Failed to set event');

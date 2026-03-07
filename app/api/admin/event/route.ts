@@ -64,22 +64,26 @@ export async function POST(req: NextRequest) {
   });
 
   // Save markets passed from admin UI
-  try {
-    await prisma.market.deleteMany({ where: { eventId: event.id } });
+  let marketError: string | null = null;
+  let receivedCount = 0;
 
-    interface RawMarket {
-      ticker: string;
-      title: string;
-      yesBid?: string;
-      yesAsk?: string;
-      noBid?: string;
-      noAsk?: string;
-      volume?: number;
-    }
+  interface RawMarket {
+    ticker: string;
+    title: string;
+    yesBid?: string;
+    yesAsk?: string;
+    noBid?: string;
+    noAsk?: string;
+    volume?: number;
+  }
 
-    const marketList: RawMarket[] = Array.isArray(rawMarkets) ? rawMarkets : [];
+  const marketList: RawMarket[] = Array.isArray(rawMarkets) ? rawMarkets : [];
+  receivedCount = marketList.length;
 
-    if (marketList.length > 0) {
+  if (marketList.length > 0) {
+    try {
+      await prisma.market.deleteMany({ where: { eventId: event.id } });
+
       await Promise.all(
         marketList.map(m => {
           const yesBid = parseFloat(m.yesBid || '0') || 0;
@@ -103,14 +107,15 @@ export async function POST(req: NextRequest) {
           });
         })
       );
-    }
 
-    event = await prisma.event.findUnique({
-      where: { slug },
-      include: { markets: true },
-    }) as typeof event;
-  } catch (err) {
-    console.error('Market save error:', err);
+      event = await prisma.event.findUnique({
+        where: { slug },
+        include: { markets: true },
+      }) as typeof event;
+    } catch (err) {
+      marketError = err instanceof Error ? err.message : String(err);
+      console.error('Market save error:', err);
+    }
   }
 
   // Set as active event
@@ -120,5 +125,10 @@ export async function POST(req: NextRequest) {
     create: { key: 'activeEventSlug', value: slug },
   });
 
-  return NextResponse.json({ ok: true, activeEventSlug: slug, event });
+  return NextResponse.json({
+    ok: true,
+    activeEventSlug: slug,
+    event,
+    debug: { receivedMarkets: receivedCount, savedMarkets: event.markets?.length || 0, marketError },
+  });
 }
