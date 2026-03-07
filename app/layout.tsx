@@ -5,10 +5,13 @@ import Providers from './components/Providers';
 export const metadata: Metadata = {
   title: 'SINGL by Spredd Markets',
   description: 'Single-event prediction markets. Pick an event, trade the outcomes.',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
   openGraph: {
     title: 'SINGL by Spredd Markets',
     description: 'Single-event prediction markets. Pick an event, trade the outcomes.',
-    images: ['/singls-og.png'],
   },
 };
 

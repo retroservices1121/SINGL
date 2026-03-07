@@ -1,6 +1,7 @@
 import ActiveEventPage from './components/ActiveEventPage';
 import WalletButton from './components/WalletButton';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +11,7 @@ export default function Home() {
       {/* Nav */}
       <nav className="bg-[var(--paper)] border-b border-[var(--border)] px-4 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <h1 className="font-heading text-xl font-bold text-[var(--orange)]">SINGL</h1>
+          <Image src="/singls-logo.png" alt="SINGL" width={100} height={32} priority />
           <div className="flex items-center gap-3">
             <Link
               href="/profile"
