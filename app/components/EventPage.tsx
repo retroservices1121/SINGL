@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import type { EventData } from '@/app/types';
 import { useEventStore } from '@/app/store/eventStore';
-import MarketCard from './MarketCard';
+import OutcomeList from './OutcomeList';
 import NewsFeed from './NewsFeed';
 import XFeed from './XFeed';
 import VideoFeed from './VideoFeed';
@@ -61,11 +61,7 @@ export default function EventPage({ event }: EventPageProps) {
             </span>
           </div>
           {event.markets.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {event.markets.map((market, i) => (
-                <MarketCard key={market.id || i} market={market} index={i} />
-              ))}
-            </div>
+            <OutcomeList markets={event.markets} />
           ) : (
             <div className="text-center py-8 text-[var(--text-dim)] text-sm bg-[var(--paper)] border border-[var(--border)] rounded-xl">
               No markets found for this event
