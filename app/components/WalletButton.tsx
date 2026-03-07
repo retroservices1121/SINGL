@@ -5,7 +5,9 @@ import { useWallets } from '@privy-io/react-auth/solana';
 import { truncateAddress } from '@/app/lib/utils';
 import Button from './ui/Button';
 
-export default function WalletButton() {
+const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+
+function WalletButtonInner() {
   const { login, logout, authenticated, ready } = usePrivy();
   const { wallets } = useWallets();
   const wallet = wallets[0];
@@ -34,4 +36,16 @@ export default function WalletButton() {
       </Button>
     </div>
   );
+}
+
+export default function WalletButton() {
+  if (!PRIVY_APP_ID) {
+    return (
+      <Button variant="primary" size="sm" disabled>
+        Connect Wallet
+      </Button>
+    );
+  }
+
+  return <WalletButtonInner />;
 }

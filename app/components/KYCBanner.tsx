@@ -5,7 +5,9 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useWallets } from '@privy-io/react-auth/solana';
 import Button from './ui/Button';
 
-export default function KYCBanner() {
+const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+
+function KYCBannerInner() {
   const { authenticated } = usePrivy();
   const { wallets } = useWallets();
   const wallet = wallets[0];
@@ -53,4 +55,9 @@ export default function KYCBanner() {
       </Button>
     </div>
   );
+}
+
+export default function KYCBanner() {
+  if (!PRIVY_APP_ID) return null;
+  return <KYCBannerInner />;
 }
