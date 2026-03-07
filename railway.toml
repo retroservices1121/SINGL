@@ -1,6 +1,7 @@
 [build]
 builder = "dockerfile"
 dockerfilePath = "Dockerfile"
+dockerBuildArgs = ["NEXT_PUBLIC_PRIVY_APP_ID", "NEXT_PUBLIC_DFLOW_METADATA_URL", "NEXT_PUBLIC_DFLOW_TRADE_URL"]
 
 [deploy]
 healthcheckPath = "/api/health"

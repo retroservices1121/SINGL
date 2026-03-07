@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/db';
-import { getMarkets } from '@/app/lib/dflow';
+import { getMarkets, getMarketsByEventTicker } from '@/app/lib/dflow';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { slug, title, searchTerms, emoji, subtitle } = body;
+  const { slug, title, dflowTicker, searchTerms, emoji, subtitle } = body;
 
   if (!slug) {
     return NextResponse.json({ error: 'slug is required' }, { status: 400 });
@@ -64,35 +64,41 @@ export async function POST(req: NextRequest) {
     include: { markets: true },
   });
 
-  // Fetch markets from DFlow if none exist
-  if (event.markets.length === 0 && terms.length > 0) {
-    try {
-      const dflowMarkets = await getMarkets(terms);
-      if (dflowMarkets.length > 0) {
-        await Promise.all(
-          dflowMarkets.map(m =>
-            prisma.market.create({
-              data: {
-                eventId: event.id,
-                ticker: m.ticker,
-                title: m.title,
-                yesPrice: m.yesPrice,
-                noPrice: m.noPrice,
-                volume: m.volume,
-                change24h: m.change24h,
-                category: m.category,
-              },
-            })
-          )
-        );
-        event = await prisma.event.findUnique({
-          where: { slug },
-          include: { markets: true },
-        }) as typeof event;
-      }
-    } catch (err) {
-      console.error('DFlow market fetch error:', err);
+  // Always refresh markets from DFlow
+  try {
+    // Delete old markets for this event
+    await prisma.market.deleteMany({ where: { eventId: event.id } });
+
+    // Fetch fresh markets — use DFlow event ticker if available, otherwise search by title
+    const dflowMarkets = dflowTicker
+      ? await getMarketsByEventTicker(dflowTicker)
+      : await getMarkets(terms);
+
+    if (dflowMarkets.length > 0) {
+      await Promise.all(
+        dflowMarkets.map(m =>
+          prisma.market.create({
+            data: {
+              eventId: event.id,
+              ticker: m.ticker,
+              title: m.title,
+              yesPrice: m.yesPrice,
+              noPrice: m.noPrice,
+              volume: m.volume,
+              change24h: m.change24h,
+              category: m.category,
+            },
+          })
+        )
+      );
     }
+
+    event = await prisma.event.findUnique({
+      where: { slug },
+      include: { markets: true },
+    }) as typeof event;
+  } catch (err) {
+    console.error('DFlow market fetch error:', err);
   }
 
   // Set as active event

@@ -112,6 +112,34 @@ export async function getMarkets(searchTerms: string[]): Promise<MarketData[]> {
   return parseMarkets(allEvents);
 }
 
+export async function getMarketsByEventTicker(eventTicker: string): Promise<MarketData[]> {
+  const headers = getHeaders();
+
+  try {
+    const res = await fetch(
+      `${METADATA}/api/v1/search?q=${encodeURIComponent(eventTicker)}&limit=20&withNestedMarkets=true`,
+      { headers }
+    );
+    if (!res.ok) throw new Error(`DFlow search returned ${res.status}`);
+    const data: DFlowSearchResponse = await res.json();
+
+    // Find the exact event by ticker
+    const matchingEvent = (data.events || []).find(
+      e => e.ticker?.toUpperCase() === eventTicker.toUpperCase()
+    );
+
+    if (matchingEvent) {
+      return parseMarkets([matchingEvent]);
+    }
+
+    // Fallback: return all markets from search
+    return parseMarkets(data.events || []);
+  } catch (err) {
+    console.error('DFlow event ticker search error:', err);
+    return [];
+  }
+}
+
 export async function checkKYCStatus(walletAddress: string): Promise<KYCStatus> {
   try {
     const res = await fetch(`${TRADE}/api/v1/kyc/status`, {

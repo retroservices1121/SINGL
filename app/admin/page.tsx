@@ -83,6 +83,7 @@ export default function AdminPage() {
         body: JSON.stringify({
           slug,
           title: event.title,
+          dflowTicker: event.ticker,
           searchTerms: [event.title],
         }),
       });
