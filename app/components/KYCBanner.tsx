@@ -1,29 +1,24 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePrivy } from '@privy-io/react-auth';
-import { useWallets } from '@privy-io/react-auth/solana';
+import { useWallet } from '@solana/wallet-adapter-react';
 import Button from './ui/Button';
 
-const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
-
-function KYCBannerInner() {
-  const { authenticated } = usePrivy();
-  const { wallets } = useWallets();
-  const wallet = wallets[0];
+export default function KYCBanner() {
+  const { publicKey, connected } = useWallet();
   const [verified, setVerified] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!authenticated || !wallet) return;
+    if (!connected || !publicKey) return;
 
-    fetch(`/api/kyc?wallet=${wallet.address}`)
+    fetch(`/api/kyc?wallet=${publicKey.toBase58()}`)
       .then(r => r.json())
       .then(data => setVerified(data.verified))
       .catch(() => setVerified(false));
-  }, [authenticated, wallet]);
+  }, [connected, publicKey]);
 
-  if (!authenticated || !wallet || verified === null || verified) return null;
+  if (!connected || !publicKey || verified === null || verified) return null;
 
   const handleVerify = async () => {
     setLoading(true);
@@ -31,7 +26,7 @@ function KYCBannerInner() {
       const res = await fetch('/api/kyc/initiate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress: wallet.address }),
+        body: JSON.stringify({ walletAddress: publicKey.toBase58() }),
       });
       const data = await res.json();
       if (data.verificationUrl) {
@@ -55,9 +50,4 @@ function KYCBannerInner() {
       </Button>
     </div>
   );
-}
-
-export default function KYCBanner() {
-  if (!PRIVY_APP_ID) return null;
-  return <KYCBannerInner />;
 }

@@ -1,5 +1,7 @@
 'use client';
 
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { useTradeStore } from '@/app/store/tradeStore';
 import { useEventStore } from '@/app/store/eventStore';
 import { calculateFee } from '@/app/lib/fees';
@@ -12,6 +14,8 @@ const PRESETS = [10, 25, 50, 100, 250];
 export default function TradePanel() {
   const { isOpen, market, side, amount, submitting, confirmed, txSignature, closeTrade, setAmount, setSubmitting, setConfirmed } = useTradeStore();
   const currentEvent = useEventStore(s => s.currentEvent);
+  const { publicKey, connected } = useWallet();
+  const { setVisible } = useWalletModal();
 
   if (!isOpen || !market) return null;
 
@@ -22,12 +26,18 @@ export default function TradePanel() {
   const { fee, netAmount } = calculateFee(amount);
 
   const handleSubmit = async () => {
+    if (!connected || !publicKey) {
+      setVisible(true);
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch('/api/trade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          walletAddress: publicKey.toBase58(),
           marketTicker: market.ticker,
           marketTitle: market.title,
           eventSlug: currentEvent?.slug || '',
@@ -152,7 +162,7 @@ export default function TradePanel() {
           onClick={handleSubmit}
           disabled={submitting || amount <= 0}
         >
-          {submitting ? <><Spinner size="sm" /> Processing...</> : `Buy ${side.toUpperCase()} - ${formatUSD(amount)}`}
+          {submitting ? <><Spinner size="sm" /> Processing...</> : connected ? `Buy ${side.toUpperCase()} - ${formatUSD(amount)}` : 'Connect Wallet'}
         </Button>
       </div>
     </div>

@@ -14,9 +14,12 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.2",
     "@prisma/client": "^7.4.2",
-    "@privy-io/react-auth": "^3.16.0",
     "@solana-program/memo": "^0.11.0",
     "@solana/kit": "^6.1.0",
+    "@solana/wallet-adapter-base": "^0.9.27",
+    "@solana/wallet-adapter-react": "^0.15.39",
+    "@solana/wallet-adapter-react-ui": "^0.9.39",
+    "@solana/wallet-adapter-wallets": "^0.19.37",
     "@solana/web3.js": "^1.98.4",
     "@virtuals-protocol/game": "^0.1.14",
     "@wallet-standard/app": "^1.1.0",

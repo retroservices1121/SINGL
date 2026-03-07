@@ -1,12 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePrivy } from '@privy-io/react-auth';
-import { useWallets } from '@privy-io/react-auth/solana';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { formatUSD, formatPercent } from '@/app/lib/utils';
 import Button from '../components/ui/Button';
-
-const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 
 interface Position {
   id: string;
@@ -22,34 +20,33 @@ interface Position {
   createdAt: string;
 }
 
-function PositionsList() {
-  const { authenticated, login } = usePrivy();
-  const { wallets } = useWallets();
-  const wallet = wallets[0];
+export default function ProfileClient() {
+  const { publicKey, connected } = useWallet();
+  const { setVisible } = useWalletModal();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authenticated || !wallet) {
+    if (!connected || !publicKey) {
       setLoading(false);
       return;
     }
 
-    fetch(`/api/positions?wallet=${wallet.address}`)
+    fetch(`/api/positions?wallet=${publicKey.toBase58()}`)
       .then(r => r.json())
       .then(data => {
         setPositions(data.positions || []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [authenticated, wallet]);
+  }, [connected, publicKey]);
 
-  if (!authenticated) {
+  if (!connected) {
     return (
       <div className="text-center py-16 bg-[var(--paper)] border border-[var(--border)] rounded-xl">
         <div className="text-4xl mb-3">👛</div>
         <p className="text-[var(--text-sec)] text-sm mb-4">Connect your wallet to view positions</p>
-        <Button variant="primary" size="md" onClick={login}>
+        <Button variant="primary" size="md" onClick={() => setVisible(true)}>
           Connect Wallet
         </Button>
       </div>
@@ -150,16 +147,4 @@ function PositionCard({ position }: { position: Position }) {
       </div>
     </div>
   );
-}
-
-export default function ProfileClient() {
-  if (!PRIVY_APP_ID) {
-    return (
-      <div className="text-center py-16 bg-[var(--paper)] border border-[var(--border)] rounded-xl">
-        <p className="text-[var(--text-sec)] text-sm">Wallet not configured</p>
-      </div>
-    );
-  }
-
-  return <PositionsList />;
 }
