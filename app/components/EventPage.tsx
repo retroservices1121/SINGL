@@ -27,8 +27,12 @@ export default function EventPage({ event }: EventPageProps) {
       {/* Hero */}
       <div className="bg-[var(--paper)] border-b border-[var(--border)] px-4 py-8 mb-6">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-3 mb-2">
-            {event.emoji && <span className="text-4xl">{event.emoji}</span>}
+          <div className="flex items-center gap-4 mb-2">
+            {event.imageUrl ? (
+              <img src={event.imageUrl} alt="" className="w-16 h-16 rounded-xl object-cover" />
+            ) : event.emoji ? (
+              <span className="text-4xl">{event.emoji}</span>
+            ) : null}
             <div>
               <h1 className="font-heading text-2xl md:text-3xl font-bold text-[var(--text)]">
                 {event.title}
@@ -39,7 +43,12 @@ export default function EventPage({ event }: EventPageProps) {
             </div>
           </div>
           <div className="mt-4">
-            <StatsBar markets={event.markets} />
+            <StatsBar
+              markets={event.markets}
+              volume={event.volume}
+              liquidity={event.liquidity}
+              openInterest={event.openInterest}
+            />
           </div>
         </div>
       </div>

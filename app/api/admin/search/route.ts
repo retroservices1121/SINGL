@@ -37,10 +37,15 @@ export async function GET(req: NextRequest) {
       ticker: e.ticker,
       title: e.title,
       subtitle: e.subtitle,
+      imageUrl: e.imageUrl,
       volume: e.volume,
+      volume24h: e.volume24h,
+      liquidity: e.liquidity,
+      openInterest: e.openInterest,
+      competition: e.competition,
       marketCount: Array.isArray(e.markets) ? (e.markets as unknown[]).length : 0,
       markets: Array.isArray(e.markets)
-        ? (e.markets as Record<string, unknown>[]).slice(0, 20).map(m => ({
+        ? (e.markets as Record<string, unknown>[]).slice(0, 50).map(m => ({
             ticker: m.ticker,
             title: m.yesSubTitle || m.subtitle || m.title,
             status: m.status,
@@ -49,6 +54,10 @@ export async function GET(req: NextRequest) {
             noBid: m.noBid,
             noAsk: m.noAsk,
             volume: m.volume,
+            openInterest: m.openInterest,
+            rulesPrimary: m.rulesPrimary,
+            closeTime: m.closeTime,
+            expirationTime: m.expirationTime,
           }))
         : [],
     }));

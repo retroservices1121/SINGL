@@ -7,15 +7,19 @@ datasource db {
 }
 
 model Event {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  title       String
-  subtitle    String?
-  emoji       String?
-  color       String?
-  searchTerms String[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  title        String
+  subtitle     String?
+  emoji        String?
+  color        String?
+  imageUrl     String?
+  searchTerms  String[]
+  volume       Float?
+  liquidity    Float?
+  openInterest Float?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   markets   Market[]
   newsItems NewsItem[]
@@ -24,18 +28,21 @@ model Event {
 }
 
 model Market {
-  id        String   @id @default(cuid())
-  eventId   String
-  event     Event    @relation(fields: [eventId], references: [id])
-  ticker    String
-  title     String
-  yesPrice  Float
-  noPrice   Float
-  volume    Float?
-  change24h Float?
-  category  String?
-  dflowData Json?
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(cuid())
+  eventId        String
+  event          Event    @relation(fields: [eventId], references: [id])
+  ticker         String
+  title          String
+  yesPrice       Float
+  noPrice        Float
+  volume         Float?
+  change24h      Float?
+  category       String?
+  rulesPrimary   String?
+  closeTime      DateTime?
+  expirationTime DateTime?
+  dflowData      Json?
+  updatedAt      DateTime @updatedAt
 }
 
 model NewsItem {

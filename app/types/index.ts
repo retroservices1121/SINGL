@@ -5,7 +5,11 @@ export interface EventData {
   subtitle?: string | null;
   emoji?: string | null;
   color?: string | null;
+  imageUrl?: string | null;
   searchTerms: string[];
+  volume?: number | null;
+  liquidity?: number | null;
+  openInterest?: number | null;
   markets: MarketData[];
   newsItems: NewsItemData[];
   xPosts: XPostData[];
@@ -22,6 +26,9 @@ export interface MarketData {
   volume?: number | null;
   change24h?: number | null;
   category?: string | null;
+  rulesPrimary?: string | null;
+  closeTime?: string | null;
+  expirationTime?: string | null;
 }
 
 export interface NewsItemData {

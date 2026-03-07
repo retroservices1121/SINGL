@@ -27,23 +27,22 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ activeEventSlug: config.value, event });
 }
 
-// POST: set active event by slug, optionally with search terms
-// Body: { slug: string, title?: string, searchTerms?: string[], emoji?: string, subtitle?: string }
+// POST: set active event
 export async function POST(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const body = await req.json();
-  const { slug, title, searchTerms, emoji, subtitle, markets: rawMarkets } = body;
+  const { slug, title, searchTerms, emoji, subtitle, imageUrl, eventMeta, markets: rawMarkets } = body;
 
   if (!slug) {
     return NextResponse.json({ error: 'slug is required' }, { status: 400 });
   }
 
-  // Upsert the event
   const eventTitle = title || slug.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   const terms = searchTerms || [eventTitle];
+  const meta = eventMeta || {};
 
   let event = await prisma.event.upsert({
     where: { slug },
@@ -52,6 +51,10 @@ export async function POST(req: NextRequest) {
       searchTerms: terms,
       ...(emoji && { emoji }),
       ...(subtitle && { subtitle }),
+      ...(imageUrl && { imageUrl }),
+      volume: meta.volume ?? null,
+      liquidity: meta.liquidity ?? null,
+      openInterest: meta.openInterest ?? null,
     },
     create: {
       slug,
@@ -59,11 +62,15 @@ export async function POST(req: NextRequest) {
       searchTerms: terms,
       ...(emoji && { emoji }),
       ...(subtitle && { subtitle }),
+      ...(imageUrl && { imageUrl }),
+      volume: meta.volume ?? null,
+      liquidity: meta.liquidity ?? null,
+      openInterest: meta.openInterest ?? null,
     },
     include: { markets: true },
   });
 
-  // Save markets passed from admin UI
+  // Save markets
   let marketError: string | null = null;
   let receivedCount = 0;
 
@@ -75,6 +82,10 @@ export async function POST(req: NextRequest) {
     noBid?: string;
     noAsk?: string;
     volume?: number;
+    openInterest?: number;
+    rulesPrimary?: string;
+    closeTime?: number;
+    expirationTime?: number;
   }
 
   const marketList: RawMarket[] = Array.isArray(rawMarkets) ? rawMarkets : [];
@@ -90,9 +101,23 @@ export async function POST(req: NextRequest) {
           const yesAsk = parseFloat(m.yesAsk || '0') || 0;
           const noBid = parseFloat(m.noBid || '0') || 0;
           const noAsk = parseFloat(m.noAsk || '0') || 0;
-          const yesPrice = yesAsk > 0 && yesBid > 0 ? (yesBid + yesAsk) / 2 : yesAsk || yesBid || 0.5;
-          const noPrice = noAsk > 0 && noBid > 0 ? (noBid + noAsk) / 2 : noAsk || noBid || 0.5;
 
+          // Use midpoint if both available, otherwise use whichever exists
+          let yesPrice: number;
+          if (yesBid > 0 && yesAsk > 0) {
+            yesPrice = (yesBid + yesAsk) / 2;
+          } else {
+            yesPrice = yesAsk || yesBid || 0;
+          }
+
+          let noPrice: number;
+          if (noBid > 0 && noAsk > 0) {
+            noPrice = (noBid + noAsk) / 2;
+          } else {
+            noPrice = noAsk || noBid || 0;
+          }
+
+          // If both are 0, use 0 (not 0.5) — means no liquidity
           return prisma.market.create({
             data: {
               eventId: event.id,
@@ -101,6 +126,9 @@ export async function POST(req: NextRequest) {
               yesPrice: Math.round(yesPrice * 100) / 100,
               noPrice: Math.round(noPrice * 100) / 100,
               volume: m.volume ?? null,
+              rulesPrimary: m.rulesPrimary ?? null,
+              closeTime: m.closeTime ? new Date(m.closeTime * 1000) : null,
+              expirationTime: m.expirationTime ? new Date(m.expirationTime * 1000) : null,
               change24h: null,
               category: null,
             },

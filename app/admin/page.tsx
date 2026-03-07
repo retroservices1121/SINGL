@@ -11,13 +11,22 @@ interface MarketPreview {
   noBid: string;
   noAsk: string;
   volume: number;
+  openInterest: number;
+  rulesPrimary: string;
+  closeTime: number;
+  expirationTime: number;
 }
 
 interface EventResult {
   ticker: string;
   title: string;
   subtitle: string;
+  imageUrl: string;
   volume: number;
+  volume24h: number;
+  liquidity: number;
+  openInterest: number;
+  competition: string;
   marketCount: number;
   markets: MarketPreview[];
 }
@@ -86,7 +95,16 @@ export default function AdminPage() {
         body: JSON.stringify({
           slug,
           title: event.title,
+          subtitle: event.subtitle,
+          imageUrl: event.imageUrl,
           searchTerms: [event.title],
+          eventMeta: {
+            volume: event.volume,
+            volume24h: event.volume24h,
+            liquidity: event.liquidity,
+            openInterest: event.openInterest,
+            competition: event.competition,
+          },
           markets: event.markets
             .filter(m => m.status !== 'finalized' && m.status !== 'settled')
             .map(m => ({
@@ -97,6 +115,10 @@ export default function AdminPage() {
               noBid: m.noBid,
               noAsk: m.noAsk,
               volume: m.volume,
+              openInterest: m.openInterest,
+              rulesPrimary: m.rulesPrimary,
+              closeTime: m.closeTime,
+              expirationTime: m.expirationTime,
             })),
         }),
       });
