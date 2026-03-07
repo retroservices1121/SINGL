@@ -6,15 +6,15 @@ import type { TrendingEvent } from '@/app/types';
 import { slugify } from '@/app/lib/utils';
 
 const TRENDING_EVENTS: TrendingEvent[] = [
-  { slug: 'us-strikes-iran', title: 'US Strikes on Iran', emoji: '🎯', color: '#CC3344', subtitle: 'Military escalation odds' },
-  { slug: 'tsla-q1-earnings', title: 'TSLA Q1 Earnings', emoji: '📊', color: '#B87A00', subtitle: 'Tesla earnings predictions' },
-  { slug: 'ufc-314', title: 'UFC 314', emoji: '🥊', color: '#078A57', subtitle: 'Fight outcome markets' },
-  { slug: '2026-academy-awards', title: '2026 Academy Awards', emoji: '🏆', color: '#C93340', subtitle: 'Oscar winner predictions' },
-  { slug: 'bitcoin-halving', title: 'Bitcoin Halving', emoji: '₿', color: '#F2841A', subtitle: 'Crypto price predictions' },
-  { slug: 'fed-rate-decision', title: 'Fed Rate Decision', emoji: '🏦', color: '#2B6CB0', subtitle: 'Interest rate markets' },
-  { slug: '2026-midterms', title: '2026 Midterms', emoji: '🗳️', color: '#6B46C1', subtitle: 'Election outcome predictions' },
-  { slug: 'nba-finals-2026', title: 'NBA Finals 2026', emoji: '🏀', color: '#078A57', subtitle: 'Championship winner markets' },
-  { slug: 'ai-regulation-bill', title: 'AI Regulation Bill', emoji: '🤖', color: '#2B6CB0', subtitle: 'Tech policy predictions' },
+  { slug: '2028-presidential-election', title: '2028 Presidential Election', emoji: '🗳️', color: '#6B46C1', subtitle: '24 active markets' },
+  { slug: 'pro-basketball-champion', title: 'NBA Champion', emoji: '🏀', color: '#078A57', subtitle: '30 active markets' },
+  { slug: 'oscars-best-supporting-actor', title: 'Oscar Best Supporting Actor', emoji: '🏆', color: '#C93340', subtitle: '6 active markets' },
+  { slug: 'iran-supreme-leader', title: 'Next Supreme Leader of Iran', emoji: '🌍', color: '#CC3344', subtitle: '15 active markets' },
+  { slug: 'bitcoin-halving', title: 'Bitcoin Halving', emoji: '₿', color: '#F2841A', subtitle: 'When will it happen?' },
+  { slug: 'bitcoin-150k', title: 'Bitcoin to $150K', emoji: '📈', color: '#F2841A', subtitle: '3 active markets' },
+  { slug: 'midterms-2026', title: '2026 Midterms', emoji: '🏛️', color: '#2B6CB0', subtitle: 'Congress balance of power' },
+  { slug: 'strait-of-hormuz', title: 'Strait of Hormuz Crisis', emoji: '⚓', color: '#CC3344', subtitle: '3 active markets' },
+  { slug: 'congress-stock-trading-ban', title: 'Congress Stock Trading Ban', emoji: '📊', color: '#B87A00', subtitle: '2 active markets' },
 ];
 
 export default function EventPicker() {

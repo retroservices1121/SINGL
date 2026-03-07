@@ -19,16 +19,24 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
 
   if (!event) {
     // Auto-create event from slug
-    const title = slug
-      .split('-')
+    const words = slug.split('-');
+    const title = words
       .map(w => w.charAt(0).toUpperCase() + w.slice(1))
       .join(' ');
+
+    // Use full title plus key words as search terms for better DFlow matching
+    const searchTerms = [title];
+    // Also add shorter search variants (skip small words)
+    const keyWords = words.filter(w => w.length > 3).join(' ');
+    if (keyWords && keyWords !== title.toLowerCase()) {
+      searchTerms.push(keyWords);
+    }
 
     event = await prisma.event.create({
       data: {
         slug,
         title,
-        searchTerms: [title],
+        searchTerms,
       },
       include: {
         markets: true,
