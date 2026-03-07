@@ -8,5 +8,5 @@ const WalletMultiButton = dynamic(
 );
 
 export default function WalletButton() {
-  return <WalletMultiButton style={{ height: '36px', fontSize: '13px', borderRadius: '8px' }} />;
+  return <WalletMultiButton style={{ height: '36px', fontSize: '13px', borderRadius: '8px', backgroundColor: '#F2841A' }} />;
 }
