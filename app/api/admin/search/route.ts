@@ -40,12 +40,15 @@ export async function GET(req: NextRequest) {
       volume: e.volume,
       marketCount: Array.isArray(e.markets) ? (e.markets as unknown[]).length : 0,
       markets: Array.isArray(e.markets)
-        ? (e.markets as Record<string, unknown>[]).slice(0, 10).map(m => ({
+        ? (e.markets as Record<string, unknown>[]).slice(0, 20).map(m => ({
             ticker: m.ticker,
             title: m.yesSubTitle || m.subtitle || m.title,
             status: m.status,
             yesBid: m.yesBid,
             yesAsk: m.yesAsk,
+            noBid: m.noBid,
+            noAsk: m.noAsk,
+            volume: m.volume,
           }))
         : [],
     }));

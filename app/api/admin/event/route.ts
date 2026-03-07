@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/db';
-import { getMarkets, getMarketsByEventTicker } from '@/app/lib/dflow';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +35,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { slug, title, dflowTicker, searchTerms, emoji, subtitle } = body;
+  const { slug, title, searchTerms, emoji, subtitle, markets: rawMarkets } = body;
 
   if (!slug) {
     return NextResponse.json({ error: 'slug is required' }, { status: 400 });
@@ -64,32 +63,45 @@ export async function POST(req: NextRequest) {
     include: { markets: true },
   });
 
-  // Always refresh markets from DFlow
+  // Save markets passed from admin UI
   try {
-    // Delete old markets for this event
     await prisma.market.deleteMany({ where: { eventId: event.id } });
 
-    // Fetch fresh markets — use DFlow event ticker if available, otherwise search by title
-    const dflowMarkets = dflowTicker
-      ? await getMarketsByEventTicker(dflowTicker)
-      : await getMarkets(terms);
+    interface RawMarket {
+      ticker: string;
+      title: string;
+      yesBid?: string;
+      yesAsk?: string;
+      noBid?: string;
+      noAsk?: string;
+      volume?: number;
+    }
 
-    if (dflowMarkets.length > 0) {
+    const marketList: RawMarket[] = Array.isArray(rawMarkets) ? rawMarkets : [];
+
+    if (marketList.length > 0) {
       await Promise.all(
-        dflowMarkets.map(m =>
-          prisma.market.create({
+        marketList.map(m => {
+          const yesBid = parseFloat(m.yesBid || '0') || 0;
+          const yesAsk = parseFloat(m.yesAsk || '0') || 0;
+          const noBid = parseFloat(m.noBid || '0') || 0;
+          const noAsk = parseFloat(m.noAsk || '0') || 0;
+          const yesPrice = yesAsk > 0 && yesBid > 0 ? (yesBid + yesAsk) / 2 : yesAsk || yesBid || 0.5;
+          const noPrice = noAsk > 0 && noBid > 0 ? (noBid + noAsk) / 2 : noAsk || noBid || 0.5;
+
+          return prisma.market.create({
             data: {
               eventId: event.id,
               ticker: m.ticker,
               title: m.title,
-              yesPrice: m.yesPrice,
-              noPrice: m.noPrice,
-              volume: m.volume,
-              change24h: m.change24h,
-              category: m.category,
+              yesPrice: Math.round(yesPrice * 100) / 100,
+              noPrice: Math.round(noPrice * 100) / 100,
+              volume: m.volume ?? null,
+              change24h: null,
+              category: null,
             },
-          })
-        )
+          });
+        })
       );
     }
 
@@ -98,7 +110,7 @@ export async function POST(req: NextRequest) {
       include: { markets: true },
     }) as typeof event;
   } catch (err) {
-    console.error('DFlow market fetch error:', err);
+    console.error('Market save error:', err);
   }
 
   // Set as active event

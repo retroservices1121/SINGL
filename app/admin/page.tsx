@@ -8,6 +8,9 @@ interface MarketPreview {
   status: string;
   yesBid: string;
   yesAsk: string;
+  noBid: string;
+  noAsk: string;
+  volume: number;
 }
 
 interface EventResult {
@@ -83,8 +86,18 @@ export default function AdminPage() {
         body: JSON.stringify({
           slug,
           title: event.title,
-          dflowTicker: event.ticker,
           searchTerms: [event.title],
+          markets: event.markets
+            .filter(m => m.status !== 'finalized' && m.status !== 'settled')
+            .map(m => ({
+              ticker: m.ticker,
+              title: m.title,
+              yesBid: m.yesBid,
+              yesAsk: m.yesAsk,
+              noBid: m.noBid,
+              noAsk: m.noAsk,
+              volume: m.volume,
+            })),
         }),
       });
       const data = await res.json();
