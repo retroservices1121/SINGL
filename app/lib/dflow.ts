@@ -1,65 +1,139 @@
 import type { MarketData, KYCStatus, TradeParams } from '@/app/types';
 
-const METADATA = process.env.NEXT_PUBLIC_DFLOW_METADATA_URL || 'https://prediction-markets-api.dflow.net';
-const TRADE = process.env.NEXT_PUBLIC_DFLOW_TRADE_URL || 'https://quote-api.dflow.net';
+// DFlow API base URLs
+// Metadata API: market discovery, search, events, prices
+// Trade API: quotes, swaps, orders
+const METADATA = process.env.NEXT_PUBLIC_DFLOW_METADATA_URL || 'https://c.prediction-markets-api.dflow.net';
+const TRADE = process.env.NEXT_PUBLIC_DFLOW_TRADE_URL || 'https://c.quote-api.dflow.net';
 
-function deduplicateMarkets(markets: Record<string, unknown>[]): MarketData[] {
-  const seen = new Set<string>();
-  const deduped: MarketData[] = [];
-  for (const m of markets) {
-    const ticker = (m.ticker as string) || (m.id as string) || '';
-    if (seen.has(ticker)) continue;
-    seen.add(ticker);
-    deduped.push({
-      id: (m.id as string) || ticker,
-      eventId: '',
-      ticker,
-      title: (m.title as string) || (m.question as string) || '',
-      yesPrice: (m.yesPrice as number) ?? (m.yes_price as number) ?? 0.5,
-      noPrice: (m.noPrice as number) ?? (m.no_price as number) ?? 0.5,
-      volume: (m.volume as number) ?? null,
-      change24h: (m.change24h as number) ?? null,
-      category: (m.category as string) ?? null,
-    });
-  }
-  return deduped;
-}
-
-export async function getMarkets(searchTerms: string[]): Promise<MarketData[]> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+function getHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {};
   if (process.env.DFLOW_API_KEY) {
     headers['x-api-key'] = process.env.DFLOW_API_KEY;
   }
+  return headers;
+}
+
+interface DFlowMarket {
+  ticker?: string;
+  eventTicker?: string;
+  title?: string;
+  subtitle?: string;
+  yesSubTitle?: string;
+  noSubTitle?: string;
+  volume?: number;
+  openInterest?: number;
+  yesBid?: string;
+  yesAsk?: string;
+  noBid?: string;
+  noAsk?: string;
+  status?: string;
+  marketType?: string;
+}
+
+interface DFlowEvent {
+  ticker?: string;
+  title?: string;
+  subtitle?: string;
+  volume?: number;
+  volume24h?: number;
+  markets?: DFlowMarket[];
+}
+
+interface DFlowSearchResponse {
+  cursor?: number;
+  events?: DFlowEvent[];
+}
+
+function parseMarkets(events: DFlowEvent[]): MarketData[] {
+  const seen = new Set<string>();
+  const markets: MarketData[] = [];
+
+  for (const event of events) {
+    const eventMarkets = event.markets || [];
+    for (const m of eventMarkets) {
+      const ticker = m.ticker || '';
+      if (!ticker || seen.has(ticker)) continue;
+      // Skip finalized/settled markets
+      if (m.status === 'finalized' || m.status === 'settled') continue;
+      seen.add(ticker);
+
+      // DFlow returns prices as bid/ask strings like "0.65"
+      const yesBid = parseFloat(m.yesBid || '0') || 0;
+      const yesAsk = parseFloat(m.yesAsk || '0') || 0;
+      const noBid = parseFloat(m.noBid || '0') || 0;
+      const noAsk = parseFloat(m.noAsk || '0') || 0;
+
+      // Use midpoint of bid/ask as the display price
+      const yesPrice = yesAsk > 0 && yesBid > 0 ? (yesBid + yesAsk) / 2 : yesAsk || yesBid || 0.5;
+      const noPrice = noAsk > 0 && noBid > 0 ? (noBid + noAsk) / 2 : noAsk || noBid || 0.5;
+
+      // Build descriptive title from subtitle fields
+      const title = m.yesSubTitle || m.subtitle || m.title || event.title || '';
+
+      markets.push({
+        id: ticker,
+        eventId: '',
+        ticker,
+        title,
+        yesPrice: Math.round(yesPrice * 100) / 100,
+        noPrice: Math.round(noPrice * 100) / 100,
+        volume: m.volume ?? event.volume ?? null,
+        change24h: null,
+        category: m.marketType ?? null,
+      });
+    }
+  }
+
+  return markets;
+}
+
+export async function getMarkets(searchTerms: string[]): Promise<MarketData[]> {
+  const headers = getHeaders();
 
   const results = await Promise.all(
     searchTerms.map(term =>
-      fetch(`${METADATA}/api/v1/search/events?q=${encodeURIComponent(term)}&limit=10`, { headers })
-        .then(r => r.json())
-        .catch(() => ({ events: [] }))
+      fetch(
+        `${METADATA}/api/v1/search?q=${encodeURIComponent(term)}&limit=10&withNestedMarkets=true`,
+        { headers }
+      )
+        .then(r => {
+          if (!r.ok) throw new Error(`DFlow search returned ${r.status}`);
+          return r.json() as Promise<DFlowSearchResponse>;
+        })
+        .catch(err => {
+          console.error('DFlow search error:', err);
+          return { events: [] } as DFlowSearchResponse;
+        })
     )
   );
 
-  return deduplicateMarkets(results.flatMap((r: Record<string, unknown>) => (r.events as Record<string, unknown>[]) || []));
+  const allEvents = results.flatMap(r => r.events || []);
+  return parseMarkets(allEvents);
 }
 
 export async function checkKYCStatus(walletAddress: string): Promise<KYCStatus> {
-  const res = await fetch(`${TRADE}/api/v1/kyc/status`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(process.env.DFLOW_API_KEY && { 'x-api-key': process.env.DFLOW_API_KEY }),
-    },
-    method: 'POST',
-    body: JSON.stringify({ walletAddress }),
-  });
-  if (!res.ok) return { verified: false };
-  return res.json();
+  try {
+    const res = await fetch(`${TRADE}/api/v1/kyc/status`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...getHeaders(),
+      },
+      method: 'POST',
+      body: JSON.stringify({ walletAddress }),
+    });
+    if (!res.ok) return { verified: false };
+    return res.json();
+  } catch {
+    return { verified: false };
+  }
 }
 
 export async function initiateKYC(walletAddress: string): Promise<string> {
   const res = await fetch(`${TRADE}/api/v1/kyc/initiate`, {
     headers: {
       'Content-Type': 'application/json',
-      ...(process.env.DFLOW_API_KEY && { 'x-api-key': process.env.DFLOW_API_KEY }),
+      ...getHeaders(),
     },
     method: 'POST',
     body: JSON.stringify({ walletAddress }),
@@ -69,20 +143,23 @@ export async function initiateKYC(walletAddress: string): Promise<string> {
 }
 
 export async function buildTradeTransaction({ walletAddress, marketTicker, side, amount }: TradeParams) {
-  const res = await fetch(`${TRADE}/api/v1/order`, {
+  const res = await fetch(`${TRADE}/swap-instructions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(process.env.DFLOW_API_KEY && { 'x-api-key': process.env.DFLOW_API_KEY }),
+      ...getHeaders(),
     },
     body: JSON.stringify({
       userPublicKey: walletAddress,
       ticker: marketTicker,
       side,
       amount,
-      settlementMint: 'USDC',
     }),
   });
-  const { transaction } = await res.json();
-  return transaction;
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`Trade failed: ${(err as Record<string, string>).msg || res.statusText}`);
+  }
+  const data = await res.json();
+  return data;
 }
