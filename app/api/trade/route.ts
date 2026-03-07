@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { walletAddress, marketTicker, side, amount } = body;
+  const { walletAddress, marketTicker, marketTitle, eventSlug, eventTitle, side, amount, price } = body;
 
   if (!walletAddress || !marketTicker || !side || !amount) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -32,6 +32,22 @@ export async function POST(req: NextRequest) {
         grossAmount: amount,
         feeAmount: fee,
         netAmount,
+      },
+    });
+
+    // Record position
+    const shares = netAmount / (price || 0.5);
+    await prisma.position.create({
+      data: {
+        walletAddress,
+        marketTicker,
+        marketTitle: marketTitle || marketTicker,
+        eventSlug: eventSlug || '',
+        eventTitle: eventTitle || '',
+        side,
+        shares,
+        avgPrice: price || 0.5,
+        costBasis: netAmount,
       },
     });
 

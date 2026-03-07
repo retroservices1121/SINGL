@@ -90,3 +90,27 @@ model TradeFee {
   txSignature   String?
   createdAt     DateTime @default(now())
 }
+
+model SiteConfig {
+  id    String @id @default("singleton")
+  key   String @unique
+  value String
+}
+
+model Position {
+  id            String   @id @default(cuid())
+  walletAddress String
+  marketTicker  String
+  marketTitle   String
+  eventSlug     String
+  eventTitle    String
+  side          String
+  shares        Float
+  avgPrice      Float
+  costBasis     Float
+  status        String   @default("open")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([walletAddress, status])
+}

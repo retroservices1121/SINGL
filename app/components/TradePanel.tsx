@@ -1,6 +1,7 @@
 'use client';
 
 import { useTradeStore } from '@/app/store/tradeStore';
+import { useEventStore } from '@/app/store/eventStore';
 import { calculateFee } from '@/app/lib/fees';
 import { formatUSD, formatPercent } from '@/app/lib/utils';
 import Button from './ui/Button';
@@ -10,6 +11,7 @@ const PRESETS = [10, 25, 50, 100, 250];
 
 export default function TradePanel() {
   const { isOpen, market, side, amount, submitting, confirmed, txSignature, closeTrade, setAmount, setSubmitting, setConfirmed } = useTradeStore();
+  const currentEvent = useEventStore(s => s.currentEvent);
 
   if (!isOpen || !market) return null;
 
@@ -27,10 +29,14 @@ export default function TradePanel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           marketTicker: market.ticker,
+          marketTitle: market.title,
+          eventSlug: currentEvent?.slug || '',
+          eventTitle: currentEvent?.title || '',
           side,
           amount: netAmount,
           grossAmount: amount,
           feeAmount: fee,
+          price,
         }),
       });
       const data = await res.json();
