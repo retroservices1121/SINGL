@@ -16,7 +16,7 @@ export default async function EventSlugPage({ params }: { params: Promise<{ slug
               </svg>
             </Link>
             <Link href="/" className="font-heading text-xl font-bold text-[var(--orange)]">
-              SINGLS
+              SINGL
             </Link>
             <span className="text-xs font-bold text-[var(--yes)] bg-[var(--yes-bg)] px-2 py-0.5 rounded-full animate-pulse">
               LIVE
@@ -31,7 +31,7 @@ export default async function EventSlugPage({ params }: { params: Promise<{ slug
       {/* Footer */}
       <footer className="bg-[var(--paper)] border-t border-[var(--border)] px-4 py-6 text-center">
         <p className="text-xs text-[var(--text-dim)]">
-          <span className="font-heading font-bold text-[var(--orange)]">SINGLS</span> by Spredd Markets
+          <span className="font-heading font-bold text-[var(--orange)]">SINGL</span> by Spredd Markets
         </p>
       </footer>
     </div>

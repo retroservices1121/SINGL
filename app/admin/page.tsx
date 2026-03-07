@@ -104,7 +104,7 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen bg-[#1a1a2e] flex items-center justify-center p-4">
         <div className="bg-[#16213e] rounded-2xl p-8 max-w-sm w-full shadow-xl">
-          <h1 className="text-2xl font-bold text-white mb-1">SINGLS Admin</h1>
+          <h1 className="text-2xl font-bold text-white mb-1">SINGL Admin</h1>
           <p className="text-gray-400 text-sm mb-6">Enter your admin secret to continue</p>
           <input
             type="password"
@@ -130,7 +130,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-[#1a1a2e] text-white p-4">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold">SINGLS Admin</h1>
+          <h1 className="text-2xl font-bold">SINGL Admin</h1>
           <a href="/" className="text-orange-400 text-sm hover:underline">View Site</a>
         </div>
 

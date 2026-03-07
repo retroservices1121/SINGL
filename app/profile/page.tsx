@@ -10,7 +10,7 @@ export default function ProfilePage() {
       <nav className="bg-[var(--paper)] border-b border-[var(--border)] px-4 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/" className="font-heading text-xl font-bold text-[var(--orange)] hover:opacity-80 transition-opacity">
-            SINGLS
+            SINGL
           </Link>
           <div className="flex items-center gap-3">
             <Link

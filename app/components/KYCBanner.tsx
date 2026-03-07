@@ -43,7 +43,7 @@ export default function KYCBanner() {
     <div className="bg-[var(--orange-lt)] border border-[var(--orange)] rounded-xl px-4 py-3 flex items-center justify-between gap-4">
       <div>
         <p className="text-sm font-semibold text-[var(--text)]">Identity verification required</p>
-        <p className="text-xs text-[var(--text-sec)]">Verify your identity to start trading on SINGLS</p>
+        <p className="text-xs text-[var(--text-sec)]">Verify your identity to start trading on SINGL</p>
       </div>
       <Button variant="primary" size="sm" onClick={handleVerify} disabled={loading}>
         {loading ? 'Loading...' : 'Verify Now'}

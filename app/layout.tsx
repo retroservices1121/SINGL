@@ -3,10 +3,10 @@ import './globals.css';
 import Providers from './components/Providers';
 
 export const metadata: Metadata = {
-  title: 'SINGLS by Spredd Markets',
+  title: 'SINGL by Spredd Markets',
   description: 'Single-event prediction markets. Pick an event, trade the outcomes.',
   openGraph: {
-    title: 'SINGLS by Spredd Markets',
+    title: 'SINGL by Spredd Markets',
     description: 'Single-event prediction markets. Pick an event, trade the outcomes.',
     images: ['/singls-og.png'],
   },
