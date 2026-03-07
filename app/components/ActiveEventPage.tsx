@@ -9,10 +9,14 @@ export default function ActiveEventPage() {
   const [event, setEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [noEvent, setNoEvent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/active-event')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`API returned ${r.status}`);
+        return r.json();
+      })
       .then(data => {
         if (data.event) {
           setEvent(data.event);
@@ -21,7 +25,8 @@ export default function ActiveEventPage() {
         }
         setLoading(false);
       })
-      .catch(() => {
+      .catch(err => {
+        setError(err.message || 'Failed to load');
         setNoEvent(true);
         setLoading(false);
       });
@@ -45,6 +50,9 @@ export default function ActiveEventPage() {
         <p className="text-[var(--text-sec)] text-sm">
           Check back soon — the next market is being set up.
         </p>
+        {error && (
+          <p className="text-xs text-red-400 mt-4">Error: {error}</p>
+        )}
       </div>
     );
   }
