@@ -22,6 +22,7 @@
     "@solana/wallet-adapter-wallets": "^0.19.37",
     "@solana/web3.js": "^1.98.4",
     "@virtuals-protocol/game": "^0.1.14",
+    "@virtuals-protocol/game-twitter-node": "^0.1.4",
     "@wallet-standard/app": "^1.1.0",
     "@walletconnect/ethereum-provider": "^2.23.7",
     "@walletconnect/universal-provider": "^2.23.7",

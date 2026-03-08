@@ -11,6 +11,8 @@ import VideoFeed from './VideoFeed';
 import StatsBar from './StatsBar';
 import KYCBanner from './KYCBanner';
 import TradePanel from './TradePanel';
+import EventCountdown from './EventCountdown';
+import OrderBookDepth from './OrderBookDepth';
 
 interface EventPageProps {
   event: EventData;
@@ -80,6 +82,12 @@ export default function EventPage({ event }: EventPageProps) {
               No markets found for this event
             </div>
           )}
+        </section>
+
+        {/* Countdown & Order Book */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <EventCountdown markets={event.markets} />
+          <OrderBookDepth markets={event.markets} />
         </section>
 
         {/* Two-column: News & X Posts */}
