@@ -237,6 +237,23 @@ export default function AdminPage() {
                 </button>
                 <button
                   onClick={async () => {
+                    setMessage('Fetching News...');
+                    const res = await fetch(`/api/cron/news?secret=${encodeURIComponent(secret)}`);
+                    const data = await res.json();
+                    if (data.note) {
+                      setMessage(`News: ${data.note} (searched: ${(data.searchTerms || []).join(', ')})`);
+                    } else if (data.success) {
+                      setMessage(`News: ${data.created} new articles (${data.total} found)`);
+                    } else {
+                      setMessage(`News error: ${data.error}`);
+                    }
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-4 py-2 rounded-lg cursor-pointer transition-colors"
+                >
+                  Fetch News
+                </button>
+                <button
+                  onClick={async () => {
                     setMessage('Snapshotting prices...');
                     const res = await fetch(`/api/cron/prices?secret=${encodeURIComponent(secret)}`);
                     const data = await res.json();

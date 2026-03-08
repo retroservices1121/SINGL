@@ -3,16 +3,14 @@ import type { XPostData } from '@/app/types';
 /**
  * Twitter/X data collector using Virtuals Protocol G.A.M.E. Framework
  *
- * GAME_TWITTER_ACCESS_TOKEN (apx-...) — tried against known GAME proxy URLs
- * VIRTUALS_API_KEY (apt-...) — used with Virtuals API as fallback
+ * The GAME Twitter plugin proxies Twitter API v2 through:
+ *   https://twitter.game.virtuals.io/tweets/...
+ *
+ * The apx- token from `twitter-plugin-gamesdk auth` is the Bearer token.
  */
 
-// Known GAME Twitter proxy base URLs to try (virtuals-tweepy routes through these)
-const GAME_PROXY_BASES = [
-  'https://twitter-proxy.virtuals.io/2',
-  'https://api.game.virtuals.io/twitter/2',
-  'https://api.game.virtuals.io/api/twitter/2',
-];
+// GAME Twitter proxy — virtuals_tweepy routes tweepy calls through this
+const GAME_PROXY_BASE = 'https://twitter.game.virtuals.io/tweets';
 
 interface TwitterSearchResponse {
   data?: TwitterTweet[];
@@ -73,7 +71,7 @@ function parseTweetsFromResponse(data: TwitterSearchResponse): XPostData[] {
   });
 }
 
-async function searchViaGameProxy(query: string, maxResults: number = 10): Promise<{ posts: XPostData[]; base: string }> {
+async function searchViaGameProxy(query: string, maxResults: number = 10): Promise<XPostData[]> {
   const accessToken = process.env.GAME_TWITTER_ACCESS_TOKEN;
   if (!accessToken) throw new Error('No GAME_TWITTER_ACCESS_TOKEN');
 
@@ -85,88 +83,21 @@ async function searchViaGameProxy(query: string, maxResults: number = 10): Promi
     'user.fields': 'username,name,public_metrics',
   });
 
-  const errors: string[] = [];
+  const url = `${GAME_PROXY_BASE}/search/recent?${params}`;
+  console.log(`GAME Twitter proxy: ${url}`);
 
-  for (const base of GAME_PROXY_BASES) {
-    const url = `${base}/tweets/search/recent?${params}`;
-    try {
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
 
-      if (res.ok) {
-        const data: TwitterSearchResponse = await res.json();
-        return { posts: parseTweetsFromResponse(data), base };
-      }
-
-      const errText = await res.text();
-      errors.push(`${base}: ${res.status} ${errText.slice(0, 100)}`);
-    } catch (err) {
-      errors.push(`${base}: ${err instanceof Error ? err.message : String(err)}`);
-    }
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error('GAME proxy failed:', res.status, errText);
+    throw new Error(`GAME proxy ${res.status}: ${errText.slice(0, 200)}`);
   }
 
-  // Also try with x-api-key header instead of Bearer
-  for (const base of GAME_PROXY_BASES) {
-    const url = `${base}/tweets/search/recent?${params}`;
-    try {
-      const res = await fetch(url, {
-        headers: { 'x-api-key': accessToken },
-      });
-
-      if (res.ok) {
-        const data: TwitterSearchResponse = await res.json();
-        return { posts: parseTweetsFromResponse(data), base: `${base} (x-api-key)` };
-      }
-    } catch {}
-  }
-
-  throw new Error(`All GAME proxy URLs failed: ${errors.join(' | ')}`);
-}
-
-async function searchViaVirtualsAPI(query: string, maxResults: number = 10): Promise<XPostData[]> {
-  const apiKey = process.env.VIRTUALS_API_KEY;
-  if (!apiKey) return [];
-
-  // Try multiple Virtuals API endpoint patterns
-  const endpoints = [
-    { url: 'https://api.game.virtuals.io/api/v1/twitter/search', method: 'POST' },
-    { url: 'https://api.virtuals.io/api/v1/twitter/search', method: 'POST' },
-  ];
-
-  for (const ep of endpoints) {
-    try {
-      const res = await fetch(ep.url, {
-        method: ep.method,
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({ query, maxResults }),
-      });
-
-      if (!res.ok) continue;
-
-      const data = await res.json();
-      const tweets = data.tweets || data.data || data.results || [];
-      if (!Array.isArray(tweets) || tweets.length === 0) continue;
-
-      return tweets.map((tweet: Record<string, unknown>) => ({
-        id: '',
-        eventId: '',
-        tweetId: String(tweet.id || tweet.tweetId || ''),
-        name: String(tweet.authorName || tweet.name || tweet.author_name || 'Unknown'),
-        handle: String(tweet.authorHandle || tweet.handle || tweet.username || tweet.author_handle || 'unknown'),
-        text: String(tweet.text || tweet.content || tweet.full_text || ''),
-        time: String(tweet.createdAt || tweet.time || tweet.created_at || ''),
-        likes: String(tweet.likeCount || tweet.likes || tweet.like_count || 0),
-        retweets: String(tweet.retweetCount || tweet.retweets || tweet.retweet_count || 0),
-      }));
-    } catch {}
-  }
-
-  return [];
+  const data: TwitterSearchResponse = await res.json();
+  return parseTweetsFromResponse(data);
 }
 
 export async function fetchEventXPosts(searchTerms: string[]): Promise<XPostData[]> {
@@ -174,30 +105,12 @@ export async function fetchEventXPosts(searchTerms: string[]): Promise<XPostData
   const errors: string[] = [];
 
   for (const term of searchTerms) {
-    // Try GAME proxy first
-    if (process.env.GAME_TWITTER_ACCESS_TOKEN) {
-      try {
-        const { posts, base } = await searchViaGameProxy(term, 10);
-        console.log(`GAME proxy success via ${base}: ${posts.length} tweets for "${term}"`);
-        allPosts.push(...posts);
-        continue;
-      } catch (err) {
-        errors.push(err instanceof Error ? err.message : String(err));
-      }
-    }
-
-    // Fallback to Virtuals API
-    if (process.env.VIRTUALS_API_KEY) {
-      try {
-        const posts = await searchViaVirtualsAPI(term, 10);
-        if (posts.length > 0) {
-          console.log(`Virtuals API: ${posts.length} tweets for "${term}"`);
-          allPosts.push(...posts);
-          continue;
-        }
-      } catch (err) {
-        errors.push(`Virtuals: ${err instanceof Error ? err.message : String(err)}`);
-      }
+    try {
+      const posts = await searchViaGameProxy(term, 10);
+      console.log(`Twitter: ${posts.length} tweets for "${term}"`);
+      allPosts.push(...posts);
+    } catch (err) {
+      errors.push(err instanceof Error ? err.message : String(err));
     }
   }
 
