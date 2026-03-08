@@ -1,184 +1,258 @@
 import type { XPostData } from '@/app/types';
 
 /**
- * Twitter/X post fetcher
- *
- * The GAME apx- token only works with the Python virtuals_tweepy library,
- * not via raw HTTP. Instead we use free alternatives:
- * 1. Nitter/Xcancel RSS feeds (Twitter mirrors)
- * 2. Google News RSS filtered to x.com/twitter.com
+ * Twitter/X post fetcher using Twitter's public web API
+ * (same as what twitter.com uses for logged-out search)
  */
 
-const NITTER_INSTANCES = [
-  'https://xcancel.com',
-  'https://nitter.poast.org',
-  'https://nitter.privacydev.net',
-  'https://nitter.net',
-  'https://nitter.cz',
-];
+// Twitter's public bearer token — embedded in their web JS, not a secret
+const TWITTER_BEARER = 'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA';
 
-function parseRSSItems(xml: string): XPostData[] {
+let cachedGuestToken: { token: string; expires: number } | null = null;
+
+async function getGuestToken(): Promise<string> {
+  if (cachedGuestToken && cachedGuestToken.expires > Date.now()) {
+    return cachedGuestToken.token;
+  }
+
+  const res = await fetch('https://api.x.com/1.1/guest/activate.json', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${TWITTER_BEARER}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Guest token failed: ${res.status}`);
+  }
+
+  const data = await res.json();
+  cachedGuestToken = {
+    token: data.guest_token,
+    expires: Date.now() + 30 * 60 * 1000, // 30 min
+  };
+  return data.guest_token;
+}
+
+interface TweetResult {
+  rest_id: string;
+  core?: {
+    user_results?: {
+      result?: {
+        legacy?: {
+          name?: string;
+          screen_name?: string;
+        };
+      };
+    };
+  };
+  legacy?: {
+    full_text?: string;
+    created_at?: string;
+    favorite_count?: number;
+    retweet_count?: number;
+    id_str?: string;
+  };
+}
+
+function parseTweetEntries(data: Record<string, unknown>): XPostData[] {
   const posts: XPostData[] = [];
-  const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-  let match;
 
-  while ((match = itemRegex.exec(xml)) !== null && posts.length < 15) {
-    const item = match[1];
-    const title = item.match(/<title>([\s\S]*?)<\/title>/)?.[1]
-      ?.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim() || '';
-    const link = item.match(/<link>([\s\S]*?)<\/link>/)?.[1]?.trim() || '';
-    const pubDate = item.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1]?.trim() || '';
-    const creator = item.match(/<dc:creator>([\s\S]*?)<\/dc:creator>/)?.[1]
-      ?.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim() || '';
-    const description = item.match(/<description>([\s\S]*?)<\/description>/)?.[1]
-      ?.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/<[^>]+>/g, '').trim() || '';
+  try {
+    // Navigate the adaptive search response structure
+    const globalObjects = data.globalObjects as Record<string, unknown> | undefined;
+    if (globalObjects) {
+      // V1.1 adaptive search format
+      const tweets = globalObjects.tweets as Record<string, Record<string, unknown>> || {};
+      const users = globalObjects.users as Record<string, Record<string, unknown>> || {};
 
-    const handleMatch = link.match(/\/([^/]+)\/status/);
-    const handle = handleMatch?.[1] || creator?.replace('@', '') || 'unknown';
-    const tweetIdMatch = link.match(/status\/(\d+)/);
+      for (const tweetId of Object.keys(tweets)) {
+        const tweet = tweets[tweetId];
+        const userId = tweet.user_id_str as string;
+        const user = users[userId] || {};
 
-    const text = description || title;
-    if (!text) continue;
-
-    // Nitter creator format is often "@handle / Display Name" or just "@handle"
-    let displayName = handle;
-    if (creator) {
-      const nameParts = creator.split('/');
-      if (nameParts.length > 1) {
-        displayName = nameParts[1].trim();
-      } else {
-        displayName = creator.replace(/^@/, '');
+        posts.push({
+          id: '',
+          eventId: '',
+          tweetId: tweetId,
+          name: (user.name as string) || 'Unknown',
+          handle: (user.screen_name as string) || 'unknown',
+          text: (tweet.full_text as string) || '',
+          time: (tweet.created_at as string) || '',
+          likes: String(tweet.favorite_count || 0),
+          retweets: String(tweet.retweet_count || 0),
+        });
       }
     }
 
-    posts.push({
-      id: '',
-      eventId: '',
-      tweetId: tweetIdMatch?.[1] || '',
-      name: displayName,
-      handle,
-      text,
-      time: pubDate,
-      likes: '0',
-      retweets: '0',
-    });
+    // Also try timeline/search V2 format
+    if (posts.length === 0) {
+      const instructions = extractNestedValue(data, 'instructions') as unknown[];
+      if (Array.isArray(instructions)) {
+        for (const instruction of instructions) {
+          const entries = (instruction as Record<string, unknown>).entries as unknown[];
+          if (!Array.isArray(entries)) continue;
+          for (const entry of entries) {
+            const tweet = extractTweetFromEntry(entry as Record<string, unknown>);
+            if (tweet) posts.push(tweet);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[twitter] Parse error:', err);
   }
 
   return posts;
 }
 
-async function searchViaNitter(query: string): Promise<XPostData[]> {
-  for (const instance of NITTER_INSTANCES) {
-    try {
-      const url = `${instance}/search/rss?f=tweets&q=${encodeURIComponent(query)}`;
-      const res = await fetch(url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)' },
-        signal: AbortSignal.timeout(8000),
-      });
+function extractTweetFromEntry(entry: Record<string, unknown>): XPostData | null {
+  try {
+    const content = entry.content as Record<string, unknown>;
+    if (!content) return null;
 
-      if (!res.ok) continue;
+    const itemContent = (content.itemContent || content) as Record<string, unknown>;
+    const tweetResults = itemContent.tweet_results as Record<string, unknown>;
+    if (!tweetResults) return null;
 
-      const xml = await res.text();
-      const posts = parseRSSItems(xml);
+    const result = tweetResults.result as TweetResult;
+    if (!result?.legacy) return null;
 
-      if (posts.length > 0) {
-        console.log(`[twitter] ${instance}: ${posts.length} tweets for "${query}"`);
-        return posts;
-      }
-    } catch {
-      // Try next instance
-    }
+    const userLegacy = result.core?.user_results?.result?.legacy;
+
+    return {
+      id: '',
+      eventId: '',
+      tweetId: result.legacy.id_str || result.rest_id || '',
+      name: userLegacy?.name || 'Unknown',
+      handle: userLegacy?.screen_name || 'unknown',
+      text: result.legacy.full_text || '',
+      time: result.legacy.created_at || '',
+      likes: String(result.legacy.favorite_count || 0),
+      retweets: String(result.legacy.retweet_count || 0),
+    };
+  } catch {
+    return null;
   }
-
-  return [];
 }
 
-// Fallback: Google News RSS filtered to twitter.com / x.com
-async function searchViaGoogle(query: string): Promise<XPostData[]> {
-  try {
-    const googleQuery = `${query} site:x.com OR site:twitter.com`;
-    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(googleQuery)}&hl=en-US&gl=US&ceid=US:en`;
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
-      signal: AbortSignal.timeout(8000),
+function extractNestedValue(obj: unknown, key: string): unknown {
+  if (!obj || typeof obj !== 'object') return undefined;
+  const record = obj as Record<string, unknown>;
+  if (key in record) return record[key];
+  for (const k of Object.keys(record)) {
+    const found = extractNestedValue(record[k], key);
+    if (found !== undefined) return found;
+  }
+  return undefined;
+}
+
+async function searchTwitter(query: string, count: number = 20): Promise<XPostData[]> {
+  const guestToken = await getGuestToken();
+
+  const params = new URLSearchParams({
+    q: query,
+    count: String(count),
+    query_source: 'typed_query',
+    result_filter: 'latest',
+    tweet_mode: 'extended',
+    include_entities: 'true',
+    include_ext_media_availability: 'false',
+  });
+
+  const res = await fetch(
+    `https://api.x.com/1.1/search/tweets.json?${params}`,
+    {
+      headers: {
+        Authorization: `Bearer ${TWITTER_BEARER}`,
+        'x-guest-token': guestToken,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    // Try adaptive search endpoint as fallback
+    const params2 = new URLSearchParams({
+      q: query,
+      count: String(count),
+      query_source: 'typed_query',
+      requestContext: 'launch',
+      pc: '1',
+      spelling_corrections: '1',
     });
 
-    if (!res.ok) return [];
+    const res2 = await fetch(
+      `https://x.com/i/api/2/search/adaptive.json?${params2}`,
+      {
+        headers: {
+          Authorization: `Bearer ${TWITTER_BEARER}`,
+          'x-guest-token': guestToken,
+        },
+      }
+    );
 
-    const xml = await res.text();
-    const posts: XPostData[] = [];
-    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-    let match;
-
-    while ((match = itemRegex.exec(xml)) !== null && posts.length < 10) {
-      const item = match[1];
-      const title = item.match(/<title>([\s\S]*?)<\/title>/)?.[1]
-        ?.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim() || '';
-      const link = item.match(/<link>([\s\S]*?)<\/link>/)?.[1]?.trim() || '';
-      const pubDate = item.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1]?.trim() || '';
-      const source = item.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1]
-        ?.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim() || '';
-
-      // Extract handle from x.com or twitter.com URLs
-      const handleMatch = link.match(/(?:x\.com|twitter\.com)\/([^/]+)/);
-      const handle = handleMatch?.[1] || '';
-      const tweetIdMatch = link.match(/status\/(\d+)/);
-
-      if (!title) continue;
-
-      // Try to extract @handle and name from title (Google News often has "Author on X: ...")
-      const authorMatch = title.match(/^(.+?) on X:/);
-      const displayName = authorMatch?.[1] || source || handle || 'X User';
-
-      posts.push({
-        id: '',
-        eventId: '',
-        tweetId: tweetIdMatch?.[1] || `google-${posts.length}`,
-        name: displayName,
-        handle: handle || displayName.replace(/\s+/g, '').toLowerCase(),
-        text: authorMatch ? title.replace(/^.+? on X:\s*/, '').replace(/"/g, '') : title,
-        time: pubDate,
-        likes: '0',
-        retweets: '0',
-      });
+    if (!res2.ok) {
+      const errText = await res2.text().catch(() => '');
+      throw new Error(`Twitter search ${res.status}/${res2.status}: ${errText.slice(0, 150)}`);
     }
 
-    if (posts.length > 0) {
-      console.log(`[twitter] Google News: ${posts.length} tweets for "${query}"`);
-    }
-    return posts;
-  } catch {
-    return [];
+    const data2 = await res2.json();
+    return parseTweetEntries(data2);
   }
+
+  // Standard search/tweets.json response
+  const data = await res.json();
+  const statuses = data.statuses || [];
+
+  return statuses.map((tweet: Record<string, unknown>) => {
+    const user = tweet.user as Record<string, unknown> || {};
+    return {
+      id: '',
+      eventId: '',
+      tweetId: String(tweet.id_str || ''),
+      name: String(user.name || 'Unknown'),
+      handle: String(user.screen_name || 'unknown'),
+      text: String(tweet.full_text || tweet.text || ''),
+      time: String(tweet.created_at || ''),
+      likes: String(tweet.favorite_count || 0),
+      retweets: String(tweet.retweet_count || 0),
+    };
+  });
 }
 
 export async function fetchEventXPosts(searchTerms: string[]): Promise<XPostData[]> {
   const allPosts: XPostData[] = [];
+  const errors: string[] = [];
 
   for (const term of searchTerms) {
-    // Try Nitter instances first
-    const nitterPosts = await searchViaNitter(term);
-    if (nitterPosts.length > 0) {
-      allPosts.push(...nitterPosts);
-      continue;
-    }
-
-    // Fallback: Google News filtered to Twitter
-    const googlePosts = await searchViaGoogle(term);
-    if (googlePosts.length > 0) {
-      allPosts.push(...googlePosts);
+    try {
+      const posts = await searchTwitter(term, 15);
+      console.log(`[twitter] ${posts.length} tweets for "${term}"`);
+      allPosts.push(...posts);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[twitter] Error for "${term}":`, msg);
+      errors.push(msg);
     }
   }
 
-  // Deduplicate
+  if (allPosts.length === 0 && errors.length > 0) {
+    throw new Error(errors.join(' | '));
+  }
+
+  // Deduplicate by tweetId
   const seen = new Set<string>();
   const deduped: XPostData[] = [];
   for (const post of allPosts) {
-    const key = post.tweetId || post.text.slice(0, 50);
-    if (seen.has(key)) continue;
-    seen.add(key);
+    if (!post.tweetId || seen.has(post.tweetId)) continue;
+    seen.add(post.tweetId);
     deduped.push(post);
   }
 
-  return deduped;
+  // Sort by engagement
+  return deduped.sort((a, b) => {
+    const engA = parseInt(a.likes || '0') + parseInt(a.retweets || '0');
+    const engB = parseInt(b.likes || '0') + parseInt(b.retweets || '0');
+    return engB - engA;
+  });
 }
