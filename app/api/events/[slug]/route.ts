@@ -24,20 +24,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
       .map(w => w.charAt(0).toUpperCase() + w.slice(1))
       .join(' ');
 
-    // Use full title plus key words as search terms for better DFlow matching
     const searchTerms = [title];
-    // Also add shorter search variants (skip small words)
     const keyWords = words.filter(w => w.length > 3).join(' ');
     if (keyWords && keyWords !== title.toLowerCase()) {
       searchTerms.push(keyWords);
     }
 
     event = await prisma.event.create({
-      data: {
-        slug,
-        title,
-        searchTerms,
-      },
+      data: { slug, title, searchTerms },
       include: {
         markets: true,
         newsItems: { orderBy: { fetchedAt: 'desc' }, take: 20 },
@@ -47,16 +41,37 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
     });
   }
 
-  // Fetch fresh markets from DFlow if none cached
-  if (event.markets.length === 0 && event.searchTerms.length > 0) {
+  // Always fetch fresh market data from DFlow
+  if (event.searchTerms.length > 0) {
     try {
-      const dflowMarkets = await getMarkets(event.searchTerms);
-      if (dflowMarkets.length > 0) {
-        await Promise.all(
-          dflowMarkets.map(m =>
-            prisma.market.create({
+      const liveMarkets = await getMarkets(event.searchTerms);
+
+      if (liveMarkets.length > 0) {
+        // Update or create markets from live DFlow data
+        for (const m of liveMarkets) {
+          const existing = await prisma.market.findFirst({
+            where: { eventId: event.id, ticker: m.ticker },
+          });
+
+          if (existing) {
+            await prisma.market.update({
+              where: { id: existing.id },
               data: {
-                eventId: event!.id,
+                title: m.title,
+                yesPrice: m.yesPrice,
+                noPrice: m.noPrice,
+                volume: m.volume,
+                change24h: m.change24h,
+                category: m.category,
+                rulesPrimary: m.rulesPrimary,
+                closeTime: m.closeTime ? new Date(m.closeTime) : null,
+                expirationTime: m.expirationTime ? new Date(m.expirationTime) : null,
+              },
+            });
+          } else {
+            await prisma.market.create({
+              data: {
+                eventId: event.id,
                 ticker: m.ticker,
                 title: m.title,
                 yesPrice: m.yesPrice,
@@ -64,12 +79,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
                 volume: m.volume,
                 change24h: m.change24h,
                 category: m.category,
+                rulesPrimary: m.rulesPrimary,
+                closeTime: m.closeTime ? new Date(m.closeTime) : null,
+                expirationTime: m.expirationTime ? new Date(m.expirationTime) : null,
               },
-            })
-          )
-        );
+            });
+          }
+        }
 
-        // Re-fetch with new markets
+        // Re-fetch with updated markets
         event = await prisma.event.findUnique({
           where: { slug },
           include: {
@@ -78,7 +96,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
             xPosts: { orderBy: { fetchedAt: 'desc' }, take: 20 },
             videos: { orderBy: { fetchedAt: 'desc' }, take: 8 },
           },
-        });
+        }) as typeof event;
       }
     } catch (err) {
       console.error('DFlow market fetch error:', err);

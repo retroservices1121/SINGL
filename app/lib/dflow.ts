@@ -29,6 +29,9 @@ interface DFlowMarket {
   noAsk?: string;
   status?: string;
   marketType?: string;
+  rulesPrimary?: string;
+  closeTime?: number;
+  expirationTime?: number;
 }
 
 interface DFlowEvent {
@@ -81,6 +84,9 @@ function parseMarkets(events: DFlowEvent[]): MarketData[] {
         volume: m.volume ?? event.volume ?? null,
         change24h: null,
         category: m.marketType ?? null,
+        rulesPrimary: m.rulesPrimary ?? null,
+        closeTime: m.closeTime ? new Date(m.closeTime * 1000).toISOString() : null,
+        expirationTime: m.expirationTime ? new Date(m.expirationTime * 1000).toISOString() : null,
       });
     }
   }

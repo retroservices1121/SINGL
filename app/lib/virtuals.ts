@@ -1,81 +1,124 @@
 import type { XPostData } from '@/app/types';
-import { TwitterApi } from '@virtuals-protocol/game-twitter-node';
 
 /**
- * Twitter/X post fetcher using the official Virtuals GAME Twitter SDK
- * (@virtuals-protocol/game-twitter-node)
+ * Twitter/X post fetcher using the public syndication timeline API.
  *
- * Uses GAME_TWITTER_ACCESS_TOKEN (apx-...) for authentication.
+ * Fetches timelines from major news accounts and filters tweets
+ * matching the event search terms. No API key required.
  */
 
-function getTwitterClient(): TwitterApi | null {
-  const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
-  if (!token) return null;
-  return new TwitterApi({ gameTwitterAccessToken: token });
+const NEWS_ACCOUNTS = [
+  '60Minutes', 'CBSNews', 'CNN', 'FoxNews', 'MSNBC',
+  'AP', 'Reuters', 'BBCWorld', 'nikicohen_', 'POTUS',
+  'ABC', 'NBCNews', 'WSJ', 'NYTimes', 'washingtonpost',
+  'thehill', 'politabordeaux', 'CSPAN', 'pbsnewshour',
+];
+
+interface SyndicationTweet {
+  id_str?: string;
+  text?: string;
+  created_at?: string;
+  user?: {
+    name?: string;
+    screen_name?: string;
+  };
+  favorite_count?: number;
+  retweet_count?: number;
+  retweeted_tweet?: SyndicationTweet;
+}
+
+async function fetchUserTimeline(username: string): Promise<SyndicationTweet[]> {
+  try {
+    const res = await fetch(
+      `https://syndication.twitter.com/srv/timeline-profile/screen-name/${username}`,
+      {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'text/html',
+        },
+      }
+    );
+    if (!res.ok) return [];
+
+    const html = await res.text();
+
+    // Extract the __NEXT_DATA__ JSON from the HTML
+    const match = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+    if (!match) return [];
+
+    const nextData = JSON.parse(match[1]);
+    const entries = nextData?.props?.pageProps?.timeline?.entries || [];
+
+    const tweets: SyndicationTweet[] = [];
+    for (const entry of entries) {
+      if (entry.type !== 'tweet') continue;
+      const tweet = entry.content?.tweet;
+      if (!tweet) continue;
+      tweets.push(tweet);
+    }
+    return tweets;
+  } catch (err) {
+    console.error(`[twitter] Failed to fetch @${username}:`, err instanceof Error ? err.message : err);
+    return [];
+  }
+}
+
+function matchesSearchTerms(text: string, searchTerms: string[]): boolean {
+  const lower = text.toLowerCase();
+  for (const term of searchTerms) {
+    // Split term into keywords and check if most match
+    const words = term.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    const matched = words.filter(w => lower.includes(w));
+    if (matched.length >= Math.ceil(words.length * 0.5)) return true;
+  }
+  return false;
 }
 
 export async function fetchEventXPosts(searchTerms: string[]): Promise<XPostData[]> {
-  const client = getTwitterClient();
-  if (!client) {
-    throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+  if (searchTerms.length === 0) {
+    throw new Error('No search terms provided');
   }
 
-  const readOnly = client.readOnly;
   const allPosts: XPostData[] = [];
-  const errors: string[] = [];
 
-  for (const term of searchTerms) {
-    try {
-      const result = await readOnly.v2.search(term, {
-        max_results: 10,
-        'tweet.fields': ['created_at', 'public_metrics', 'author_id'],
-        expansions: ['author_id'],
-        'user.fields': ['name', 'username'],
-      });
+  // Fetch timelines in parallel batches of 5
+  for (let i = 0; i < NEWS_ACCOUNTS.length; i += 5) {
+    const batch = NEWS_ACCOUNTS.slice(i, i + 5);
+    const results = await Promise.all(batch.map(u => fetchUserTimeline(u)));
 
-      const users = new Map<string, { name: string; username: string }>();
-      if (result.includes?.users) {
-        for (const user of result.includes.users) {
-          users.set(user.id, { name: user.name, username: user.username });
-        }
-      }
-
-      const tweets = result.data ? Array.from(result.data as unknown as Iterable<any>) : [];
+    for (const tweets of results) {
       for (const tweet of tweets) {
-        const author = users.get(tweet.author_id || '');
-        const metrics = tweet.public_metrics;
+        // Use the original tweet text for retweets
+        const source = tweet.retweeted_tweet || tweet;
+        const text = source.text || tweet.text || '';
 
+        if (!matchesSearchTerms(text, searchTerms)) continue;
+
+        const user = tweet.user;
         allPosts.push({
           id: '',
           eventId: '',
-          tweetId: tweet.id,
-          name: author?.name || 'Unknown',
-          handle: author?.username || 'unknown',
-          text: tweet.text,
+          tweetId: tweet.id_str || '',
+          name: user?.name || 'Unknown',
+          handle: user?.screen_name || 'unknown',
+          text,
           time: tweet.created_at || '',
-          likes: String(metrics?.like_count || 0),
-          retweets: String(metrics?.retweet_count || 0),
+          likes: String(source.favorite_count || 0),
+          retweets: String(source.retweet_count || 0),
         });
       }
-
-      console.log(`[twitter] ${tweets.length} tweets for "${term}"`);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error(`[twitter] Error for "${term}":`, msg);
-      errors.push(msg);
     }
   }
 
-  if (allPosts.length === 0 && errors.length > 0) {
-    throw new Error(errors.join(' | '));
-  }
+  console.log(`[twitter] Found ${allPosts.length} matching tweets from ${NEWS_ACCOUNTS.length} accounts`);
 
-  // Deduplicate by tweetId
+  // Deduplicate by text similarity (same tweet retweeted by multiple accounts)
   const seen = new Set<string>();
   const deduped: XPostData[] = [];
   for (const post of allPosts) {
-    if (!post.tweetId || seen.has(post.tweetId)) continue;
-    seen.add(post.tweetId);
+    const key = post.tweetId || post.text.slice(0, 80);
+    if (seen.has(key)) continue;
+    seen.add(key);
     deduped.push(post);
   }
 

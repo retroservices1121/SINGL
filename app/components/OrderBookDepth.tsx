@@ -20,9 +20,9 @@ interface DepthData {
 export default function OrderBookDepth({ markets }: OrderBookDepthProps) {
   const [depthData, setDepthData] = useState<DepthData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
-    // Fetch live bid/ask from DFlow for each market
     async function fetchDepth() {
       try {
         const res = await fetch('/api/depth');
@@ -36,8 +36,7 @@ export default function OrderBookDepth({ markets }: OrderBookDepthProps) {
     fetchDepth();
   }, []);
 
-  // Fallback: show spread from stored prices
-  const sorted = [...markets].sort((a, b) => b.yesPrice - a.yesPrice).slice(0, 6);
+  const sorted = [...markets].sort((a, b) => b.yesPrice - a.yesPrice);
 
   const displayData = depthData.length > 0 ? depthData : sorted.map(m => ({
     ticker: m.ticker,
@@ -51,6 +50,9 @@ export default function OrderBookDepth({ markets }: OrderBookDepthProps) {
 
   if (displayData.length === 0) return null;
 
+  const visibleData = expanded ? displayData : displayData.slice(0, 5);
+  const hasMore = displayData.length > 5;
+
   return (
     <div className="bg-[var(--paper)] border border-[var(--border)] rounded-xl overflow-hidden">
       <div className="px-4 py-2.5 border-b border-[var(--border)] bg-[var(--cream)]">
@@ -60,11 +62,10 @@ export default function OrderBookDepth({ markets }: OrderBookDepthProps) {
       </div>
 
       <div className="divide-y divide-[var(--border)]">
-        {displayData.map((d, i) => {
+        {visibleData.map((d, i) => {
           const yesBidPct = Math.round(d.yesBid * 100);
           const yesAskPct = Math.round(d.yesAsk * 100);
           const spreadCents = Math.max(1, yesAskPct - yesBidPct);
-          const midpoint = (yesBidPct + yesAskPct) / 2;
 
           return (
             <div key={d.ticker || i} className="px-4 py-3">
@@ -116,6 +117,15 @@ export default function OrderBookDepth({ markets }: OrderBookDepthProps) {
           );
         })}
       </div>
+
+      {hasMore && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="w-full px-4 py-2.5 text-xs font-semibold text-[var(--orange)] hover:bg-[var(--cream)] border-t border-[var(--border)] transition-colors"
+        >
+          {expanded ? 'Show less' : `Show all ${displayData.length} markets`}
+        </button>
+      )}
     </div>
   );
 }

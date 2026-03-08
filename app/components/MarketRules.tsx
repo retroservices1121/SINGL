@@ -25,12 +25,6 @@ export default function MarketRules({ markets }: MarketRulesProps) {
   const rulesList = Array.from(rulesMap.values());
   if (rulesList.length === 0) return null;
 
-  // If all rules follow same pattern, show a general one + first specific example
-  const firstRule = rulesList[0];
-  const allSamePattern = rulesList.length > 1 && rulesList.every(r =>
-    r.rules.includes('resolves to Yes')
-  );
-
   return (
     <div className="bg-[var(--paper)] border border-[var(--border)] rounded-xl overflow-hidden">
       <button
@@ -48,42 +42,19 @@ export default function MarketRules({ markets }: MarketRulesProps) {
 
       {expanded && (
         <div className="px-5 pb-5 space-y-4">
-          {allSamePattern ? (
-            <>
-              <div>
-                <p className="text-sm font-semibold text-[var(--orange)] mb-2">{firstRule.title}</p>
-                <p className="text-sm text-[var(--text-sec)] leading-relaxed">{firstRule.rules}</p>
-              </div>
-              {firstRule.expires && (
-                <p className="text-xs text-[var(--text-dim)]">
-                  Note: this event is mutually exclusive. Expires{' '}
-                  {new Date(firstRule.expires).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric',
+          {rulesList.map((r, i) => (
+            <div key={i}>
+              <p className="text-sm font-semibold text-[var(--orange)] mb-1">{r.title}</p>
+              <p className="text-sm text-[var(--text-sec)] leading-relaxed whitespace-pre-line">{r.rules}</p>
+              {r.expires && (
+                <p className="text-xs text-[var(--text-dim)] mt-1">
+                  Expires {new Date(r.expires).toLocaleDateString('en-US', {
+                    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
                   })}
                 </p>
               )}
-              <p className="text-xs text-[var(--text-dim)] italic">
-                The same resolution pattern applies to all {rulesList.length} outcomes in this event.
-              </p>
-            </>
-          ) : (
-            rulesList.slice(0, 5).map((r, i) => (
-              <div key={i}>
-                <p className="text-sm font-semibold text-[var(--orange)] mb-1">{r.title}</p>
-                <p className="text-sm text-[var(--text-sec)] leading-relaxed">{r.rules}</p>
-                {r.expires && (
-                  <p className="text-xs text-[var(--text-dim)] mt-1">
-                    Expires {new Date(r.expires).toLocaleDateString('en-US', {
-                      month: 'short', day: 'numeric', year: 'numeric'
-                    })}
-                  </p>
-                )}
-              </div>
-            ))
-          )}
+            </div>
+          ))}
         </div>
       )}
     </div>
