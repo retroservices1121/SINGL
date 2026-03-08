@@ -70,6 +70,16 @@ export async function POST(req: NextRequest) {
     include: { markets: true },
   });
 
+  // If no markets provided, just update event metadata and return
+  if (!rawMarkets) {
+    await prisma.siteConfig.upsert({
+      where: { key: 'activeEventSlug' },
+      update: { value: slug },
+      create: { key: 'activeEventSlug', value: slug },
+    });
+    return NextResponse.json({ ok: true, activeEventSlug: slug, event });
+  }
+
   // Save markets
   let marketError: string | null = null;
   let receivedCount = 0;

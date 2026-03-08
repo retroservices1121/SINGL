@@ -28,6 +28,17 @@ export async function GET(req: NextRequest) {
 
   try {
     const videos = await fetchEventVideos(event.searchTerms);
+    if (videos.length === 0) {
+      return NextResponse.json({
+        success: true,
+        event: event.title,
+        searchTerms: event.searchTerms,
+        created: 0,
+        updated: 0,
+        total: 0,
+        note: 'No videos found. Try updating search terms in admin.',
+      });
+    }
     let created = 0;
     let updated = 0;
 

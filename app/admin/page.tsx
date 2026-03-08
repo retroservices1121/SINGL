@@ -33,7 +33,7 @@ interface EventResult {
 
 interface ActiveEvent {
   activeEventSlug: string | null;
-  event?: { slug: string; title: string; markets: { ticker: string; title: string }[] } | null;
+  event?: { slug: string; title: string; searchTerms: string[]; markets: { ticker: string; title: string }[] } | null;
 }
 
 export default function AdminPage() {
@@ -178,37 +178,84 @@ export default function AdminPage() {
               <p className="text-lg font-semibold text-orange-400">{active.event.title}</p>
               <p className="text-sm text-gray-400 mt-1">Slug: {active.activeEventSlug}</p>
               <p className="text-sm text-gray-400">{active.event.markets?.length || 0} markets</p>
+
+              {/* Search terms editor */}
+              <div className="mt-3">
+                <label className="text-xs font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                  Search Terms (for YouTube/Twitter)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    id="searchTermsInput"
+                    type="text"
+                    defaultValue={active.event.searchTerms?.join(', ') || ''}
+                    placeholder="e.g. WTI oil price, crude oil forecast"
+                    className="flex-1 border border-gray-600 bg-[#0f3460] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                  <button
+                    onClick={async () => {
+                      const input = document.getElementById('searchTermsInput') as HTMLInputElement;
+                      const terms = input.value.split(',').map(t => t.trim()).filter(Boolean);
+                      if (terms.length === 0) return;
+                      const res = await fetch('/api/admin/event', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-admin-secret': secret },
+                        body: JSON.stringify({ slug: active.activeEventSlug, searchTerms: terms }),
+                      });
+                      const data = await res.json();
+                      if (data.ok) {
+                        setMessage(`Search terms updated: ${terms.join(', ')}`);
+                        fetchActive(secret);
+                      }
+                    }}
+                    className="bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold px-4 py-2 rounded-lg cursor-pointer transition-colors"
+                  >
+                    Save
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Comma-separated. Used to search YouTube and Twitter for related content.</p>
+              </div>
+
+              {/* Cron triggers */}
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={async () => {
+                    setMessage('Fetching YouTube...');
+                    const res = await fetch(`/api/cron/youtube?secret=${encodeURIComponent(secret)}`);
+                    const data = await res.json();
+                    if (data.note) {
+                      setMessage(`YouTube: ${data.note} (searched: ${(data.searchTerms || []).join(', ')})`);
+                    } else if (data.success) {
+                      setMessage(`YouTube: ${data.created} new, ${data.updated} updated (${data.total} found)`);
+                    } else {
+                      setMessage(`YouTube error: ${data.error}`);
+                    }
+                  }}
+                  className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-lg cursor-pointer transition-colors"
+                >
+                  Fetch YouTube
+                </button>
+                <button
+                  onClick={async () => {
+                    setMessage('Fetching Twitter...');
+                    const res = await fetch(`/api/cron/twitter?secret=${encodeURIComponent(secret)}`);
+                    const data = await res.json();
+                    if (data.note) {
+                      setMessage(`Twitter: ${data.note} (searched: ${(data.searchTerms || []).join(', ')})`);
+                    } else if (data.success) {
+                      setMessage(`Twitter: ${data.created} new, ${data.updated} updated (${data.total} found)`);
+                    } else {
+                      setMessage(`Twitter error: ${data.error}`);
+                    }
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg cursor-pointer transition-colors"
+                >
+                  Fetch Twitter
+                </button>
+              </div>
             </div>
           ) : (
             <p className="text-gray-500">No active event set</p>
-          )}
-
-          {/* Cron triggers */}
-          {active?.event && (
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={async () => {
-                  setMessage('Fetching YouTube...');
-                  const res = await fetch(`/api/cron/youtube?secret=${encodeURIComponent(secret)}`);
-                  const data = await res.json();
-                  setMessage(data.success ? `YouTube: ${data.created} new, ${data.updated} updated` : `YouTube error: ${data.error}`);
-                }}
-                className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-lg cursor-pointer transition-colors"
-              >
-                Fetch YouTube
-              </button>
-              <button
-                onClick={async () => {
-                  setMessage('Fetching Twitter...');
-                  const res = await fetch(`/api/cron/twitter?secret=${encodeURIComponent(secret)}`);
-                  const data = await res.json();
-                  setMessage(data.success ? `Twitter: ${data.created} new, ${data.updated} updated` : `Twitter error: ${data.error}`);
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg cursor-pointer transition-colors"
-              >
-                Fetch Twitter
-              </button>
-            </div>
           )}
         </div>
 
