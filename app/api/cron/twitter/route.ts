@@ -22,10 +22,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Event not found or no search terms' }, { status: 404 });
   }
 
-  if (!process.env.GAME_TWITTER_ACCESS_TOKEN && !process.env.VIRTUALS_API_KEY) {
-    return NextResponse.json({ error: 'No Twitter/Virtuals API key set' }, { status: 500 });
-  }
-
   try {
     const posts = await fetchEventXPosts(event.searchTerms);
     if (posts.length === 0) {
@@ -43,12 +39,15 @@ export async function GET(req: NextRequest) {
     let updated = 0;
 
     for (const post of posts) {
-      if (!post.tweetId) continue;
+      // Generate a stable ID from text if no real tweetId
+      const tweetId = post.tweetId && !post.tweetId.startsWith('google-')
+        ? post.tweetId
+        : `x-${Buffer.from(post.text.slice(0, 80)).toString('base64url').slice(0, 32)}`;
 
-      const existing = await prisma.xPost.findUnique({ where: { tweetId: post.tweetId } });
+      const existing = await prisma.xPost.findUnique({ where: { tweetId } });
       if (existing) {
         await prisma.xPost.update({
-          where: { tweetId: post.tweetId },
+          where: { tweetId },
           data: { likes: post.likes, retweets: post.retweets },
         });
         updated++;
@@ -56,7 +55,7 @@ export async function GET(req: NextRequest) {
         await prisma.xPost.create({
           data: {
             eventId: event.id,
-            tweetId: post.tweetId,
+            tweetId,
             name: post.name,
             handle: post.handle,
             text: post.text,
