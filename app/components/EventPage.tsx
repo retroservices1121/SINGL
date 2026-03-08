@@ -73,7 +73,7 @@ export default function EventPage({ event }: EventPageProps) {
           </div>
           {event.markets.length > 0 ? (
             <div className="space-y-6">
-              <OutcomeChart markets={event.markets} eventId={event.id} />
+              <OutcomeChart markets={event.markets} eventId={event.id} volume={event.volume} />
               <OutcomeList markets={event.markets} />
               <MarketRules markets={event.markets} />
             </div>

@@ -9,8 +9,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'eventId required' }, { status: 400 });
   }
 
-  // Get snapshots from the last 7 days
-  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  // Support time range: 1d, 1w, 1m, all (default: all)
+  const range = req.nextUrl.searchParams.get('range') || 'all';
+  const rangeMs: Record<string, number> = {
+    '1d': 24 * 60 * 60 * 1000,
+    '1w': 7 * 24 * 60 * 60 * 1000,
+    '1m': 30 * 24 * 60 * 60 * 1000,
+  };
+
+  const since = rangeMs[range]
+    ? new Date(Date.now() - rangeMs[range])
+    : new Date(0);
 
   const snapshots = await prisma.priceSnapshot.findMany({
     where: {
@@ -20,7 +29,6 @@ export async function GET(req: NextRequest) {
     orderBy: { timestamp: 'asc' },
   });
 
-  // Group by marketTicker
   const byMarket: Record<string, { timestamp: string; yesPrice: number }[]> = {};
   for (const s of snapshots) {
     if (!byMarket[s.marketTicker]) byMarket[s.marketTicker] = [];
