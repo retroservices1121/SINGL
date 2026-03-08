@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import type { EventData } from '@/app/types';
 import { useEventStore } from '@/app/store/eventStore';
+import OutcomeChart from './OutcomeChart';
 import OutcomeList from './OutcomeList';
 import NewsFeed from './NewsFeed';
 import XFeed from './XFeed';
@@ -70,7 +71,10 @@ export default function EventPage({ event }: EventPageProps) {
             </span>
           </div>
           {event.markets.length > 0 ? (
-            <OutcomeList markets={event.markets} />
+            <div className="space-y-6">
+              <OutcomeChart markets={event.markets} />
+              <OutcomeList markets={event.markets} />
+            </div>
           ) : (
             <div className="text-center py-8 text-[var(--text-dim)] text-sm bg-[var(--paper)] border border-[var(--border)] rounded-xl">
               No markets found for this event

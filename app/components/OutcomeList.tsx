@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import type { MarketData } from '@/app/types';
 import { useTradeStore } from '@/app/store/tradeStore';
 import { formatPercent } from '@/app/lib/utils';
@@ -12,7 +11,6 @@ interface OutcomeListProps {
 
 export default function OutcomeList({ markets }: OutcomeListProps) {
   const openTrade = useTradeStore(s => s.openTrade);
-  const [expanded, setExpanded] = useState<string | null>(null);
 
   const sorted = [...markets].sort((a, b) => b.yesPrice - a.yesPrice);
 
@@ -28,8 +26,6 @@ export default function OutcomeList({ markets }: OutcomeListProps) {
       {/* Rows */}
       {sorted.map((market, i) => {
         const pct = Math.round(market.yesPrice * 100);
-        const isExpanded = expanded === (market.id || market.ticker);
-        const hasRules = !!market.rulesPrimary;
         const expiresAt = market.expirationTime ? new Date(market.expirationTime) : null;
 
         return (
@@ -39,18 +35,10 @@ export default function OutcomeList({ markets }: OutcomeListProps) {
           >
             <div className="grid grid-cols-[1fr_80px_100px] sm:grid-cols-[1fr_80px_140px] items-center px-4 py-3 hover:bg-[var(--cream)] transition-colors">
               {/* Outcome name + probability bar */}
-              <div
-                className={`pr-3 ${hasRules ? 'cursor-pointer' : ''}`}
-                onClick={() => hasRules && setExpanded(isExpanded ? null : (market.id || market.ticker))}
-              >
+              <div className="pr-3">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs font-bold text-[var(--text-dim)] w-5 shrink-0">{i + 1}</span>
                   <span className="text-sm font-semibold text-[var(--text)] leading-tight">{market.title}</span>
-                  {hasRules && (
-                    <svg className={`w-3.5 h-3.5 text-[var(--text-dim)] shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  )}
                 </div>
                 <div className="ml-7">
                   <div className="h-1.5 rounded-full bg-[var(--sand)] overflow-hidden">
@@ -83,21 +71,21 @@ export default function OutcomeList({ markets }: OutcomeListProps) {
               </div>
             </div>
 
-            {/* Expanded: Resolution criteria */}
-            {isExpanded && (
+            {/* Resolution criteria — always visible */}
+            {market.rulesPrimary && (
               <div className="px-4 pb-3 ml-11">
-                <div className="bg-[var(--cream)] rounded-lg p-3 text-xs space-y-2">
-                  <div>
-                    <span className="font-bold text-[var(--text-dim)] uppercase tracking-wider">Resolution Criteria</span>
-                    <p className="text-[var(--text-sec)] mt-1 leading-relaxed">{market.rulesPrimary}</p>
-                  </div>
+                <div className="bg-[var(--cream)] rounded-lg px-3 py-2 text-xs">
+                  <p className="text-[var(--text-sec)] leading-relaxed">
+                    <span className="font-bold text-[var(--text-dim)]">Resolution: </span>
+                    {market.rulesPrimary}
+                  </p>
                   {expiresAt && (
-                    <div className="flex items-center gap-1.5 text-[var(--text-dim)]">
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <p className="text-[var(--text-dim)] mt-1 flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <span>Expires: {expiresAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                    </div>
+                      Expires {expiresAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </p>
                   )}
                 </div>
               </div>
