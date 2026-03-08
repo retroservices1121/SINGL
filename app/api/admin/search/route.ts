@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const res = await fetch(
-      `${METADATA}/api/v1/search?q=${encodeURIComponent(q)}&limit=20&withNestedMarkets=true`,
+      `${METADATA}/api/v1/search?q=${encodeURIComponent(q)}&limit=40&withNestedMarkets=true`,
       { headers }
     );
     if (!res.ok) {
@@ -62,7 +62,23 @@ export async function GET(req: NextRequest) {
         : [],
     }));
 
-    return NextResponse.json({ events });
+    // Sort: events with active markets first, then by active count descending
+    interface MappedEvent {
+      ticker: string;
+      title: string;
+      marketCount: number;
+      markets: { status: string }[];
+      [key: string]: unknown;
+    }
+
+    const sorted = (events as MappedEvent[])
+      .map(e => {
+        const activeCount = e.markets.filter(m => m.status !== 'finalized' && m.status !== 'settled').length;
+        return { ...e, activeCount };
+      })
+      .sort((a, b) => b.activeCount - a.activeCount);
+
+    return NextResponse.json({ events: sorted });
   } catch (err) {
     console.error('Admin search error:', err);
     return NextResponse.json({ error: 'Search failed' }, { status: 500 });
