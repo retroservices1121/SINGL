@@ -6,8 +6,21 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get('event');
+  const query = req.nextUrl.searchParams.get('q');
+  const limit = parseInt(req.nextUrl.searchParams.get('limit') || '10');
+
+  // Search DFlow directly by query
+  if (query) {
+    try {
+      const results = await getMarkets([query]);
+      return NextResponse.json({ markets: results.slice(0, limit) });
+    } catch {
+      return NextResponse.json({ markets: [] });
+    }
+  }
+
   if (!slug) {
-    return NextResponse.json({ error: 'event slug required' }, { status: 400 });
+    return NextResponse.json({ error: 'event slug or q param required' }, { status: 400 });
   }
 
   const event = await prisma.event.findUnique({

@@ -55,63 +55,56 @@ export default function OrderBookDepth({ markets }: OrderBookDepthProps) {
 
   return (
     <div className="bg-[var(--paper)] border border-[var(--border)] rounded-xl overflow-hidden">
-      <div className="px-4 py-2.5 border-b border-[var(--border)] bg-[var(--cream)]">
+      {/* Header */}
+      <div className="px-4 py-2.5 border-b border-[var(--border)] bg-[var(--cream)] flex items-center justify-between">
         <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-dim)]">
           Order Book
         </span>
+        <div className="flex items-center gap-4 text-[10px] font-semibold text-[var(--text-dim)]">
+          <span>Bid</span>
+          <span>Ask</span>
+          <span>Spread</span>
+        </div>
       </div>
 
-      <div className="divide-y divide-[var(--border)]">
+      {/* Rows */}
+      <div>
         {visibleData.map((d, i) => {
           const yesBidPct = Math.round(d.yesBid * 100);
           const yesAskPct = Math.round(d.yesAsk * 100);
           const spreadCents = Math.max(1, yesAskPct - yesBidPct);
+          const isTight = spreadCents <= 2;
 
           return (
-            <div key={d.ticker || i} className="px-4 py-3">
-              <div className="text-sm font-medium text-[var(--text)] mb-2 truncate">{d.title}</div>
+            <div
+              key={d.ticker || i}
+              className="relative px-4 py-2.5 flex items-center justify-between group hover:bg-[var(--cream)] transition-colors"
+              style={{ borderBottom: i < visibleData.length - 1 ? '1px solid var(--border)' : 'none' }}
+            >
+              {/* Subtle bid depth background */}
+              <div
+                className="absolute inset-y-0 left-0 bg-emerald-50 opacity-40 pointer-events-none"
+                style={{ width: `${yesBidPct}%` }}
+              />
 
-              {/* Visual bid/ask bar */}
-              <div className="relative h-8 rounded-lg overflow-hidden bg-gray-100 mb-1.5">
-                {/* Bid side (green) */}
-                <div
-                  className="absolute top-0 left-0 h-full bg-emerald-100 border-r-2 border-emerald-400"
-                  style={{ width: `${yesBidPct}%` }}
-                >
-                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-emerald-700">
-                    {yesBidPct}c
-                  </span>
-                </div>
+              {/* Title */}
+              <span className="relative text-sm text-[var(--text)] truncate flex-1 mr-4">
+                {d.title}
+              </span>
 
-                {/* Ask side (red) */}
-                <div
-                  className="absolute top-0 right-0 h-full bg-red-100 border-l-2 border-red-400"
-                  style={{ width: `${100 - yesAskPct}%` }}
-                >
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold text-red-700">
-                    {yesAskPct}c
-                  </span>
-                </div>
-
-                {/* Spread gap in middle */}
-                {spreadCents > 1 && (
-                  <div
-                    className="absolute top-0 h-full flex items-center justify-center"
-                    style={{
-                      left: `${yesBidPct}%`,
-                      width: `${spreadCents}%`,
-                    }}
-                  >
-                    <span className="text-[10px] font-bold text-gray-500">{spreadCents}c</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Labels */}
-              <div className="flex justify-between text-[10px] text-[var(--text-dim)]">
-                <span>Bid {yesBidPct}c</span>
-                <span className="font-semibold">Spread {spreadCents}c</span>
-                <span>Ask {yesAskPct}c</span>
+              {/* Values */}
+              <div className="relative flex items-center gap-4 shrink-0">
+                <span className="text-sm font-mono font-semibold text-emerald-600 w-10 text-right">
+                  {yesBidPct}c
+                </span>
+                <span className="text-sm font-mono font-semibold text-red-500 w-10 text-right">
+                  {yesAskPct}c
+                </span>
+                <span className={`text-xs font-mono font-bold w-8 text-right ${
+                  isTight ? 'text-emerald-500' : 'text-[var(--text-dim)]'
+                }`}>
+                  {spreadCents}c
+                </span>
               </div>
             </div>
           );
@@ -121,7 +114,7 @@ export default function OrderBookDepth({ markets }: OrderBookDepthProps) {
       {hasMore && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="w-full px-4 py-2.5 text-xs font-semibold text-[var(--orange)] hover:bg-[var(--cream)] border-t border-[var(--border)] transition-colors"
+          className="w-full px-4 py-2 text-xs font-semibold text-[var(--orange)] hover:bg-[var(--cream)] border-t border-[var(--border)] transition-colors"
         >
           {expanded ? 'Show less' : `Show all ${displayData.length} markets`}
         </button>

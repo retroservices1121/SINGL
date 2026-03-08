@@ -12,6 +12,8 @@ import StatsBar from './StatsBar';
 import KYCBanner from './KYCBanner';
 import TradePanel from './TradePanel';
 import OrderBookDepth from './OrderBookDepth';
+import LivePulse from './LivePulse';
+import RelatedMarkets from './RelatedMarkets';
 
 interface EventPageProps {
   event: EventData;
@@ -83,9 +85,12 @@ export default function EventPage({ event }: EventPageProps) {
           )}
         </section>
 
-        {/* Order Book */}
-        <section className="mb-8">
-          <OrderBookDepth markets={event.markets} />
+        {/* Pulse & Order Book */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <LivePulse posts={event.xPosts} markets={event.markets} />
+          <div className="lg:col-span-2">
+            <OrderBookDepth markets={event.markets} />
+          </div>
         </section>
 
         {/* Two-column: News & X Posts */}
@@ -94,9 +99,15 @@ export default function EventPage({ event }: EventPageProps) {
           <XFeed posts={event.xPosts} />
         </section>
 
-        {/* Video Coverage */}
-        <section className="mb-8">
-          <VideoFeed videos={event.videos} />
+        {/* Video & Related */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-2">
+            <VideoFeed videos={event.videos} />
+          </div>
+          <RelatedMarkets
+            eventTitle={event.title}
+            currentTickers={event.markets.map(m => m.ticker)}
+          />
         </section>
       </div>
 
