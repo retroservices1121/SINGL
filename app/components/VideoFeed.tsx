@@ -18,7 +18,6 @@ export default function VideoFeed({ videos }: VideoFeedProps) {
   return (
     <div>
       <div className="flex items-center gap-2 mb-4">
-        <img src="/yt-logo.svg" alt="YouTube" className="h-4" />
         <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-dim)]">
           Video Coverage
         </h3>

@@ -60,7 +60,19 @@ export default function XFeed({ posts }: XFeedProps) {
             style={{ animationDelay: `${i * 40}ms` }}
           >
             <div className="flex items-start gap-2.5 mb-1.5">
-              <div className="w-8 h-8 rounded-full bg-[var(--sand)] flex-shrink-0 flex items-center justify-center text-xs font-bold text-[var(--text-sec)]">
+              {displayHandle ? (
+                <img
+                  src={`https://unavatar.io/twitter/${displayHandle}`}
+                  alt=""
+                  className="w-8 h-8 rounded-full bg-[var(--sand)] flex-shrink-0 object-cover"
+                  onError={(e) => {
+                    const el = e.currentTarget;
+                    el.style.display = 'none';
+                    el.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <div className={`w-8 h-8 rounded-full bg-[var(--sand)] flex-shrink-0 flex items-center justify-center text-xs font-bold text-[var(--text-sec)] ${displayHandle ? 'hidden' : ''}`}>
                 {(displayName || displayHandle || 'X').charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
