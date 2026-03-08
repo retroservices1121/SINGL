@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkKYCStatus, initiateKYC } from '@/app/lib/dflow';
 
 export const dynamic = 'force-dynamic';
 
+// DFlow Proof API — check wallet verification status
 export async function GET(req: NextRequest) {
   const wallet = req.nextUrl.searchParams.get('wallet');
   if (!wallet) {
@@ -10,24 +10,13 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const status = await checkKYCStatus(wallet);
-    return NextResponse.json(status);
+    const res = await fetch(`https://proof.dflow.net/verify/${wallet}`);
+    if (!res.ok) {
+      return NextResponse.json({ verified: false });
+    }
+    const data = await res.json();
+    return NextResponse.json({ verified: data.verified === true });
   } catch {
     return NextResponse.json({ verified: false });
-  }
-}
-
-export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { walletAddress } = body;
-  if (!walletAddress) {
-    return NextResponse.json({ error: 'walletAddress required' }, { status: 400 });
-  }
-
-  try {
-    const verificationUrl = await initiateKYC(walletAddress);
-    return NextResponse.json({ verificationUrl });
-  } catch {
-    return NextResponse.json({ error: 'Failed to initiate KYC' }, { status: 500 });
   }
 }

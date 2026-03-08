@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import type { EventData } from '@/app/types';
 import { useEventStore } from '@/app/store/eventStore';
-import OutcomeChart from './OutcomeChart';
 import OutcomeList from './OutcomeList';
 import MarketRules from './MarketRules';
 import NewsFeed from './NewsFeed';
@@ -73,7 +72,6 @@ export default function EventPage({ event }: EventPageProps) {
           </div>
           {event.markets.length > 0 ? (
             <div className="space-y-6">
-              <OutcomeChart markets={event.markets} eventId={event.id} volume={event.volume} />
               <OutcomeList markets={event.markets} />
               <MarketRules markets={event.markets} />
             </div>
