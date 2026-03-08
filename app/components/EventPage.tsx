@@ -5,6 +5,7 @@ import type { EventData } from '@/app/types';
 import { useEventStore } from '@/app/store/eventStore';
 import OutcomeChart from './OutcomeChart';
 import OutcomeList from './OutcomeList';
+import MarketRules from './MarketRules';
 import NewsFeed from './NewsFeed';
 import XFeed from './XFeed';
 import VideoFeed from './VideoFeed';
@@ -74,6 +75,7 @@ export default function EventPage({ event }: EventPageProps) {
             <div className="space-y-6">
               <OutcomeChart markets={event.markets} />
               <OutcomeList markets={event.markets} />
+              <MarketRules markets={event.markets} />
             </div>
           ) : (
             <div className="text-center py-8 text-[var(--text-dim)] text-sm bg-[var(--paper)] border border-[var(--border)] rounded-xl">
