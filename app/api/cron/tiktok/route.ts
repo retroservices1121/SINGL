@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchEventInstaPosts } from '@/app/lib/instagram';
+import { fetchEventTikToks } from '@/app/lib/tiktok';
 import { prisma } from '@/app/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -22,8 +22,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const posts = await fetchEventInstaPosts(event.searchTerms);
-    if (posts.length === 0) {
+    const tiktoks = await fetchEventTikToks(event.searchTerms);
+    if (tiktoks.length === 0) {
       return NextResponse.json({
         success: true,
         event: event.title,
@@ -31,43 +31,43 @@ export async function GET(req: NextRequest) {
         created: 0,
         updated: 0,
         total: 0,
-        note: 'No Instagram posts found.',
+        note: 'No TikTok videos found.',
       });
     }
 
     let created = 0;
     let updated = 0;
 
-    for (const post of posts) {
-      const postId = post.postId || `ig-${Buffer.from(post.permalink).toString('base64url').slice(0, 32)}`;
+    for (const tt of tiktoks) {
+      const videoId = tt.videoId || `tt-${Buffer.from(tt.videoUrl).toString('base64url').slice(0, 32)}`;
 
-      const existing = await prisma.instaPost.findUnique({ where: { postId } });
+      const existing = await prisma.tikTok.findUnique({ where: { videoId } });
       if (existing) {
-        await prisma.instaPost.update({
-          where: { postId },
-          data: { likes: post.likes },
+        await prisma.tikTok.update({
+          where: { videoId },
+          data: { likes: tt.likes, views: tt.views },
         });
         updated++;
       } else {
-        await prisma.instaPost.create({
+        await prisma.tikTok.create({
           data: {
             eventId: event.id,
-            postId,
-            username: post.username,
-            caption: post.caption,
-            imageUrl: post.imageUrl,
-            permalink: post.permalink,
-            likes: post.likes,
-            timestamp: post.timestamp,
+            videoId,
+            username: tt.username,
+            caption: tt.caption,
+            thumbnail: tt.thumbnail,
+            videoUrl: tt.videoUrl,
+            likes: tt.likes,
+            views: tt.views,
           },
         });
         created++;
       }
     }
 
-    return NextResponse.json({ success: true, event: event.title, created, updated, total: posts.length });
+    return NextResponse.json({ success: true, event: event.title, created, updated, total: tiktoks.length });
   } catch (err) {
-    console.error('Instagram cron error:', err);
+    console.error('TikTok cron error:', err);
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Failed' }, { status: 500 });
   }
 }

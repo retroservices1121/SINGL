@@ -14,7 +14,7 @@ export async function register() {
       { name: 'news',    endpoint: '/api/cron/news',    intervalMs: 30 * 60 * 1000 },   // every 30 min
       { name: 'youtube', endpoint: '/api/cron/youtube', intervalMs: 60 * 60 * 1000 },   // every 1 hour
       { name: 'twitter',   endpoint: '/api/cron/twitter',    intervalMs: 15 * 60 * 1000 },   // every 15 min
-      { name: 'instagram', endpoint: '/api/cron/instagram',  intervalMs: 60 * 60 * 1000 },   // every 1 hour
+      { name: 'tiktok',    endpoint: '/api/cron/tiktok',     intervalMs: 60 * 60 * 1000 },   // every 1 hour
     ];
 
     // Wait 30s after startup before first run

@@ -14,7 +14,7 @@ export interface EventData {
   newsItems: NewsItemData[];
   xPosts: XPostData[];
   videos: VideoData[];
-  instaPosts: InstaPostData[];
+  tiktoks: TikTokData[];
 }
 
 export interface MarketData {
@@ -67,16 +67,16 @@ export interface VideoData {
   thumbnail?: string | null;
 }
 
-export interface InstaPostData {
+export interface TikTokData {
   id: string;
   eventId: string;
-  postId?: string | null;
+  videoId?: string | null;
   username: string;
   caption: string;
-  imageUrl?: string | null;
-  permalink: string;
+  thumbnail?: string | null;
+  videoUrl: string;
   likes?: string | null;
-  timestamp?: string | null;
+  views?: string | null;
 }
 
 export interface TradeParams {

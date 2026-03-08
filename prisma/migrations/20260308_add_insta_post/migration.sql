@@ -1,21 +1,24 @@
 -- CreateTable
-CREATE TABLE "InstaPost" (
+CREATE TABLE "TikTok" (
     "id" TEXT NOT NULL,
     "eventId" TEXT NOT NULL,
-    "postId" TEXT,
+    "videoId" TEXT,
     "username" TEXT NOT NULL,
     "caption" TEXT NOT NULL,
-    "imageUrl" TEXT,
-    "permalink" TEXT NOT NULL,
+    "thumbnail" TEXT,
+    "videoUrl" TEXT NOT NULL,
     "likes" TEXT,
-    "timestamp" TEXT,
+    "views" TEXT,
     "fetchedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "InstaPost_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "TikTok_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "InstaPost_postId_key" ON "InstaPost"("postId");
+CREATE UNIQUE INDEX "TikTok_videoId_key" ON "TikTok"("videoId");
 
 -- AddForeignKey
-ALTER TABLE "InstaPost" ADD CONSTRAINT "InstaPost_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "TikTok" ADD CONSTRAINT "TikTok_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- DropTable (cleanup Instagram if it was created)
+DROP TABLE IF EXISTS "InstaPost";

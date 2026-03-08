@@ -286,20 +286,20 @@ export default function AdminPage() {
                 </button>
                 <button
                   onClick={async () => {
-                    setMessage('Fetching Instagram...');
-                    const res = await fetch(`/api/cron/instagram?secret=${encodeURIComponent(secret)}`);
+                    setMessage('Fetching TikTok...');
+                    const res = await fetch(`/api/cron/tiktok?secret=${encodeURIComponent(secret)}`);
                     const data = await res.json();
                     if (data.note) {
-                      setMessage(`Instagram: ${data.note}`);
+                      setMessage(`TikTok: ${data.note}`);
                     } else if (data.success) {
-                      setMessage(`Instagram: ${data.created} new, ${data.updated} updated (${data.total} found)`);
+                      setMessage(`TikTok: ${data.created} new, ${data.updated} updated (${data.total} found)`);
                     } else {
-                      setMessage(`Instagram error: ${data.error}`);
+                      setMessage(`TikTok error: ${data.error}`);
                     }
                   }}
-                  className="bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold px-4 py-2 rounded-lg cursor-pointer transition-colors"
+                  className="bg-black hover:bg-gray-800 text-white text-xs font-bold px-4 py-2 rounded-lg cursor-pointer transition-colors"
                 >
-                  Fetch Instagram
+                  Fetch TikTok
                 </button>
               </div>
             </div>

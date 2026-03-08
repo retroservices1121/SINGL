@@ -14,7 +14,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
       newsItems: { orderBy: { fetchedAt: 'desc' }, take: 20 },
       xPosts: { orderBy: { fetchedAt: 'desc' }, take: 20 },
       videos: { orderBy: { fetchedAt: 'desc' }, take: 8 },
-      instaPosts: { orderBy: { fetchedAt: 'desc' }, take: 12 },
+      tiktoks: { orderBy: { fetchedAt: 'desc' }, take: 8 },
     },
   });
 
@@ -38,7 +38,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
         newsItems: { orderBy: { fetchedAt: 'desc' }, take: 20 },
         xPosts: { orderBy: { fetchedAt: 'desc' }, take: 20 },
         videos: { orderBy: { fetchedAt: 'desc' }, take: 8 },
-      instaPosts: { orderBy: { fetchedAt: 'desc' }, take: 12 },
+      tiktoks: { orderBy: { fetchedAt: 'desc' }, take: 8 },
       },
     });
   }
@@ -97,7 +97,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
             newsItems: { orderBy: { fetchedAt: 'desc' }, take: 20 },
             xPosts: { orderBy: { fetchedAt: 'desc' }, take: 20 },
             videos: { orderBy: { fetchedAt: 'desc' }, take: 8 },
-      instaPosts: { orderBy: { fetchedAt: 'desc' }, take: 12 },
+      tiktoks: { orderBy: { fetchedAt: 'desc' }, take: 8 },
           },
         }) as typeof event;
       }

@@ -14,7 +14,7 @@ import TradePanel from './TradePanel';
 import OrderBookDepth from './OrderBookDepth';
 import LivePulse from './LivePulse';
 import RelatedMarkets from './RelatedMarkets';
-import InstaFeed from './InstaFeed';
+import TikTokFeed from './TikTokFeed';
 
 interface EventPageProps {
   event: EventData;
@@ -100,10 +100,10 @@ export default function EventPage({ event }: EventPageProps) {
           <XFeed posts={event.xPosts} />
         </section>
 
-        {/* Instagram */}
-        {event.instaPosts && event.instaPosts.length > 0 && (
+        {/* TikTok */}
+        {event.tiktoks && event.tiktoks.length > 0 && (
           <section className="mb-8">
-            <InstaFeed posts={event.instaPosts} />
+            <TikTokFeed tiktoks={event.tiktoks} />
           </section>
         )}
 

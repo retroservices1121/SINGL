@@ -25,7 +25,7 @@ model Event {
   newsItems  NewsItem[]
   xPosts     XPost[]
   videos     Video[]
-  instaPosts InstaPost[]
+  tiktoks    TikTok[]
 }
 
 model Market {
@@ -87,17 +87,17 @@ model Video {
   fetchedAt  DateTime @default(now())
 }
 
-model InstaPost {
+model TikTok {
   id        String   @id @default(cuid())
   eventId   String
   event     Event    @relation(fields: [eventId], references: [id])
-  postId    String?  @unique
+  videoId   String?  @unique
   username  String
   caption   String
-  imageUrl  String?
-  permalink String
+  thumbnail String?
+  videoUrl  String
   likes     String?
-  timestamp String?
+  views     String?
   fetchedAt DateTime @default(now())
 }
 
