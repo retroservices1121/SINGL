@@ -21,10 +21,11 @@ model Event {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  markets   Market[]
-  newsItems NewsItem[]
-  xPosts    XPost[]
-  videos    Video[]
+  markets    Market[]
+  newsItems  NewsItem[]
+  xPosts     XPost[]
+  videos     Video[]
+  instaPosts InstaPost[]
 }
 
 model Market {
@@ -84,6 +85,20 @@ model Video {
   views      String?
   thumbnail  String?
   fetchedAt  DateTime @default(now())
+}
+
+model InstaPost {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+  postId    String?  @unique
+  username  String
+  caption   String
+  imageUrl  String?
+  permalink String
+  likes     String?
+  timestamp String?
+  fetchedAt DateTime @default(now())
 }
 
 model TradeFee {

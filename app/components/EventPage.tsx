@@ -14,6 +14,7 @@ import TradePanel from './TradePanel';
 import OrderBookDepth from './OrderBookDepth';
 import LivePulse from './LivePulse';
 import RelatedMarkets from './RelatedMarkets';
+import InstaFeed from './InstaFeed';
 
 interface EventPageProps {
   event: EventData;
@@ -98,6 +99,13 @@ export default function EventPage({ event }: EventPageProps) {
           <NewsFeed news={event.newsItems} />
           <XFeed posts={event.xPosts} />
         </section>
+
+        {/* Instagram */}
+        {event.instaPosts && event.instaPosts.length > 0 && (
+          <section className="mb-8">
+            <InstaFeed posts={event.instaPosts} />
+          </section>
+        )}
 
         {/* Video & Related */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

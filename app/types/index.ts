@@ -14,6 +14,7 @@ export interface EventData {
   newsItems: NewsItemData[];
   xPosts: XPostData[];
   videos: VideoData[];
+  instaPosts: InstaPostData[];
 }
 
 export interface MarketData {
@@ -64,6 +65,18 @@ export interface VideoData {
   duration?: string | null;
   views?: string | null;
   thumbnail?: string | null;
+}
+
+export interface InstaPostData {
+  id: string;
+  eventId: string;
+  postId?: string | null;
+  username: string;
+  caption: string;
+  imageUrl?: string | null;
+  permalink: string;
+  likes?: string | null;
+  timestamp?: string | null;
 }
 
 export interface TradeParams {

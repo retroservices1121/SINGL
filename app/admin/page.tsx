@@ -284,6 +284,23 @@ export default function AdminPage() {
                 >
                   Fetch Twitter
                 </button>
+                <button
+                  onClick={async () => {
+                    setMessage('Fetching Instagram...');
+                    const res = await fetch(`/api/cron/instagram?secret=${encodeURIComponent(secret)}`);
+                    const data = await res.json();
+                    if (data.note) {
+                      setMessage(`Instagram: ${data.note}`);
+                    } else if (data.success) {
+                      setMessage(`Instagram: ${data.created} new, ${data.updated} updated (${data.total} found)`);
+                    } else {
+                      setMessage(`Instagram error: ${data.error}`);
+                    }
+                  }}
+                  className="bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold px-4 py-2 rounded-lg cursor-pointer transition-colors"
+                >
+                  Fetch Instagram
+                </button>
               </div>
             </div>
           ) : (
