@@ -6,36 +6,61 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const secret = req.nextUrl.searchParams.get('secret');
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const events = await prisma.event.findMany();
+  // Only fetch for the active event
+  const config = await prisma.siteConfig.findUnique({ where: { key: 'activeEventSlug' } });
+  if (!config) {
+    return NextResponse.json({ error: 'No active event' }, { status: 404 });
+  }
 
-  for (const event of events) {
-    if (event.searchTerms.length === 0) continue;
+  const event = await prisma.event.findUnique({ where: { slug: config.value } });
+  if (!event || event.searchTerms.length === 0) {
+    return NextResponse.json({ error: 'Event not found or no search terms' }, { status: 404 });
+  }
 
+  if (!process.env.GAME_TWITTER_ACCESS_TOKEN && !process.env.VIRTUALS_API_KEY) {
+    return NextResponse.json({ error: 'No Twitter/Virtuals API key set' }, { status: 500 });
+  }
+
+  try {
     const posts = await fetchEventXPosts(event.searchTerms);
+    let created = 0;
+    let updated = 0;
 
     for (const post of posts) {
       if (!post.tweetId) continue;
 
-      await prisma.xPost.upsert({
-        where: { tweetId: post.tweetId },
-        update: { likes: post.likes, retweets: post.retweets },
-        create: {
-          eventId: event.id,
-          tweetId: post.tweetId,
-          name: post.name,
-          handle: post.handle,
-          text: post.text,
-          time: post.time,
-          likes: post.likes,
-          retweets: post.retweets,
-        },
-      });
+      const existing = await prisma.xPost.findUnique({ where: { tweetId: post.tweetId } });
+      if (existing) {
+        await prisma.xPost.update({
+          where: { tweetId: post.tweetId },
+          data: { likes: post.likes, retweets: post.retweets },
+        });
+        updated++;
+      } else {
+        await prisma.xPost.create({
+          data: {
+            eventId: event.id,
+            tweetId: post.tweetId,
+            name: post.name,
+            handle: post.handle,
+            text: post.text,
+            time: post.time,
+            likes: post.likes,
+            retweets: post.retweets,
+          },
+        });
+        created++;
+      }
     }
-  }
 
-  return NextResponse.json({ success: true, eventsProcessed: events.length });
+    return NextResponse.json({ success: true, event: event.title, created, updated, total: posts.length });
+  } catch (err) {
+    console.error('Twitter cron error:', err);
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Failed' }, { status: 500 });
+  }
 }

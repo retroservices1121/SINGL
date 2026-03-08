@@ -182,6 +182,34 @@ export default function AdminPage() {
           ) : (
             <p className="text-gray-500">No active event set</p>
           )}
+
+          {/* Cron triggers */}
+          {active?.event && (
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={async () => {
+                  setMessage('Fetching YouTube...');
+                  const res = await fetch(`/api/cron/youtube?secret=${encodeURIComponent(secret)}`);
+                  const data = await res.json();
+                  setMessage(data.success ? `YouTube: ${data.created} new, ${data.updated} updated` : `YouTube error: ${data.error}`);
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-lg cursor-pointer transition-colors"
+              >
+                Fetch YouTube
+              </button>
+              <button
+                onClick={async () => {
+                  setMessage('Fetching Twitter...');
+                  const res = await fetch(`/api/cron/twitter?secret=${encodeURIComponent(secret)}`);
+                  const data = await res.json();
+                  setMessage(data.success ? `Twitter: ${data.created} new, ${data.updated} updated` : `Twitter error: ${data.error}`);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg cursor-pointer transition-colors"
+              >
+                Fetch Twitter
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Search */}
