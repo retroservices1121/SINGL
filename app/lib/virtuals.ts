@@ -10,7 +10,8 @@ import type { XPostData } from '@/app/types';
  * 3. Set env var: GAME_TWITTER_ACCESS_TOKEN=apx-<your_token>
  */
 
-const TWITTER_API_BASE = 'https://api.twitter.com/2';
+// GAME Framework proxies Twitter API v2 — apx- tokens go here, not to api.twitter.com
+const TWITTER_API_BASE = 'https://twitter.game.virtuals.io/2';
 
 interface TwitterSearchResponse {
   data?: TwitterTweet[];
@@ -64,8 +65,9 @@ async function searchRecentTweets(query: string, maxResults: number = 10): Promi
     });
 
     if (!res.ok) {
-      console.error('Twitter search failed:', res.status, await res.text());
-      return [];
+      const errText = await res.text();
+      console.error('Twitter search failed:', res.status, errText);
+      throw new Error(`Twitter API ${res.status}: ${errText.slice(0, 200)}`);
     }
 
     const data: TwitterSearchResponse = await res.json();
@@ -96,7 +98,7 @@ async function searchRecentTweets(query: string, maxResults: number = 10): Promi
     });
   } catch (error) {
     console.error('Twitter search error:', error);
-    return [];
+    throw error;
   }
 }
 
@@ -106,13 +108,10 @@ export async function fetchEventXPosts(searchTerms: string[]): Promise<XPostData
     return fetchViaVirtualsAPI(searchTerms);
   }
 
-  const queries = searchTerms.map(term =>
-    `${term} prediction market OR Polymarket OR Kalshi`
-  );
-
+  // Search with just the terms — don't over-filter
   const allPosts: XPostData[] = [];
-  for (const query of queries) {
-    const posts = await searchRecentTweets(query, 10);
+  for (const term of searchTerms) {
+    const posts = await searchRecentTweets(term, 10);
     allPosts.push(...posts);
   }
 
@@ -137,13 +136,9 @@ async function fetchViaVirtualsAPI(searchTerms: string[]): Promise<XPostData[]> 
   if (!process.env.VIRTUALS_API_KEY) return [];
 
   try {
-    const queries = searchTerms.map(term =>
-      `${term} prediction market OR Polymarket OR Kalshi`
-    );
-
     const allPosts: XPostData[] = [];
 
-    for (const query of queries) {
+    for (const query of searchTerms) {
       const res = await fetch('https://api.virtuals.io/api/v1/twitter/search', {
         method: 'POST',
         headers: {

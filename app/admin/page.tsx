@@ -237,6 +237,21 @@ export default function AdminPage() {
                 </button>
                 <button
                   onClick={async () => {
+                    setMessage('Snapshotting prices...');
+                    const res = await fetch(`/api/cron/prices?secret=${encodeURIComponent(secret)}`);
+                    const data = await res.json();
+                    if (data.success) {
+                      setMessage(`Prices: ${data.snapshots} snapshots recorded`);
+                    } else {
+                      setMessage(`Prices error: ${data.error}`);
+                    }
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-4 py-2 rounded-lg cursor-pointer transition-colors"
+                >
+                  Snapshot Prices
+                </button>
+                <button
+                  onClick={async () => {
                     setMessage('Fetching Twitter...');
                     const res = await fetch(`/api/cron/twitter?secret=${encodeURIComponent(secret)}`);
                     const data = await res.json();
