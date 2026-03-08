@@ -15,23 +15,44 @@ async function getGuestToken(): Promise<string> {
     return cachedGuestToken.token;
   }
 
-  const res = await fetch('https://api.x.com/1.1/guest/activate.json', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${TWITTER_BEARER}`,
-    },
-  });
+  // Try both domains with browser-like headers
+  const urls = [
+    'https://api.twitter.com/1.1/guest/activate.json',
+    'https://api.x.com/1.1/guest/activate.json',
+  ];
 
-  if (!res.ok) {
-    throw new Error(`Guest token failed: ${res.status}`);
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${TWITTER_BEARER}`,
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': '*/*',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Origin': 'https://x.com',
+          'Referer': 'https://x.com/',
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.guest_token) {
+          cachedGuestToken = {
+            token: data.guest_token,
+            expires: Date.now() + 30 * 60 * 1000,
+          };
+          console.log(`[twitter] Guest token obtained via ${url}`);
+          return data.guest_token;
+        }
+      }
+      console.log(`[twitter] ${url}: ${res.status}`);
+    } catch (err) {
+      console.log(`[twitter] ${url}: ${err instanceof Error ? err.message : err}`);
+    }
   }
 
-  const data = await res.json();
-  cachedGuestToken = {
-    token: data.guest_token,
-    expires: Date.now() + 30 * 60 * 1000, // 30 min
-  };
-  return data.guest_token;
+  throw new Error('Guest token failed on all endpoints');
 }
 
 interface TweetResult {
@@ -161,7 +182,7 @@ async function searchTwitter(query: string, count: number = 20): Promise<XPostDa
   });
 
   const res = await fetch(
-    `https://api.x.com/1.1/search/tweets.json?${params}`,
+    `https://api.twitter.com/1.1/search/tweets.json?${params}`,
     {
       headers: {
         Authorization: `Bearer ${TWITTER_BEARER}`,
@@ -182,7 +203,7 @@ async function searchTwitter(query: string, count: number = 20): Promise<XPostDa
     });
 
     const res2 = await fetch(
-      `https://x.com/i/api/2/search/adaptive.json?${params2}`,
+      `https://api.twitter.com/2/search/adaptive.json?${params2}`,
       {
         headers: {
           Authorization: `Bearer ${TWITTER_BEARER}`,
