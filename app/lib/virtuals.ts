@@ -40,11 +40,22 @@ function parseRSSItems(xml: string): XPostData[] {
     const text = description || title;
     if (!text) continue;
 
+    // Nitter creator format is often "@handle / Display Name" or just "@handle"
+    let displayName = handle;
+    if (creator) {
+      const nameParts = creator.split('/');
+      if (nameParts.length > 1) {
+        displayName = nameParts[1].trim();
+      } else {
+        displayName = creator.replace(/^@/, '');
+      }
+    }
+
     posts.push({
       id: '',
       eventId: '',
       tweetId: tweetIdMatch?.[1] || '',
-      name: creator || handle,
+      name: displayName,
       handle,
       text,
       time: pubDate,
@@ -105,21 +116,27 @@ async function searchViaGoogle(query: string): Promise<XPostData[]> {
         ?.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim() || '';
       const link = item.match(/<link>([\s\S]*?)<\/link>/)?.[1]?.trim() || '';
       const pubDate = item.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1]?.trim() || '';
+      const source = item.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1]
+        ?.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim() || '';
 
       // Extract handle from x.com or twitter.com URLs
       const handleMatch = link.match(/(?:x\.com|twitter\.com)\/([^/]+)/);
-      const handle = handleMatch?.[1] || 'unknown';
+      const handle = handleMatch?.[1] || '';
       const tweetIdMatch = link.match(/status\/(\d+)/);
 
       if (!title) continue;
+
+      // Try to extract @handle and name from title (Google News often has "Author on X: ...")
+      const authorMatch = title.match(/^(.+?) on X:/);
+      const displayName = authorMatch?.[1] || source || handle || 'X User';
 
       posts.push({
         id: '',
         eventId: '',
         tweetId: tweetIdMatch?.[1] || `google-${posts.length}`,
-        name: handle,
-        handle,
-        text: title,
+        name: displayName,
+        handle: handle || displayName.replace(/\s+/g, '').toLowerCase(),
+        text: authorMatch ? title.replace(/^.+? on X:\s*/, '').replace(/"/g, '') : title,
         time: pubDate,
         likes: '0',
         retweets: '0',
