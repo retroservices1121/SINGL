@@ -1,6 +1,6 @@
 'use client';
 
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { useTradeStore } from '@/app/store/tradeStore';
 import { useEventStore } from '@/app/store/eventStore';
@@ -14,7 +14,8 @@ const PRESETS = [10, 25, 50, 100, 250];
 export default function TradePanel() {
   const { isOpen, market, side, amount, submitting, confirmed, txSignature, closeTrade, setAmount, setSubmitting, setConfirmed } = useTradeStore();
   const currentEvent = useEventStore(s => s.currentEvent);
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, signTransaction } = useWallet();
+  const { connection } = useConnection();
   const { setVisible } = useWalletModal();
 
   if (!isOpen || !market) return null;
@@ -31,8 +32,14 @@ export default function TradePanel() {
       return;
     }
 
+    if (!signTransaction) {
+      alert('Wallet does not support transaction signing');
+      return;
+    }
+
     setSubmitting(true);
     try {
+      // Step 1: Get the transaction from our API (which calls DFlow /order)
       const res = await fetch('/api/trade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -50,12 +57,39 @@ export default function TradePanel() {
         }),
       });
       const data = await res.json();
-      if (data.transaction) {
-        setConfirmed(data.transaction);
-      } else {
+
+      if (data.error) {
+        alert(data.error);
         setSubmitting(false);
+        return;
       }
-    } catch {
+
+      if (!data.transaction?.transaction) {
+        alert('No transaction returned. Wallet may need KYC verification.');
+        setSubmitting(false);
+        return;
+      }
+
+      // Step 2: Decode, sign, and send the transaction
+      const { VersionedTransaction } = await import('@solana/web3.js');
+      const txBuffer = Buffer.from(data.transaction.transaction, 'base64');
+      const tx = VersionedTransaction.deserialize(txBuffer);
+
+      const signedTx = await signTransaction(tx);
+      const signature = await connection.sendRawTransaction(signedTx.serialize(), {
+        skipPreflight: false,
+        maxRetries: 3,
+      });
+
+      // Wait for confirmation
+      await connection.confirmTransaction(signature, 'confirmed');
+
+      setConfirmed(signature);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Trade failed';
+      if (!msg.includes('rejected')) {
+        alert(msg);
+      }
       setSubmitting(false);
     }
   };

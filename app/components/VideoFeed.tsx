@@ -25,7 +25,7 @@ export default function VideoFeed({ videos }: VideoFeedProps) {
           {videos.length}
         </span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {videos.map((video, i) => (
           <a
             key={video.id || i}

@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Record position
+    // Record position (pending until confirmed on-chain)
     const shares = netAmount / (price || 0.5);
     await prisma.position.create({
       data: {
@@ -53,7 +53,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ transaction, fee, netAmount });
   } catch (err) {
-    console.error('Trade build error:', err);
-    return NextResponse.json({ error: 'Failed to build transaction' }, { status: 500 });
+    const msg = err instanceof Error ? err.message : 'Failed to build transaction';
+    console.error('Trade build error:', msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

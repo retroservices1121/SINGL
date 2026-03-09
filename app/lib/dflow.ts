@@ -176,24 +176,63 @@ export async function initiateKYC(walletAddress: string): Promise<string> {
   return data.verificationUrl;
 }
 
+const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+interface MarketAccounts {
+  yesMint: string;
+  noMint: string;
+  isInitialized: boolean;
+}
+
+async function getOutcomeMint(marketTicker: string, side: 'yes' | 'no'): Promise<string> {
+  const headers = getHeaders();
+
+  const res = await fetch(`${METADATA}/api/v1/market/${marketTicker}`, { headers });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch market ${marketTicker}: ${res.status}`);
+  }
+
+  const market = await res.json();
+  const accounts = market.accounts || {};
+
+  // Look for USDC collateral accounts
+  const usdcAccounts: MarketAccounts | undefined = accounts[USDC_MINT];
+  if (!usdcAccounts) {
+    // Try the first available collateral
+    const firstKey = Object.keys(accounts)[0];
+    if (!firstKey) throw new Error('No market accounts found');
+    const fallback = accounts[firstKey] as MarketAccounts;
+    return side === 'yes' ? fallback.yesMint : fallback.noMint;
+  }
+
+  return side === 'yes' ? usdcAccounts.yesMint : usdcAccounts.noMint;
+}
+
 export async function buildTradeTransaction({ walletAddress, marketTicker, side, amount }: TradeParams) {
-  const res = await fetch(`${TRADE}/swap-instructions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getHeaders(),
-    },
-    body: JSON.stringify({
-      userPublicKey: walletAddress,
-      ticker: marketTicker,
-      side,
-      amount,
-    }),
+  // Step 1: Get the outcome mint address for this market + side
+  const outputMint = await getOutcomeMint(marketTicker, side);
+
+  // Amount in USDC smallest unit (6 decimals)
+  const scaledAmount = Math.round(amount * 1_000_000);
+
+  // Step 2: Call /order to get the transaction
+  const params = new URLSearchParams({
+    inputMint: USDC_MINT,
+    outputMint,
+    amount: String(scaledAmount),
+    userPublicKey: walletAddress,
+    slippageBps: '100', // 1% slippage
   });
+
+  const res = await fetch(`${TRADE}/order?${params}`, {
+    headers: getHeaders(),
+  });
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(`Trade failed: ${(err as Record<string, string>).msg || res.statusText}`);
   }
+
   const data = await res.json();
   return data;
 }
