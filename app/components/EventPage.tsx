@@ -12,7 +12,6 @@ import StatsBar from './StatsBar';
 import KYCBanner from './KYCBanner';
 import TradePanel from './TradePanel';
 import OrderBookDepth from './OrderBookDepth';
-import PriceChart from './PriceChart';
 import RelatedMarkets from './RelatedMarkets';
 import TikTokFeed from './TikTokFeed';
 
@@ -75,10 +74,7 @@ export default function EventPage({ event }: EventPageProps) {
             </span>
           </div>
           {event.markets.length > 0 ? (
-            <div className="space-y-6">
-              <OutcomeList markets={event.markets} />
-              <MarketRules markets={event.markets} />
-            </div>
+            <OutcomeList markets={event.markets} />
           ) : (
             <div className="text-center py-8 text-[var(--text-dim)] text-sm bg-[var(--paper)] border border-[var(--border)] rounded-xl">
               No markets found for this event
@@ -86,9 +82,9 @@ export default function EventPage({ event }: EventPageProps) {
           )}
         </section>
 
-        {/* Price Chart & Order Book */}
+        {/* Market Rules & Order Book */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <PriceChart eventId={event.id} markets={event.markets} />
+          <MarketRules markets={event.markets} />
           <OrderBookDepth markets={event.markets} />
         </section>
 
