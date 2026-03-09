@@ -12,7 +12,7 @@ import StatsBar from './StatsBar';
 import KYCBanner from './KYCBanner';
 import TradePanel from './TradePanel';
 import OrderBookDepth from './OrderBookDepth';
-import LivePulse from './LivePulse';
+import PriceChart from './PriceChart';
 import RelatedMarkets from './RelatedMarkets';
 import TikTokFeed from './TikTokFeed';
 
@@ -86,12 +86,10 @@ export default function EventPage({ event }: EventPageProps) {
           )}
         </section>
 
-        {/* Pulse & Order Book */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <LivePulse posts={event.xPosts} markets={event.markets} />
-          <div className="lg:col-span-2">
-            <OrderBookDepth markets={event.markets} />
-          </div>
+        {/* Price Chart & Order Book */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <PriceChart eventId={event.id} markets={event.markets} />
+          <OrderBookDepth markets={event.markets} />
         </section>
 
         {/* Two-column: News & X Posts */}

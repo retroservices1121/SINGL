@@ -47,14 +47,14 @@ export async function POST(req: NextRequest) {
   let event = await prisma.event.upsert({
     where: { slug },
     update: {
-      title: eventTitle,
-      searchTerms: terms,
+      ...(title && { title }),
+      ...(searchTerms && { searchTerms }),
       ...(emoji && { emoji }),
       ...(subtitle && { subtitle }),
       ...(imageUrl && { imageUrl }),
-      volume: meta.volume ?? null,
-      liquidity: meta.liquidity ?? null,
-      openInterest: meta.openInterest ?? null,
+      ...(eventMeta?.volume !== undefined && { volume: eventMeta.volume }),
+      ...(eventMeta?.liquidity !== undefined && { liquidity: eventMeta.liquidity }),
+      ...(eventMeta?.openInterest !== undefined && { openInterest: eventMeta.openInterest }),
     },
     create: {
       slug,
