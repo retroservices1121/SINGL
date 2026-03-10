@@ -1,5 +1,67 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import EventPageClient from './EventPageClient';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://singl.spredd.markets';
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+
+  // Fetch event data server-side for meta tags
+  let title = 'SINGL by Spredd Markets';
+  let description = 'Single-event prediction market. Trade the outcomes.';
+  let imageUrl = '';
+  let emoji = '';
+  let subtitle = '';
+
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/events/${slug}`, { next: { revalidate: 60 } });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.event) {
+        title = `${data.event.title} — SINGL`;
+        description = data.event.subtitle || `Trade prediction markets for ${data.event.title}`;
+        imageUrl = data.event.imageUrl || '';
+        emoji = data.event.emoji || '';
+        subtitle = data.event.subtitle || '';
+      }
+    }
+  } catch {
+    // Fall back to defaults
+  }
+
+  const ogParams = new URLSearchParams({
+    title: title.replace(' — SINGL', ''),
+    ...(imageUrl && { image: imageUrl }),
+    ...(emoji && { emoji }),
+    ...(subtitle && { subtitle }),
+  });
+  const ogImageUrl = `${SITE_URL}/api/og?${ogParams}`;
+  const eventUrl = `${SITE_URL}/event/${slug}`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: eventUrl,
+      siteName: 'SINGL by Spredd Markets',
+      images: [{ url: ogImageUrl, width: 1200, height: 630 }],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImageUrl],
+      site: '@SpreddMarkets',
+    },
+  };
+}
 
 export default async function EventSlugPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

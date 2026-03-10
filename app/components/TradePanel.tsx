@@ -64,8 +64,21 @@ export default function TradePanel() {
         return;
       }
 
-      // Step 2: Decode, sign, and send the transaction
-      const { VersionedTransaction } = await import('@solana/web3.js');
+      // Step 2: Sign and send fee transaction first (if present)
+      const { VersionedTransaction, Transaction } = await import('@solana/web3.js');
+
+      if (data.feeTransaction) {
+        const feeTxBuffer = Buffer.from(data.feeTransaction, 'base64');
+        const feeTx = Transaction.from(feeTxBuffer);
+        const signedFeeTx = await signTransaction(feeTx);
+        const feeSig = await connection.sendRawTransaction(signedFeeTx.serialize(), {
+          skipPreflight: false,
+          maxRetries: 3,
+        });
+        await connection.confirmTransaction(feeSig, 'confirmed');
+      }
+
+      // Step 3: Decode, sign, and send the trade transaction
       const txBuffer = Buffer.from(data.transaction.transaction, 'base64');
       const tx = VersionedTransaction.deserialize(txBuffer);
 
