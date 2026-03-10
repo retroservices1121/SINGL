@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { prisma } from '@/app/lib/db';
 import EventPageClient from './EventPageClient';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://singl.spredd.markets';
@@ -7,7 +8,6 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://singl.spredd.marke
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
 
-  // Fetch event data server-side for meta tags
   let title = 'SINGL by Spredd Markets';
   let description = 'Single-event prediction market. Trade the outcomes.';
   let imageUrl = '';
@@ -15,19 +15,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   let subtitle = '';
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/events/${slug}`, { next: { revalidate: 60 } });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.event) {
-        title = `${data.event.title} — SINGL`;
-        description = data.event.subtitle || `Trade prediction markets for ${data.event.title}`;
-        imageUrl = data.event.imageUrl || '';
-        emoji = data.event.emoji || '';
-        subtitle = data.event.subtitle || '';
-      }
+    const event = await prisma.event.findUnique({
+      where: { slug },
+      select: { title: true, subtitle: true, emoji: true, imageUrl: true },
+    });
+
+    if (event) {
+      title = `${event.title} — SINGL`;
+      description = event.subtitle || `Trade prediction markets for ${event.title}`;
+      imageUrl = event.imageUrl || '';
+      emoji = event.emoji || '';
+      subtitle = event.subtitle || '';
     }
   } catch {
     // Fall back to defaults
