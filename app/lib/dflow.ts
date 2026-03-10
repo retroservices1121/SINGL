@@ -236,3 +236,31 @@ export async function buildTradeTransaction({ walletAddress, marketTicker, side,
   const data = await res.json();
   return data;
 }
+
+export async function buildSellTransaction({ walletAddress, marketTicker, side, amount }: TradeParams) {
+  // Selling: input is the outcome token, output is USDC
+  const inputMint = await getOutcomeMint(marketTicker, side);
+
+  // Amount in outcome token smallest unit (6 decimals)
+  const scaledAmount = Math.round(amount * 1_000_000);
+
+  const params = new URLSearchParams({
+    inputMint,
+    outputMint: USDC_MINT,
+    amount: String(scaledAmount),
+    userPublicKey: walletAddress,
+    slippageBps: '100',
+  });
+
+  const res = await fetch(`${TRADE}/order?${params}`, {
+    headers: getHeaders(),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`Sell failed: ${(err as Record<string, string>).msg || res.statusText}`);
+  }
+
+  const data = await res.json();
+  return data;
+}

@@ -46,14 +46,8 @@ export default function TradePanel() {
         body: JSON.stringify({
           walletAddress: publicKey.toBase58(),
           marketTicker: market.ticker,
-          marketTitle: market.title,
-          eventSlug: currentEvent?.slug || '',
-          eventTitle: currentEvent?.title || '',
           side,
-          amount: netAmount,
-          grossAmount: amount,
-          feeAmount: fee,
-          price,
+          amount,
         }),
       });
       const data = await res.json();
@@ -83,6 +77,23 @@ export default function TradePanel() {
 
       // Wait for confirmation
       await connection.confirmTransaction(signature, 'confirmed');
+
+      // Step 3: Record position AFTER on-chain confirmation
+      await fetch('/api/positions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletAddress: publicKey.toBase58(),
+          marketTicker: market.ticker,
+          marketTitle: market.title,
+          eventSlug: currentEvent?.slug || '',
+          eventTitle: currentEvent?.title || '',
+          side,
+          amount,
+          price,
+          txSignature: signature,
+        }),
+      });
 
       setConfirmed(signature);
     } catch (err) {

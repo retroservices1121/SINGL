@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useEffect, useState, useCallback } from 'react';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { formatUSD, formatPercent } from '@/app/lib/utils';
 import Button from '../components/ui/Button';
+import Spinner from '../components/ui/Spinner';
 
 interface Position {
   id: string;
@@ -17,21 +18,27 @@ interface Position {
   avgPrice: number;
   costBasis: number;
   status: string;
+  txSignature: string | null;
+  closeTxSig: string | null;
+  closePrice: number | null;
+  realizedPnl: number | null;
   createdAt: string;
 }
 
 export default function ProfileClient() {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, signTransaction } = useWallet();
+  const { connection } = useConnection();
   const { setVisible } = useWalletModal();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selling, setSelling] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchPositions = useCallback(() => {
     if (!connected || !publicKey) {
       setLoading(false);
       return;
     }
-
     fetch(`/api/positions?wallet=${publicKey.toBase58()}`)
       .then(r => r.json())
       .then(data => {
@@ -40,6 +47,74 @@ export default function ProfileClient() {
       })
       .catch(() => setLoading(false));
   }, [connected, publicKey]);
+
+  useEffect(() => {
+    fetchPositions();
+  }, [fetchPositions]);
+
+  const handleSell = async (pos: Position) => {
+    if (!connected || !publicKey || !signTransaction) return;
+
+    setSelling(pos.id);
+    try {
+      // Build sell transaction
+      const res = await fetch('/api/trade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletAddress: publicKey.toBase58(),
+          marketTicker: pos.marketTicker,
+          side: pos.side,
+          amount: pos.shares,
+          action: 'sell',
+        }),
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        alert(data.error);
+        setSelling(null);
+        return;
+      }
+
+      if (!data.transaction?.transaction) {
+        alert('No transaction returned for sell order.');
+        setSelling(null);
+        return;
+      }
+
+      const { VersionedTransaction } = await import('@solana/web3.js');
+      const txBuffer = Buffer.from(data.transaction.transaction, 'base64');
+      const tx = VersionedTransaction.deserialize(txBuffer);
+
+      const signedTx = await signTransaction(tx);
+      const signature = await connection.sendRawTransaction(signedTx.serialize(), {
+        skipPreflight: false,
+        maxRetries: 3,
+      });
+
+      await connection.confirmTransaction(signature, 'confirmed');
+
+      // Record the close
+      await fetch('/api/positions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          positionId: pos.id,
+          closeTxSig: signature,
+          closePrice: pos.avgPrice, // approximate — real price comes from on-chain
+        }),
+      });
+
+      fetchPositions();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Sell failed';
+      if (!msg.includes('rejected')) {
+        alert(msg);
+      }
+    }
+    setSelling(null);
+  };
 
   if (!connected) {
     return (
@@ -62,6 +137,12 @@ export default function ProfileClient() {
   const openPositions = positions.filter(p => p.status === 'open');
   const closedPositions = positions.filter(p => p.status !== 'open');
 
+  // Portfolio summary
+  const totalCost = openPositions.reduce((sum, p) => sum + p.costBasis, 0);
+  const totalPotentialPayout = openPositions.reduce((sum, p) => sum + p.shares, 0);
+  const totalUnrealizedPnl = totalPotentialPayout - totalCost;
+  const totalRealizedPnl = closedPositions.reduce((sum, p) => sum + (p.realizedPnl || 0), 0);
+
   if (positions.length === 0) {
     return (
       <div className="text-center py-16 bg-[var(--paper)] border border-[var(--border)] rounded-xl">
@@ -73,6 +154,34 @@ export default function ProfileClient() {
 
   return (
     <div className="space-y-6">
+      {/* Portfolio Summary */}
+      <div className="bg-[var(--paper)] border border-[var(--border)] rounded-xl p-5">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-dim)] mb-3">Portfolio Summary</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div>
+            <span className="text-xs text-[var(--text-dim)]">Invested</span>
+            <div className="font-mono font-bold text-lg">{formatUSD(totalCost)}</div>
+          </div>
+          <div>
+            <span className="text-xs text-[var(--text-dim)]">Potential Payout</span>
+            <div className="font-mono font-bold text-lg">{formatUSD(totalPotentialPayout)}</div>
+          </div>
+          <div>
+            <span className="text-xs text-[var(--text-dim)]">Unrealized P&L</span>
+            <div className={`font-mono font-bold text-lg ${totalUnrealizedPnl >= 0 ? 'text-[var(--yes)]' : 'text-[var(--no)]'}`}>
+              {totalUnrealizedPnl >= 0 ? '+' : ''}{formatUSD(totalUnrealizedPnl)}
+            </div>
+          </div>
+          <div>
+            <span className="text-xs text-[var(--text-dim)]">Realized P&L</span>
+            <div className={`font-mono font-bold text-lg ${totalRealizedPnl >= 0 ? 'text-[var(--yes)]' : 'text-[var(--no)]'}`}>
+              {totalRealizedPnl >= 0 ? '+' : ''}{formatUSD(totalRealizedPnl)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Open Positions */}
       {openPositions.length > 0 && (
         <section>
           <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-dim)] mb-3">
@@ -80,12 +189,20 @@ export default function ProfileClient() {
           </h2>
           <div className="space-y-3">
             {openPositions.map(pos => (
-              <PositionCard key={pos.id} position={pos} />
+              <PositionCard
+                key={pos.id}
+                position={pos}
+                expanded={expandedId === pos.id}
+                onToggle={() => setExpandedId(expandedId === pos.id ? null : pos.id)}
+                onSell={() => handleSell(pos)}
+                selling={selling === pos.id}
+              />
             ))}
           </div>
         </section>
       )}
 
+      {/* Closed Positions */}
       {closedPositions.length > 0 && (
         <section>
           <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-dim)] mb-3">
@@ -93,7 +210,13 @@ export default function ProfileClient() {
           </h2>
           <div className="space-y-3">
             {closedPositions.map(pos => (
-              <PositionCard key={pos.id} position={pos} />
+              <PositionCard
+                key={pos.id}
+                position={pos}
+                expanded={expandedId === pos.id}
+                onToggle={() => setExpandedId(expandedId === pos.id ? null : pos.id)}
+                selling={false}
+              />
             ))}
           </div>
         </section>
@@ -102,49 +225,140 @@ export default function ProfileClient() {
   );
 }
 
-function PositionCard({ position }: { position: Position }) {
-  const potentialPayout = position.shares;
-  const potentialProfit = potentialPayout - position.costBasis;
+function PositionCard({ position, expanded, onToggle, onSell, selling }: {
+  position: Position;
+  expanded: boolean;
+  onToggle: () => void;
+  onSell?: () => void;
+  selling: boolean;
+}) {
   const isOpen = position.status === 'open';
+  const potentialPayout = position.shares;
+  const unrealizedPnl = potentialPayout - position.costBasis;
+  const pnlPercent = position.costBasis > 0 ? (unrealizedPnl / position.costBasis) * 100 : 0;
+
+  const date = new Date(position.createdAt);
+  const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+  const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <div className={`bg-[var(--paper)] border border-[var(--border)] rounded-xl p-4 ${!isOpen ? 'opacity-60' : ''}`}>
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex-1">
-          <h4 className="font-heading text-sm font-semibold text-[var(--text)] leading-tight">
-            {position.marketTitle}
-          </h4>
-          <p className="text-xs text-[var(--text-dim)] mt-0.5">{position.eventTitle}</p>
-        </div>
-        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-          position.side === 'yes'
-            ? 'bg-[var(--yes-bg)] text-[var(--yes)]'
-            : 'bg-[var(--no-bg)] text-[var(--no)]'
-        }`}>
-          {position.side.toUpperCase()}
-        </span>
-      </div>
-
-      <div className="grid grid-cols-4 gap-3 text-xs">
-        <div>
-          <span className="text-[var(--text-dim)]">Shares</span>
-          <div className="font-mono font-semibold">{position.shares.toFixed(2)}</div>
-        </div>
-        <div>
-          <span className="text-[var(--text-dim)]">Avg Price</span>
-          <div className="font-mono font-semibold">{formatPercent(position.avgPrice)}</div>
-        </div>
-        <div>
-          <span className="text-[var(--text-dim)]">Cost</span>
-          <div className="font-mono font-semibold">{formatUSD(position.costBasis)}</div>
-        </div>
-        <div>
-          <span className="text-[var(--text-dim)]">{isOpen ? 'Potential' : 'Result'}</span>
-          <div className={`font-mono font-semibold ${potentialProfit >= 0 ? 'text-[var(--yes)]' : 'text-[var(--no)]'}`}>
-            {potentialProfit >= 0 ? '+' : ''}{formatUSD(potentialProfit)}
+    <div
+      className={`bg-[var(--paper)] border border-[var(--border)] rounded-xl overflow-hidden transition-all ${
+        !isOpen ? 'opacity-60' : ''
+      } ${expanded ? 'ring-2 ring-[var(--orange)]' : ''}`}
+    >
+      {/* Main row — clickable */}
+      <button
+        onClick={onToggle}
+        className="w-full p-4 text-left cursor-pointer hover:bg-[var(--sand)] transition-colors"
+      >
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h4 className="font-heading text-sm font-semibold text-[var(--text)] leading-tight truncate">
+                {position.marketTitle}
+              </h4>
+              <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${
+                position.side === 'yes'
+                  ? 'bg-[var(--yes-bg)] text-[var(--yes)]'
+                  : 'bg-[var(--no-bg)] text-[var(--no)]'
+              }`}>
+                {position.side.toUpperCase()}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-[var(--text-dim)]">{position.eventTitle}</span>
+              <span className="text-xs text-[var(--text-dim)]">&middot;</span>
+              <span className="text-xs text-[var(--text-dim)]">{dateStr} {timeStr}</span>
+            </div>
+          </div>
+          <div className="text-right shrink-0 ml-3">
+            <div className={`font-mono font-bold text-sm ${
+              isOpen
+                ? unrealizedPnl >= 0 ? 'text-[var(--yes)]' : 'text-[var(--no)]'
+                : (position.realizedPnl || 0) >= 0 ? 'text-[var(--yes)]' : 'text-[var(--no)]'
+            }`}>
+              {isOpen
+                ? `${unrealizedPnl >= 0 ? '+' : ''}${formatUSD(unrealizedPnl)}`
+                : `${(position.realizedPnl || 0) >= 0 ? '+' : ''}${formatUSD(position.realizedPnl || 0)}`
+              }
+            </div>
+            <div className="text-xs text-[var(--text-dim)] font-mono">
+              {isOpen
+                ? `${pnlPercent >= 0 ? '+' : ''}${pnlPercent.toFixed(1)}%`
+                : 'Closed'
+              }
+            </div>
           </div>
         </div>
-      </div>
+
+        <div className="grid grid-cols-4 gap-3 text-xs">
+          <div>
+            <span className="text-[var(--text-dim)]">Shares</span>
+            <div className="font-mono font-semibold">{position.shares.toFixed(2)}</div>
+          </div>
+          <div>
+            <span className="text-[var(--text-dim)]">Avg Price</span>
+            <div className="font-mono font-semibold">{formatPercent(position.avgPrice)}</div>
+          </div>
+          <div>
+            <span className="text-[var(--text-dim)]">Cost Basis</span>
+            <div className="font-mono font-semibold">{formatUSD(position.costBasis)}</div>
+          </div>
+          <div>
+            <span className="text-[var(--text-dim)]">Payout</span>
+            <div className="font-mono font-semibold">{formatUSD(potentialPayout)}</div>
+          </div>
+        </div>
+      </button>
+
+      {/* Expanded details */}
+      {expanded && (
+        <div className="border-t border-[var(--border)] px-4 py-3 bg-[var(--cream)]">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1 text-xs">
+              {position.txSignature && (
+                <div>
+                  <span className="text-[var(--text-dim)]">Buy Tx: </span>
+                  <a
+                    href={`https://solscan.io/tx/${position.txSignature}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[var(--orange)] hover:underline font-mono"
+                  >
+                    {position.txSignature.slice(0, 8)}...{position.txSignature.slice(-8)}
+                  </a>
+                </div>
+              )}
+              {position.closeTxSig && (
+                <div>
+                  <span className="text-[var(--text-dim)]">Sell Tx: </span>
+                  <a
+                    href={`https://solscan.io/tx/${position.closeTxSig}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[var(--orange)] hover:underline font-mono"
+                  >
+                    {position.closeTxSig.slice(0, 8)}...{position.closeTxSig.slice(-8)}
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {isOpen && onSell && (
+              <Button
+                variant="no"
+                size="sm"
+                onClick={(e: React.MouseEvent) => { e.stopPropagation(); onSell(); }}
+                disabled={selling}
+                className="flex items-center gap-1.5"
+              >
+                {selling ? <><Spinner size="sm" /> Selling...</> : 'Sell Position'}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
