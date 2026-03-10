@@ -1,0 +1,7 @@
+{
+  "name": "SINGL by Spredd Markets",
+  "url": "https://singl.spredd.markets",
+  "description": "Single-event prediction market platform powered by DFlow on Solana",
+  "icon": "https://singl.spredd.markets/icon-512.png",
+  "chains": ["solana:mainnet"]
+}
