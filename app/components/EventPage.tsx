@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { EventData } from '@/app/types';
 import { useEventStore } from '@/app/store/eventStore';
 import OutcomeList from './OutcomeList';
@@ -17,6 +17,52 @@ import TikTokFeed from './TikTokFeed';
 
 interface EventPageProps {
   event: EventData;
+}
+
+const SITE_URL = 'https://singl.spredd.markets';
+
+function ShareButton({ slug, title }: { slug: string; title: string }) {
+  const [copied, setCopied] = useState(false);
+  const url = `${SITE_URL}/event/${slug}`;
+
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const shareOnX = () => {
+    const text = `${title}\n\nTrade the outcome on SINGL by @SpreddMarkets`;
+    window.open(
+      `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+      '_blank'
+    );
+  };
+
+  return (
+    <div className="flex items-center gap-1.5 shrink-0">
+      <button
+        onClick={shareOnX}
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-black text-white rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
+        title="Share on X"
+      >
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+        </svg>
+        Share
+      </button>
+      <button
+        onClick={copyLink}
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-[var(--border)] text-[var(--text-sec)] rounded-lg hover:bg-[var(--sand)] transition-colors cursor-pointer"
+        title="Copy link"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+        </svg>
+        {copied ? 'Copied!' : 'Copy'}
+      </button>
+    </div>
+  );
 }
 
 export default function EventPage({ event }: EventPageProps) {
@@ -37,7 +83,7 @@ export default function EventPage({ event }: EventPageProps) {
             ) : event.emoji ? (
               <span className="text-4xl">{event.emoji}</span>
             ) : null}
-            <div>
+            <div className="flex-1">
               <h1 className="font-heading text-2xl md:text-3xl font-bold text-[var(--text)]">
                 {event.title}
               </h1>
@@ -45,6 +91,7 @@ export default function EventPage({ event }: EventPageProps) {
                 <p className="text-sm text-[var(--text-sec)] mt-1">{event.subtitle}</p>
               )}
             </div>
+            <ShareButton slug={event.slug} title={event.title} />
           </div>
           <div className="mt-4">
             <StatsBar
