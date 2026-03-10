@@ -32,7 +32,7 @@ function ShareButton({ slug, title }: { slug: string; title: string }) {
   };
 
   const shareOnX = () => {
-    const text = `${title}\n\nTrade the outcome on SINGL by @SpreddMarkets`;
+    const text = `${title}\n\nTrade the outcome on SINGL by @spreddterminal`;
     window.open(
       `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
       '_blank'

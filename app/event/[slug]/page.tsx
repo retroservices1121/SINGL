@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title,
       description,
       images: [ogImageUrl],
-      site: '@SpreddMarkets',
+      site: '@spreddterminal',
     },
   };
 }
