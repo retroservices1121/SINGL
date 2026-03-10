@@ -31,13 +31,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     // Fall back to defaults
   }
 
-  const ogParams = new URLSearchParams({
+  // Use event image directly if available, otherwise generate one
+  const fallbackOgParams = new URLSearchParams({
     title: title.replace(' — SINGL', ''),
-    ...(imageUrl && { image: imageUrl }),
-    ...(emoji && { emoji }),
     ...(subtitle && { subtitle }),
   });
-  const ogImageUrl = `${SITE_URL}/api/og?${ogParams}`;
+  const generatedOgUrl = `${SITE_URL}/api/og?${fallbackOgParams}`;
+  const ogImageUrl = imageUrl || generatedOgUrl;
   const eventUrl = `${SITE_URL}/event/${slug}`;
 
   return {
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description,
       url: eventUrl,
       siteName: 'SINGL by Spredd Markets',
-      images: [{ url: ogImageUrl, width: 1200, height: 630 }],
+      images: [{ url: ogImageUrl }],
       type: 'website',
     },
     twitter: {
