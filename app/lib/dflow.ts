@@ -194,6 +194,7 @@ async function getOutcomeMint(marketTicker: string, side: 'yes' | 'no'): Promise
 
   const market = await res.json();
   const accounts = market.accounts || {};
+  console.log(`[dflow] Market ${marketTicker} accounts keys:`, Object.keys(accounts));
 
   // Look for USDC collateral accounts
   const usdcAccounts: MarketAccounts | undefined = accounts[USDC_MINT];
@@ -201,27 +202,54 @@ async function getOutcomeMint(marketTicker: string, side: 'yes' | 'no'): Promise
     // Try the first available collateral
     const firstKey = Object.keys(accounts)[0];
     if (!firstKey) throw new Error('No market accounts found');
+    console.log(`[dflow] No USDC accounts, using collateral: ${firstKey}`);
     const fallback = accounts[firstKey] as MarketAccounts;
-    return side === 'yes' ? fallback.yesMint : fallback.noMint;
+    const mint = side === 'yes' ? fallback.yesMint : fallback.noMint;
+    console.log(`[dflow] Resolved ${side} mint: ${mint}`);
+    return mint;
   }
 
-  return side === 'yes' ? usdcAccounts.yesMint : usdcAccounts.noMint;
+  const mint = side === 'yes' ? usdcAccounts.yesMint : usdcAccounts.noMint;
+  console.log(`[dflow] Resolved ${side} mint (USDC): ${mint}`);
+  return mint;
 }
 
 export async function buildTradeTransaction({ walletAddress, marketTicker, side, amount }: TradeParams) {
   // Step 1: Get the outcome mint address for this market + side
   const outputMint = await getOutcomeMint(marketTicker, side);
+  console.log(`[dflow] Buy: market=${marketTicker} side=${side} amount=${amount} outputMint=${outputMint}`);
 
   // Amount in USDC smallest unit (6 decimals)
   const scaledAmount = Math.round(amount * 1_000_000);
 
-  // Step 2: Call /order to get the transaction
+  // Step 2: Get a quote first to check if a route exists
+  const quoteParams = new URLSearchParams({
+    inputMint: USDC_MINT,
+    outputMint,
+    amount: String(scaledAmount),
+    slippageBps: '300', // 3% slippage
+  });
+
+  const quoteRes = await fetch(`${TRADE}/quote?${quoteParams}`, {
+    headers: getHeaders(),
+  });
+
+  if (!quoteRes.ok) {
+    const quoteErr = await quoteRes.text();
+    console.error(`[dflow] Quote failed (${quoteRes.status}):`, quoteErr);
+    throw new Error(`Trade failed: No route available for this market`);
+  }
+
+  const quote = await quoteRes.json();
+  console.log(`[dflow] Quote OK: inAmount=${quote.inAmount} outAmount=${quote.outAmount}`);
+
+  // Step 3: Call /order to get the transaction
   const params = new URLSearchParams({
     inputMint: USDC_MINT,
     outputMint,
     amount: String(scaledAmount),
     userPublicKey: walletAddress,
-    slippageBps: '100', // 1% slippage
+    slippageBps: '300', // 3% slippage
   });
 
   const res = await fetch(`${TRADE}/order?${params}`, {
@@ -229,7 +257,9 @@ export async function buildTradeTransaction({ walletAddress, marketTicker, side,
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const errBody = await res.text();
+    console.error(`[dflow] Order failed (${res.status}):`, errBody);
+    const err = (() => { try { return JSON.parse(errBody); } catch { return {}; } })();
     throw new Error(`Trade failed: ${(err as Record<string, string>).msg || res.statusText}`);
   }
 
@@ -240,6 +270,7 @@ export async function buildTradeTransaction({ walletAddress, marketTicker, side,
 export async function buildSellTransaction({ walletAddress, marketTicker, side, amount }: TradeParams) {
   // Selling: input is the outcome token, output is USDC
   const inputMint = await getOutcomeMint(marketTicker, side);
+  console.log(`[dflow] Sell: market=${marketTicker} side=${side} amount=${amount} inputMint=${inputMint}`);
 
   // Amount in outcome token smallest unit (6 decimals)
   const scaledAmount = Math.round(amount * 1_000_000);
@@ -249,7 +280,7 @@ export async function buildSellTransaction({ walletAddress, marketTicker, side, 
     outputMint: USDC_MINT,
     amount: String(scaledAmount),
     userPublicKey: walletAddress,
-    slippageBps: '100',
+    slippageBps: '300', // 3% slippage
   });
 
   const res = await fetch(`${TRADE}/order?${params}`, {
@@ -257,7 +288,9 @@ export async function buildSellTransaction({ walletAddress, marketTicker, side, 
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const errBody = await res.text();
+    console.error(`[dflow] Sell order failed (${res.status}):`, errBody);
+    const err = (() => { try { return JSON.parse(errBody); } catch { return {}; } })();
     throw new Error(`Sell failed: ${(err as Record<string, string>).msg || res.statusText}`);
   }
 
