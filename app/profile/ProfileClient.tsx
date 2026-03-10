@@ -187,7 +187,7 @@ export default function ProfileClient() {
           <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-dim)] mb-3">
             Open Positions ({openPositions.length})
           </h2>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {openPositions.map(pos => (
               <PositionCard
                 key={pos.id}
@@ -208,7 +208,7 @@ export default function ProfileClient() {
           <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-dim)] mb-3">
             Closed Positions ({closedPositions.length})
           </h2>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {closedPositions.map(pos => (
               <PositionCard
                 key={pos.id}
@@ -243,80 +243,58 @@ function PositionCard({ position, expanded, onToggle, onSell, selling }: {
 
   return (
     <div
-      className={`bg-[var(--paper)] border border-[var(--border)] rounded-xl overflow-hidden transition-all ${
+      className={`bg-[var(--paper)] border border-[var(--border)] rounded-lg overflow-hidden transition-all ${
         !isOpen ? 'opacity-60' : ''
-      } ${expanded ? 'ring-2 ring-[var(--orange)]' : ''}`}
+      } ${expanded ? 'ring-1 ring-[var(--orange)]' : ''}`}
     >
       {/* Main row — clickable */}
       <button
         onClick={onToggle}
-        className="w-full p-4 text-left cursor-pointer hover:bg-[var(--sand)] transition-colors"
+        className="w-full px-3 py-2.5 text-left cursor-pointer hover:bg-[var(--sand)] transition-colors"
       >
-        <div className="flex items-start justify-between mb-2">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h4 className="font-heading text-sm font-semibold text-[var(--text)] leading-tight truncate">
-                {position.marketTitle}
-              </h4>
-              <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${
-                position.side === 'yes'
-                  ? 'bg-[var(--yes-bg)] text-[var(--yes)]'
-                  : 'bg-[var(--no-bg)] text-[var(--no)]'
-              }`}>
-                {position.side.toUpperCase()}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-[var(--text-dim)]">{position.eventTitle}</span>
-              <span className="text-xs text-[var(--text-dim)]">&middot;</span>
-              <span className="text-xs text-[var(--text-dim)]">{dateStr} {timeStr}</span>
-            </div>
-          </div>
-          <div className="text-right shrink-0 ml-3">
-            <div className={`font-mono font-bold text-sm ${
-              isOpen
-                ? unrealizedPnl >= 0 ? 'text-[var(--yes)]' : 'text-[var(--no)]'
-                : (position.realizedPnl || 0) >= 0 ? 'text-[var(--yes)]' : 'text-[var(--no)]'
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+            <span className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded ${
+              position.side === 'yes'
+                ? 'bg-[var(--yes-bg)] text-[var(--yes)]'
+                : 'bg-[var(--no-bg)] text-[var(--no)]'
             }`}>
-              {isOpen
-                ? `${unrealizedPnl >= 0 ? '+' : ''}${formatUSD(unrealizedPnl)}`
-                : `${(position.realizedPnl || 0) >= 0 ? '+' : ''}${formatUSD(position.realizedPnl || 0)}`
-              }
-            </div>
-            <div className="text-xs text-[var(--text-dim)] font-mono">
-              {isOpen
-                ? `${pnlPercent >= 0 ? '+' : ''}${pnlPercent.toFixed(1)}%`
-                : 'Closed'
-              }
-            </div>
+              {position.side.toUpperCase()}
+            </span>
+            <h4 className="text-xs font-semibold text-[var(--text)] leading-tight truncate">
+              {position.marketTitle}
+            </h4>
+          </div>
+          <div className={`font-mono font-bold text-xs shrink-0 ml-2 ${
+            isOpen
+              ? unrealizedPnl >= 0 ? 'text-[var(--yes)]' : 'text-[var(--no)]'
+              : (position.realizedPnl || 0) >= 0 ? 'text-[var(--yes)]' : 'text-[var(--no)]'
+          }`}>
+            {isOpen
+              ? `${unrealizedPnl >= 0 ? '+' : ''}${formatUSD(unrealizedPnl)}`
+              : `${(position.realizedPnl || 0) >= 0 ? '+' : ''}${formatUSD(position.realizedPnl || 0)}`
+            }
+            <span className="text-[var(--text-dim)] font-normal ml-1">
+              ({isOpen ? `${pnlPercent >= 0 ? '+' : ''}${pnlPercent.toFixed(1)}%` : 'Closed'})
+            </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-3 text-xs">
-          <div>
-            <span className="text-[var(--text-dim)]">Shares</span>
-            <div className="font-mono font-semibold">{position.shares.toFixed(2)}</div>
-          </div>
-          <div>
-            <span className="text-[var(--text-dim)]">Avg Price</span>
-            <div className="font-mono font-semibold">{formatPercent(position.avgPrice)}</div>
-          </div>
-          <div>
-            <span className="text-[var(--text-dim)]">Cost Basis</span>
-            <div className="font-mono font-semibold">{formatUSD(position.costBasis)}</div>
-          </div>
-          <div>
-            <span className="text-[var(--text-dim)]">Payout</span>
-            <div className="font-mono font-semibold">{formatUSD(potentialPayout)}</div>
+        <div className="flex items-center justify-between text-[11px]">
+          <span className="text-[var(--text-dim)]">{dateStr} {timeStr}</span>
+          <div className="flex gap-3 font-mono text-[var(--text-sec)]">
+            <span>{position.shares.toFixed(1)} shares</span>
+            <span>@ {formatPercent(position.avgPrice)}</span>
+            <span>{formatUSD(position.costBasis)}</span>
           </div>
         </div>
       </button>
 
       {/* Expanded details */}
       {expanded && (
-        <div className="border-t border-[var(--border)] px-4 py-3 bg-[var(--cream)]">
+        <div className="border-t border-[var(--border)] px-3 py-2 bg-[var(--cream)]">
           <div className="flex items-center justify-between">
-            <div className="space-y-1 text-xs">
+            <div className="space-y-0.5 text-[11px]">
               {position.txSignature && (
                 <div>
                   <span className="text-[var(--text-dim)]">Buy Tx: </span>
