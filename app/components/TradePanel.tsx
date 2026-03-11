@@ -66,17 +66,22 @@ export default function TradePanel() {
 
       // Step 2: Decode, sign, and send the transaction (fee is injected server-side)
       const { VersionedTransaction } = await import('@solana/web3.js');
+      console.log('[trade] Deserializing tx, base64 length:', data.transaction.transaction.length);
       const txBuffer = Buffer.from(data.transaction.transaction, 'base64');
       const tx = VersionedTransaction.deserialize(txBuffer);
+      console.log('[trade] Tx deserialized, requesting signature...');
 
       const signedTx = await signTransaction(tx);
+      console.log('[trade] Tx signed, sending...');
       const signature = await connection.sendRawTransaction(signedTx.serialize(), {
         skipPreflight: false,
         maxRetries: 3,
       });
+      console.log('[trade] Tx sent:', signature);
 
       // Wait for confirmation
       await connection.confirmTransaction(signature, 'confirmed');
+      console.log('[trade] Tx confirmed');
 
       // Step 3: Record position AFTER on-chain confirmation
       await fetch('/api/positions', {
@@ -97,9 +102,10 @@ export default function TradePanel() {
 
       setConfirmed(signature);
     } catch (err) {
+      console.error('[trade] Client error:', err);
       const msg = err instanceof Error ? err.message : 'Trade failed';
       if (!msg.includes('rejected')) {
-        alert(msg);
+        alert(`Trade error: ${msg}`);
       }
       setSubmitting(false);
     }
