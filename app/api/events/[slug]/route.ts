@@ -10,7 +10,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
   let event = await prisma.event.findUnique({
     where: { slug },
     include: {
-      markets: true,
       newsItems: { orderBy: { fetchedAt: 'desc' }, take: 20 },
       xPosts: { orderBy: { fetchedAt: 'desc' }, take: 20 },
       videos: { orderBy: { fetchedAt: 'desc' }, take: 8 },
@@ -34,77 +33,42 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
     event = await prisma.event.create({
       data: { slug, title, searchTerms },
       include: {
-        markets: true,
         newsItems: { orderBy: { fetchedAt: 'desc' }, take: 20 },
         xPosts: { orderBy: { fetchedAt: 'desc' }, take: 20 },
         videos: { orderBy: { fetchedAt: 'desc' }, take: 8 },
-      tiktoks: { orderBy: { fetchedAt: 'desc' }, take: 8 },
+        tiktoks: { orderBy: { fetchedAt: 'desc' }, take: 8 },
       },
     });
   }
 
-  // Always fetch fresh market data from DFlow
+  // Fetch live market data directly from DFlow
+  let markets: Awaited<ReturnType<typeof getMarkets>> = [];
   if (event.searchTerms.length > 0) {
     try {
-      const liveMarkets = await getMarkets(event.searchTerms);
-
-      if (liveMarkets.length > 0) {
-        // Update or create markets from live DFlow data
-        for (const m of liveMarkets) {
-          const existing = await prisma.market.findFirst({
-            where: { eventId: event.id, ticker: m.ticker },
-          });
-
-          if (existing) {
-            await prisma.market.update({
-              where: { id: existing.id },
-              data: {
-                title: m.title,
-                yesPrice: m.yesPrice,
-                noPrice: m.noPrice,
-                volume: m.volume,
-                change24h: m.change24h,
-                category: m.category,
-                rulesPrimary: m.rulesPrimary,
-                closeTime: m.closeTime ? new Date(m.closeTime) : null,
-                expirationTime: m.expirationTime ? new Date(m.expirationTime) : null,
-              },
-            });
-          } else {
-            await prisma.market.create({
-              data: {
-                eventId: event.id,
-                ticker: m.ticker,
-                title: m.title,
-                yesPrice: m.yesPrice,
-                noPrice: m.noPrice,
-                volume: m.volume,
-                change24h: m.change24h,
-                category: m.category,
-                rulesPrimary: m.rulesPrimary,
-                closeTime: m.closeTime ? new Date(m.closeTime) : null,
-                expirationTime: m.expirationTime ? new Date(m.expirationTime) : null,
-              },
-            });
-          }
-        }
-
-        // Re-fetch with updated markets
-        event = await prisma.event.findUnique({
-          where: { slug },
-          include: {
-            markets: true,
-            newsItems: { orderBy: { fetchedAt: 'desc' }, take: 20 },
-            xPosts: { orderBy: { fetchedAt: 'desc' }, take: 20 },
-            videos: { orderBy: { fetchedAt: 'desc' }, take: 8 },
-      tiktoks: { orderBy: { fetchedAt: 'desc' }, take: 8 },
-          },
-        }) as typeof event;
-      }
+      markets = await getMarkets(event.searchTerms);
     } catch (err) {
       console.error('DFlow market fetch error:', err);
+      // Fall back to cached DB markets
+      const dbMarkets = await prisma.market.findMany({ where: { eventId: event.id } });
+      markets = dbMarkets.map(m => ({
+        id: m.id,
+        eventId: m.eventId,
+        ticker: m.ticker,
+        title: m.title,
+        yesPrice: m.yesPrice,
+        noPrice: m.noPrice,
+        volume: m.volume,
+        change24h: m.change24h,
+        category: m.category,
+        rulesPrimary: m.rulesPrimary,
+        closeTime: m.closeTime?.toISOString() ?? null,
+        expirationTime: m.expirationTime?.toISOString() ?? null,
+      }));
     }
   }
 
-  return NextResponse.json(event);
+  return NextResponse.json({
+    ...event,
+    markets,
+  });
 }
