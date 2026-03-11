@@ -7,6 +7,7 @@ import {
   VersionedTransaction,
   TransactionMessage,
   TransactionInstruction,
+  ComputeBudgetProgram,
 } from '@solana/web3.js';
 import {
   createTransferCheckedInstruction,
@@ -91,8 +92,18 @@ async function injectFeeIntoTransaction(
     addressLookupTableAccounts: validLookupTables,
   });
 
-  // Prepend fee instructions (fee first, then trade)
-  const allInstructions = [...feeInstructions, ...originalMessage.instructions];
+  // Remove any existing compute budget instructions from the original tx
+  const filteredOriginalIx = originalMessage.instructions.filter(
+    ix => !ix.programId.equals(ComputeBudgetProgram.programId)
+  );
+
+  // Set higher compute budget for combined tx (fee + trade)
+  const computeBudgetIx = ComputeBudgetProgram.setComputeUnitLimit({
+    units: 400_000,
+  });
+
+  // Compute budget first, then fee instructions, then trade
+  const allInstructions = [computeBudgetIx, ...feeInstructions, ...filteredOriginalIx];
 
   // Get fresh blockhash
   const { blockhash } = await connection.getLatestBlockhash();
