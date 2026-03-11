@@ -29,13 +29,20 @@ export async function GET() {
   let markets: Awaited<ReturnType<typeof getMarkets>> = [];
   if (event.searchTerms.length > 0) {
     try {
-      const eventTicker = event.searchTerms.find(t => t.startsWith('KX')) || event.searchTerms[0];
-      markets = eventTicker.startsWith('KX')
-        ? await getMarketsByEventTicker(eventTicker)
-        : await getMarkets(event.searchTerms);
+      // Try event ticker first for exact match, then fall back to text search
+      const eventTicker = event.searchTerms.find(t => t.startsWith('KX'));
+      if (eventTicker) {
+        markets = await getMarketsByEventTicker(eventTicker);
+      }
+      if (markets.length === 0) {
+        markets = await getMarkets(event.searchTerms);
+      }
     } catch (err) {
       console.error('DFlow live price fetch error:', err);
-      // Fall back to cached DB markets
+    }
+
+    // Fall back to cached DB markets if DFlow returned nothing
+    if (markets.length === 0) {
       const dbMarkets = await prisma.market.findMany({ where: { eventId: event.id } });
       markets = dbMarkets.map(m => ({
         id: m.id,

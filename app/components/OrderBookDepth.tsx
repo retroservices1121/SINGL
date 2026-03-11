@@ -38,7 +38,8 @@ export default function OrderBookDepth({ markets }: OrderBookDepthProps) {
 
   const sorted = [...markets].sort((a, b) => b.yesPrice - a.yesPrice);
 
-  const displayData = depthData.length > 0 ? depthData : sorted.map(m => ({
+  const sortedDepth = [...depthData].sort((a, b) => b.yesBid - a.yesBid);
+  const displayData = sortedDepth.length > 0 ? sortedDepth : sorted.map(m => ({
     ticker: m.ticker,
     title: m.title,
     yesBid: Math.max(0, m.yesPrice - 0.01),

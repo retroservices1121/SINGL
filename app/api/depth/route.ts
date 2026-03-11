@@ -16,6 +16,8 @@ function getHeaders(): Record<string, string> {
 interface DFlowMarket {
   ticker?: string;
   title?: string;
+  yesSubTitle?: string;
+  subtitle?: string;
   yesBid?: string;
   yesAsk?: string;
   noBid?: string;
@@ -39,11 +41,10 @@ export async function GET() {
     include: { markets: true },
   });
 
-  if (!event || event.markets.length === 0) {
+  if (!event) {
     return NextResponse.json({ markets: [] });
   }
 
-  const tickers = new Set(event.markets.map(m => m.ticker));
   const results: Array<{
     ticker: string;
     title: string;
@@ -55,8 +56,10 @@ export async function GET() {
   }> = [];
 
   try {
+    // Use event ticker from searchTerms for reliable matching
+    const searchQuery = event.searchTerms.find(t => t.startsWith('KX')) || event.title;
     const res = await fetch(
-      `${METADATA}/api/v1/search?q=${encodeURIComponent(event.title)}&limit=20&withNestedMarkets=true`,
+      `${METADATA}/api/v1/search?q=${encodeURIComponent(searchQuery)}&limit=20&withNestedMarkets=true`,
       { headers: getHeaders() }
     );
 
@@ -64,7 +67,7 @@ export async function GET() {
       const data: { events?: DFlowEvent[] } = await res.json();
       for (const ev of data.events || []) {
         for (const m of ev.markets || []) {
-          if (!m.ticker || !tickers.has(m.ticker)) continue;
+          if (!m.ticker) continue;
           if (m.status === 'finalized' || m.status === 'settled') continue;
 
           const yesBid = parseFloat(m.yesBid || '0') || 0;
@@ -73,11 +76,9 @@ export async function GET() {
           const noAsk = parseFloat(m.noAsk || '0') || 0;
           const spread = Math.round(Math.abs(yesAsk - yesBid) * 100);
 
-          const dbMarket = event.markets.find(dm => dm.ticker === m.ticker);
-
           results.push({
             ticker: m.ticker,
-            title: m.title || dbMarket?.title || m.ticker,
+            title: m.yesSubTitle || m.subtitle || m.title || m.ticker,
             yesBid,
             yesAsk,
             noBid,
@@ -92,7 +93,7 @@ export async function GET() {
   }
 
   // Fallback to DB prices if DFlow returned nothing
-  if (results.length === 0) {
+  if (results.length === 0 && event.markets.length > 0) {
     for (const m of event.markets) {
       results.push({
         ticker: m.ticker,
@@ -106,5 +107,6 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json({ markets: results.slice(0, 6) });
+  results.sort((a, b) => b.yesBid - a.yesBid);
+  return NextResponse.json({ markets: results });
 }

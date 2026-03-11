@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/db';
-import { getMarkets } from '@/app/lib/dflow';
+import { getMarkets, getMarketsByEventTicker } from '@/app/lib/dflow';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,10 +45,19 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
   let markets: Awaited<ReturnType<typeof getMarkets>> = [];
   if (event.searchTerms.length > 0) {
     try {
-      markets = await getMarkets(event.searchTerms);
+      const eventTicker = event.searchTerms.find(t => t.startsWith('KX'));
+      if (eventTicker) {
+        markets = await getMarketsByEventTicker(eventTicker);
+      }
+      if (markets.length === 0) {
+        markets = await getMarkets(event.searchTerms);
+      }
     } catch (err) {
       console.error('DFlow market fetch error:', err);
-      // Fall back to cached DB markets
+    }
+
+    // Fall back to cached DB markets if DFlow returned nothing
+    if (markets.length === 0) {
       const dbMarkets = await prisma.market.findMany({ where: { eventId: event.id } });
       markets = dbMarkets.map(m => ({
         id: m.id,
