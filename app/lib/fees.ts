@@ -2,7 +2,7 @@ import type { FeeBreakdown } from '@/app/types';
 
 const FEE_RATE = 0.005; // 0.50%
 
-export const TREASURY_WALLET = '2tvRpFYe7N2hKF8JoYotpt936iYjSp6T3hjimKguatoE';
+export const TREASURY_WALLET = 'HiUzxkBRRKanUKv9vvaPjY6R2yVYUu2vx3Cwen7APieK';
 export const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 export const USDC_DECIMALS = 6;
 
