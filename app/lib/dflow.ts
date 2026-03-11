@@ -67,9 +67,9 @@ function parseMarkets(events: DFlowEvent[]): MarketData[] {
       const noBid = parseFloat(m.noBid || '0') || 0;
       const noAsk = parseFloat(m.noAsk || '0') || 0;
 
-      // Use midpoint of bid/ask as the display price
-      const yesPrice = yesAsk > 0 && yesBid > 0 ? (yesBid + yesAsk) / 2 : yesAsk || yesBid || 0.5;
-      const noPrice = noAsk > 0 && noBid > 0 ? (noBid + noAsk) / 2 : noAsk || noBid || 0.5;
+      // Use ask price (live outcome price) matching Kalshi/DFlow display
+      const yesPrice = yesAsk || yesBid || 0;
+      const noPrice = noAsk || noBid || 0;
 
       // Build descriptive title from subtitle fields
       const title = m.yesSubTitle || m.subtitle || m.title || event.title || '';
