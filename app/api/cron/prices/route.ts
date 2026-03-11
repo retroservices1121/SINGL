@@ -71,9 +71,9 @@ export async function GET(req: NextRequest) {
           const noBid = parseFloat(m.noBid || '0') || 0;
           const noAsk = parseFloat(m.noAsk || '0') || 0;
 
-          // Use ask price (live outcome price) matching Kalshi/DFlow display
-          const yesPrice = yesAsk || yesBid || 0;
-          const noPrice = noAsk || noBid || 0;
+          // Use bid price (live outcome price) matching Kalshi/DFlow display
+          const yesPrice = yesBid || yesAsk || 0;
+          const noPrice = noBid || noAsk || 0;
 
           livePrices.set(m.ticker, {
             yesPrice: Math.round(yesPrice * 100) / 100,

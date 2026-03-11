@@ -112,9 +112,9 @@ export async function POST(req: NextRequest) {
           const noBid = parseFloat(m.noBid || '0') || 0;
           const noAsk = parseFloat(m.noAsk || '0') || 0;
 
-          // Use ask price (live outcome price) matching Kalshi/DFlow display
-          const yesPrice = yesAsk || yesBid || 0;
-          const noPrice = noAsk || noBid || 0;
+          // Use bid price (live outcome price) matching Kalshi/DFlow display
+          const yesPrice = yesBid || yesAsk || 0;
+          const noPrice = noBid || noAsk || 0;
 
           // If both are 0, use 0 (not 0.5) — means no liquidity
           return prisma.market.create({
