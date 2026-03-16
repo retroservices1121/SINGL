@@ -15,6 +15,7 @@ export interface EventData {
   xPosts: XPostData[];
   videos: VideoData[];
   tiktoks: TikTokData[];
+  gasPrices?: GasPriceData[];
 }
 
 export interface MarketData {
@@ -77,6 +78,15 @@ export interface TikTokData {
   videoUrl: string;
   likes?: string | null;
   views?: string | null;
+}
+
+export interface GasPriceData {
+  id: string;
+  eventId: string;
+  region: string;
+  grade: string;
+  price: number;
+  weekOf: string;
 }
 
 export interface TradeParams {

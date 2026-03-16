@@ -26,6 +26,7 @@ model Event {
   xPosts     XPost[]
   videos     Video[]
   tiktoks    TikTok[]
+  gasPrices  GasPrice[]
 }
 
 model Market {
@@ -128,6 +129,20 @@ model PriceSnapshot {
   timestamp    DateTime @default(now())
 
   @@index([eventId, marketTicker, timestamp])
+}
+
+model GasPrice {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+  region    String   // e.g. "US", "PADD1", "PADD2", etc.
+  grade     String   // "regular", "midgrade", "premium", "diesel"
+  price     Float    // dollars per gallon
+  weekOf    DateTime // EIA reporting week
+  fetchedAt DateTime @default(now())
+
+  @@unique([eventId, region, grade, weekOf])
+  @@index([eventId, region, grade])
 }
 
 model Position {

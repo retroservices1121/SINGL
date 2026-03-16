@@ -14,6 +14,7 @@ import TradePanel from './TradePanel';
 import OrderBookDepth from './OrderBookDepth';
 import RelatedMarkets from './RelatedMarkets';
 import TikTokFeed from './TikTokFeed';
+import GasPriceChart from './GasPriceChart';
 
 interface EventPageProps {
   event: EventData;
@@ -134,6 +135,13 @@ export default function EventPage({ event }: EventPageProps) {
           <MarketRules markets={event.markets} />
           <OrderBookDepth markets={event.markets} />
         </section>
+
+        {/* Oil & Gas Prices */}
+        {event.gasPrices && event.gasPrices.length > 0 && (
+          <section className="mb-8">
+            <GasPriceChart gasPrices={event.gasPrices} />
+          </section>
+        )}
 
         {/* Two-column: News & X Posts */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

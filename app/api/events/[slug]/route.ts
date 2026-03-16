@@ -14,6 +14,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
       xPosts: { orderBy: { fetchedAt: 'desc' }, take: 20 },
       videos: { orderBy: { fetchedAt: 'desc' }, take: 8 },
       tiktoks: { orderBy: { fetchedAt: 'desc' }, take: 8 },
+      gasPrices: { orderBy: { weekOf: 'desc' }, take: 52 },
     },
   });
 
@@ -37,6 +38,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
         xPosts: { orderBy: { fetchedAt: 'desc' }, take: 20 },
         videos: { orderBy: { fetchedAt: 'desc' }, take: 8 },
         tiktoks: { orderBy: { fetchedAt: 'desc' }, take: 8 },
+        gasPrices: { orderBy: { weekOf: 'desc' }, take: 52 },
       },
     });
   }
