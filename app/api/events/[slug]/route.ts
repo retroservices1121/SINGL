@@ -43,7 +43,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
     });
   }
 
-  // Fetch live market data directly from DFlow
+  // Fetch live market data directly from DFlow — no DB caching
   let markets: Awaited<ReturnType<typeof getMarkets>> = [];
   if (event.searchTerms.length > 0) {
     try {
@@ -56,25 +56,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
       }
     } catch (err) {
       console.error('DFlow market fetch error:', err);
-    }
-
-    // Fall back to cached DB markets if DFlow returned nothing
-    if (markets.length === 0) {
-      const dbMarkets = await prisma.market.findMany({ where: { eventId: event.id } });
-      markets = dbMarkets.map(m => ({
-        id: m.id,
-        eventId: m.eventId,
-        ticker: m.ticker,
-        title: m.title,
-        yesPrice: m.yesPrice,
-        noPrice: m.noPrice,
-        volume: m.volume,
-        change24h: m.change24h,
-        category: m.category,
-        rulesPrimary: m.rulesPrimary,
-        closeTime: m.closeTime?.toISOString() ?? null,
-        expirationTime: m.expirationTime?.toISOString() ?? null,
-      }));
     }
   }
 
