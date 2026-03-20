@@ -100,7 +100,7 @@ export async function getMarkets(searchTerms: string[]): Promise<MarketData[]> {
   const results = await Promise.all(
     searchTerms.map(term =>
       fetch(
-        `${METADATA}/api/v1/search?q=${encodeURIComponent(term)}&limit=10&withNestedMarkets=true`,
+        `${METADATA}/api/v1/search?q=${encodeURIComponent(term)}&limit=100&withNestedMarkets=true`,
         { headers }
       )
         .then(r => {
@@ -122,15 +122,28 @@ export async function getMarketsByEventTicker(eventTicker: string): Promise<Mark
   const headers = getHeaders();
 
   try {
-    const res = await fetch(
-      `${METADATA}/api/v1/search?q=${encodeURIComponent(eventTicker)}&limit=20&withNestedMarkets=true`,
-      { headers }
-    );
-    if (!res.ok) throw new Error(`DFlow search returned ${res.status}`);
-    const data: DFlowSearchResponse = await res.json();
+    // Fetch all pages of results to get every market
+    let allEvents: DFlowEvent[] = [];
+    let cursor: number | undefined;
+
+    do {
+      const params = new URLSearchParams({
+        q: eventTicker,
+        limit: '100',
+        withNestedMarkets: 'true',
+      });
+      if (cursor !== undefined) params.set('cursor', String(cursor));
+
+      const res = await fetch(`${METADATA}/api/v1/search?${params}`, { headers });
+      if (!res.ok) throw new Error(`DFlow search returned ${res.status}`);
+      const data: DFlowSearchResponse = await res.json();
+
+      allEvents = allEvents.concat(data.events || []);
+      cursor = data.cursor;
+    } while (cursor);
 
     // Find the exact event by ticker
-    const matchingEvent = (data.events || []).find(
+    const matchingEvent = allEvents.find(
       e => e.ticker?.toUpperCase() === eventTicker.toUpperCase()
     );
 
@@ -139,7 +152,7 @@ export async function getMarketsByEventTicker(eventTicker: string): Promise<Mark
     }
 
     // Fallback: return all markets from search
-    return parseMarkets(data.events || []);
+    return parseMarkets(allEvents);
   } catch (err) {
     console.error('DFlow event ticker search error:', err);
     return [];
