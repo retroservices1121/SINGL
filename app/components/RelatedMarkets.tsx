@@ -37,6 +37,8 @@ export default function RelatedMarkets({ eventTitle, currentTickers }: RelatedMa
       setLoading(false);
     }
     fetchRelated();
+    const interval = setInterval(fetchRelated, 30000);
+    return () => clearInterval(interval);
   }, [eventTitle, currentTickers]);
 
   if (loading || markets.length === 0) return null;

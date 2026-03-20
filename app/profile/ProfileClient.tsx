@@ -50,6 +50,8 @@ export default function ProfileClient() {
 
   useEffect(() => {
     fetchPositions();
+    const interval = setInterval(fetchPositions, 15000);
+    return () => clearInterval(interval);
   }, [fetchPositions]);
 
   const handleSell = async (pos: Position) => {

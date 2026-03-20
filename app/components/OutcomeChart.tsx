@@ -60,12 +60,18 @@ export default function OutcomeChart({ markets, eventId, volume }: OutcomeChartP
 
   useEffect(() => {
     if (!eventId) return;
-    fetch(`/api/prices?eventId=${encodeURIComponent(eventId)}&range=${range}`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.snapshots) setHistoryData(data.snapshots);
-      })
-      .catch(() => {});
+    const id = eventId;
+    function fetchPrices() {
+      fetch(`/api/prices?eventId=${encodeURIComponent(id)}&range=${range}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.snapshots) setHistoryData(data.snapshots);
+        })
+        .catch(() => {});
+    }
+    fetchPrices();
+    const interval = setInterval(fetchPrices, 15000);
+    return () => clearInterval(interval);
   }, [eventId, range]);
 
   if (topMarkets.length === 0) return null;

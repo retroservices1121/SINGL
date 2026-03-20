@@ -22,19 +22,24 @@ export default function EventPageClient({ slug }: EventPageClientProps) {
   }, []);
 
   useEffect(() => {
-    fetch(`/api/events/${slug}`)
-      .then(r => {
-        if (!r.ok) throw new Error('Failed to load event');
-        return r.json();
-      })
-      .then(data => {
-        setEvent(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
+    function fetchEvent() {
+      fetch(`/api/events/${slug}`)
+        .then(r => {
+          if (!r.ok) throw new Error('Failed to load event');
+          return r.json();
+        })
+        .then(data => {
+          setEvent(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          setError(err.message);
+          setLoading(false);
+        });
+    }
+    fetchEvent();
+    const interval = setInterval(fetchEvent, 15000);
+    return () => clearInterval(interval);
   }, [slug]);
 
   if (loading) {

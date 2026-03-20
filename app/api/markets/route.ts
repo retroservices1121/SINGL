@@ -32,15 +32,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'event not found' }, { status: 404 });
   }
 
-  // Refresh from DFlow
+  // Always fetch live from DFlow
   if (event.searchTerms.length > 0) {
     try {
       const fresh = await getMarkets(event.searchTerms);
-      return NextResponse.json({ markets: fresh, cached: event.markets });
+      return NextResponse.json({ markets: fresh });
     } catch {
-      // Fall back to cached
+      return NextResponse.json({ error: 'Failed to fetch live market data' }, { status: 502 });
     }
   }
 
-  return NextResponse.json({ markets: event.markets });
+  return NextResponse.json({ error: 'No search terms configured for this event' }, { status: 400 });
 }

@@ -34,6 +34,8 @@ export default function OrderBookDepth({ markets }: OrderBookDepthProps) {
       setLoading(false);
     }
     fetchDepth();
+    const interval = setInterval(fetchDepth, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   const sorted = [...markets].sort((a, b) => b.yesPrice - a.yesPrice);

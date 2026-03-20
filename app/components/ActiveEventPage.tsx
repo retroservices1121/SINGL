@@ -12,24 +12,30 @@ export default function ActiveEventPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/active-event')
-      .then(r => {
-        if (!r.ok) throw new Error(`API returned ${r.status}`);
-        return r.json();
-      })
-      .then(data => {
-        if (data.event) {
-          setEvent(data.event);
-        } else {
+    function fetchEvent() {
+      fetch('/api/active-event')
+        .then(r => {
+          if (!r.ok) throw new Error(`API returned ${r.status}`);
+          return r.json();
+        })
+        .then(data => {
+          if (data.event) {
+            setEvent(data.event);
+            setNoEvent(false);
+          } else {
+            setNoEvent(true);
+          }
+          setLoading(false);
+        })
+        .catch(err => {
+          setError(err.message || 'Failed to load');
           setNoEvent(true);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message || 'Failed to load');
-        setNoEvent(true);
-        setLoading(false);
-      });
+          setLoading(false);
+        });
+    }
+    fetchEvent();
+    const interval = setInterval(fetchEvent, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
