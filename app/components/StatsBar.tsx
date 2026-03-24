@@ -8,9 +8,10 @@ interface StatsBarProps {
   volume?: number | null;
   liquidity?: number | null;
   openInterest?: number | null;
+  dark?: boolean;
 }
 
-export default function StatsBar({ markets, volume, liquidity, openInterest }: StatsBarProps) {
+export default function StatsBar({ markets, volume, liquidity, openInterest, dark }: StatsBarProps) {
   const totalVolume = volume || markets.reduce((sum, m) => sum + (m.volume || 0), 0);
 
   const stats = [
@@ -20,12 +21,20 @@ export default function StatsBar({ markets, volume, liquidity, openInterest }: S
     ...(openInterest && openInterest > 0 ? [{ label: 'Open Interest', value: formatVolume(openInterest) }] : []),
   ];
 
+  const pillClass = dark
+    ? 'bg-white/10 backdrop-blur-sm text-white/70'
+    : 'bg-[var(--surface-container-low)] text-[var(--secondary)]';
+
+  const valueClass = dark
+    ? 'text-white font-bold'
+    : 'font-bold text-[var(--on-surface)]';
+
   return (
     <div className="flex flex-wrap gap-3 text-sm">
       {stats.map(s => (
-        <div key={s.label} className="bg-[var(--paper)] border border-[var(--border)] rounded-full px-4 py-1.5 flex items-center gap-2">
-          <span className="text-[var(--text-dim)]">{s.label}</span>
-          <span className="font-bold text-[var(--text)]">{s.value}</span>
+        <div key={s.label} className={`rounded-full px-4 py-1.5 flex items-center gap-2 ${pillClass}`}>
+          <span>{s.label}</span>
+          <span className={valueClass}>{s.value}</span>
         </div>
       ))}
     </div>

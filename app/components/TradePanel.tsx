@@ -1,94 +1,55 @@
 'use client';
 
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import { usePrivy } from '@privy-io/react-auth';
+import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
 import { useTradeStore } from '@/app/store/tradeStore';
 import { useEventStore } from '@/app/store/eventStore';
-import { calculateFee } from '@/app/lib/fees';
 import { formatUSD, formatPercent } from '@/app/lib/utils';
-import Button from './ui/Button';
 import Spinner from './ui/Spinner';
 
 const PRESETS = [10, 25, 50, 100, 250];
 
 export default function TradePanel() {
-  const { isOpen, market, side, amount, submitting, confirmed, txSignature, closeTrade, setAmount, setSubmitting, setConfirmed } = useTradeStore();
+  const { isOpen, market, side, amount, submitting, confirmed, orderId, closeTrade, setAmount, setSubmitting, setConfirmed } = useTradeStore();
   const currentEvent = useEventStore(s => s.currentEvent);
-  const { publicKey, connected, signTransaction } = useWallet();
-  const { connection } = useConnection();
-  const { setVisible } = useWalletModal();
+  const { login, authenticated } = usePrivy();
+  const { safeAddress, clobReady, placeMarketOrder } = usePolymarketSession();
 
   if (!isOpen || !market) return null;
 
   const price = side === 'yes' ? market.yesPrice : market.noPrice;
+  const tokenId = side === 'yes' ? market.yesTokenId : market.noTokenId;
   const shares = amount / price;
   const payout = shares;
   const profit = payout - amount;
-  const { fee, netAmount } = calculateFee(amount);
 
   const handleSubmit = async () => {
-    if (!connected || !publicKey) {
-      setVisible(true);
+    if (!authenticated) {
+      login();
       return;
     }
 
-    if (!signTransaction) {
-      alert('Wallet does not support transaction signing');
+    if (!clobReady || !safeAddress) {
+      alert('Polymarket session initializing. Please wait a moment and try again.');
       return;
     }
 
     setSubmitting(true);
     try {
-      // Step 1: Get the transaction from our API (which calls DFlow /order)
-      const res = await fetch('/api/trade', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          walletAddress: publicKey.toBase58(),
-          marketTicker: market.ticker,
-          side,
-          amount,
-        }),
+      const result = await placeMarketOrder({
+        tokenId,
+        side: 'BUY',
+        amount,
+        price,
+        negRisk: market.negRisk,
+        tickSize: market.tickSize,
       });
-      const data = await res.json();
 
-      if (data.error) {
-        alert(data.error);
-        setSubmitting(false);
-        return;
-      }
-
-      if (!data.transaction?.transaction) {
-        alert('No transaction returned. Wallet may need KYC verification.');
-        setSubmitting(false);
-        return;
-      }
-
-      // Step 2: Decode, sign, and send the transaction (fee is injected server-side)
-      const { VersionedTransaction } = await import('@solana/web3.js');
-      console.log('[trade] Deserializing tx, base64 length:', data.transaction.transaction.length);
-      const txBuffer = Buffer.from(data.transaction.transaction, 'base64');
-      const tx = VersionedTransaction.deserialize(txBuffer);
-      console.log('[trade] Tx deserialized, requesting signature...');
-
-      const signedTx = await signTransaction(tx);
-      console.log('[trade] Tx signed, sending...');
-      const signature = await connection.sendRawTransaction(signedTx.serialize(), {
-        skipPreflight: false,
-        maxRetries: 3,
-      });
-      console.log('[trade] Tx sent:', signature);
-
-      // Wait for confirmation
-      await connection.confirmTransaction(signature, 'confirmed');
-      console.log('[trade] Tx confirmed');
-
-      // Step 3: Record position AFTER on-chain confirmation
       await fetch('/api/positions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          walletAddress: publicKey.toBase58(),
+          walletAddress: safeAddress,
           marketTicker: market.ticker,
           marketTitle: market.title,
           eventSlug: currentEvent?.slug || '',
@@ -96,11 +57,11 @@ export default function TradePanel() {
           side,
           amount,
           price,
-          txSignature: signature,
+          orderId: result.orderID,
         }),
       });
 
-      setConfirmed(signature);
+      setConfirmed(result.orderID);
     } catch (err) {
       console.error('[trade] Client error:', err);
       const msg = err instanceof Error ? err.message : 'Trade failed';
@@ -113,28 +74,28 @@ export default function TradePanel() {
 
   if (confirmed) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={closeTrade}>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={closeTrade}>
         <div
-          className="bg-[var(--paper)] rounded-2xl p-6 max-w-sm w-full text-center animate-[pop-in_0.3s_ease-out]"
+          className="bg-[var(--surface-container-lowest)] rounded-xl p-8 max-w-sm w-full text-center animate-[pop-in_0.3s_ease-out] shadow-ambient"
           onClick={e => e.stopPropagation()}
         >
           <div className="text-5xl mb-3">{side === 'yes' ? '🎯' : '🛡️'}</div>
-          <h3 className="font-heading text-lg font-bold mb-1">Trade Submitted</h3>
-          <p className="text-sm text-[var(--text-sec)] mb-4">
+          <h3 className="font-heading text-xl font-black uppercase mb-1">Trade Submitted</h3>
+          <p className="text-sm text-[var(--secondary)] mb-4">
             {formatUSD(amount)} on {side.toUpperCase()} for &ldquo;{market.title}&rdquo;
           </p>
-          {txSignature && (
-            <a
-              href={`https://solscan.io/tx/${txSignature}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-[var(--orange)] underline"
-            >
-              View on Solscan
-            </a>
+          {orderId && (
+            <p className="text-[10px] text-[var(--secondary)] font-mono">
+              Order: {orderId.slice(0, 12)}...
+            </p>
           )}
-          <div className="mt-4">
-            <Button variant="primary" size="md" onClick={closeTrade}>Done</Button>
+          <div className="mt-6">
+            <button
+              onClick={closeTrade}
+              className="gradient-cta text-white px-8 py-3 rounded-md font-bold text-sm uppercase tracking-widest shadow-lg shadow-[var(--primary-container)]/30 hover:brightness-110 transition-all cursor-pointer"
+            >
+              Done
+            </button>
           </div>
         </div>
       </div>
@@ -142,79 +103,88 @@ export default function TradePanel() {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={closeTrade}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={closeTrade}>
       <div
-        className="bg-[var(--paper)] rounded-2xl p-6 max-w-sm w-full animate-[pop-in_0.3s_ease-out]"
+        className="bg-[var(--surface-container-lowest)] rounded-xl max-w-sm w-full animate-[pop-in_0.3s_ease-out] shadow-ambient border-t-4 border-[var(--primary-container)]"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-heading text-lg font-bold">
-            Buy <span className={side === 'yes' ? 'text-[var(--yes)]' : 'text-[var(--no)]'}>{side.toUpperCase()}</span>
-          </h3>
-          <button onClick={closeTrade} className="text-[var(--text-dim)] hover:text-[var(--text)] text-xl cursor-pointer">&times;</button>
-        </div>
-
-        <p className="text-sm text-[var(--text-sec)] mb-4 leading-snug">{market.title}</p>
-
-        <div className="mb-4">
-          <label className="text-xs font-semibold text-[var(--text-dim)] uppercase tracking-wider mb-1 block">Amount (USDC)</label>
-          <input
-            type="number"
-            value={amount}
-            onChange={e => setAmount(Math.max(0, Number(e.target.value)))}
-            className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-lg font-mono bg-[var(--cream)] focus:outline-none focus:ring-2 focus:ring-[var(--orange)]"
-            min="1"
-            step="1"
-          />
-          <div className="flex gap-2 mt-2">
-            {PRESETS.map(p => (
-              <button
-                key={p}
-                onClick={() => setAmount(p)}
-                className={`flex-1 py-1 text-xs font-semibold rounded-lg border cursor-pointer transition-colors ${
-                  amount === p
-                    ? 'bg-[var(--orange)] text-white border-[var(--orange)]'
-                    : 'border-[var(--border)] text-[var(--text-sec)] hover:bg-[var(--sand)]'
-                }`}
-              >
-                ${p}
-              </button>
-            ))}
+        {/* Header */}
+        <div className="p-5 border-b border-[var(--surface-container)]">
+          <div className="flex items-center justify-between">
+            <h3 className="font-heading text-lg font-black uppercase">
+              Buy <span className={side === 'yes' ? 'text-[var(--yes)]' : 'text-[var(--no)]'}>{side.toUpperCase()}</span>
+            </h3>
+            <button onClick={closeTrade} className="text-[var(--secondary)] hover:text-[var(--on-surface)] text-xl cursor-pointer">&times;</button>
           </div>
         </div>
 
-        <div className="bg-[var(--cream)] rounded-lg p-3 mb-4 space-y-1.5 text-sm">
-          <div className="flex justify-between">
-            <span className="text-[var(--text-dim)]">Price</span>
-            <span className="font-mono">{formatPercent(price)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[var(--text-dim)]">Shares</span>
-            <span className="font-mono">{shares.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[var(--text-dim)]">Fee (0.50%)</span>
-            <span className="font-mono">{formatUSD(fee)}</span>
-          </div>
-          <div className="flex justify-between border-t border-[var(--border)] pt-1.5">
-            <span className="text-[var(--text-dim)]">Potential payout</span>
-            <span className="font-mono font-bold text-[var(--yes)]">{formatUSD(payout)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[var(--text-dim)]">Potential profit</span>
-            <span className="font-mono font-bold text-[var(--yes)]">+{formatUSD(profit)}</span>
-          </div>
-        </div>
+        <div className="p-5 space-y-5">
+          <p className="text-xs text-[var(--secondary)] leading-snug">{market.title}</p>
 
-        <Button
-          variant={side === 'yes' ? 'yes' : 'no'}
-          size="lg"
-          className="w-full flex items-center justify-center gap-2"
-          onClick={handleSubmit}
-          disabled={submitting || amount <= 0}
-        >
-          {submitting ? <><Spinner size="sm" /> Processing...</> : connected ? `Buy ${side.toUpperCase()} - ${formatUSD(amount)}` : 'Connect Wallet'}
-        </Button>
+          {/* Amount input */}
+          <div>
+            <label className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-1.5 block">Amount (USDC)</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[var(--secondary)]">$</span>
+              <input
+                type="number"
+                value={amount}
+                onChange={e => setAmount(Math.max(0, Number(e.target.value)))}
+                className="w-full text-right font-mono bg-[var(--surface-container-high)] rounded-md px-3 py-2.5 text-lg focus:outline-none focus:ring-1 focus:ring-[var(--primary-container)] border-none"
+                min="1"
+                step="1"
+              />
+            </div>
+            <div className="flex gap-2 mt-2">
+              {PRESETS.map(p => (
+                <button
+                  key={p}
+                  onClick={() => setAmount(p)}
+                  className={`flex-1 py-1.5 text-[10px] font-bold rounded-md cursor-pointer transition-all ${
+                    amount === p
+                      ? 'bg-[var(--primary-container)] text-white'
+                      : 'bg-[var(--surface-container-high)] text-[var(--secondary)] hover:bg-[var(--surface-container-highest)]'
+                  }`}
+                >
+                  ${p}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Cost breakdown */}
+          <div className="bg-[var(--surface-container-low)] rounded-lg p-4 space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-[var(--secondary)]">Price</span>
+              <span className="font-mono font-bold">{formatPercent(price)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[var(--secondary)]">Est. Shares</span>
+              <span className="font-mono font-bold">{shares.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between pt-2 border-t border-[var(--surface-container)]">
+              <span className="font-medium">Potential Payout</span>
+              <span className="font-mono font-black text-[var(--on-surface)]">{formatUSD(payout)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[var(--secondary)]">Potential Profit</span>
+              <span className="font-mono font-bold text-[var(--yes)]">+{formatUSD(profit)}</span>
+            </div>
+          </div>
+
+          {/* Submit */}
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || amount <= 0}
+            className={`w-full py-4 rounded-md font-black text-sm uppercase tracking-widest shadow-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+              side === 'yes'
+                ? 'bg-[var(--yes)] text-white shadow-[var(--yes)]/20 hover:brightness-110'
+                : 'bg-[var(--no)] text-white shadow-[var(--no)]/20 hover:brightness-110'
+            }`}
+          >
+            {submitting ? <><Spinner size="sm" /> Processing...</> : authenticated ? `Confirm ${side.toUpperCase()} - ${formatUSD(amount)}` : 'Connect to Trade'}
+          </button>
+        </div>
       </div>
     </div>
   );

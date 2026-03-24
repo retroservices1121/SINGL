@@ -15,7 +15,6 @@ export interface EventData {
   xPosts: XPostData[];
   videos: VideoData[];
   tiktoks: TikTokData[];
-  gasPrices?: GasPriceData[];
 }
 
 export interface MarketData {
@@ -31,6 +30,11 @@ export interface MarketData {
   rulesPrimary?: string | null;
   closeTime?: string | null;
   expirationTime?: string | null;
+  conditionId: string;
+  yesTokenId: string;
+  noTokenId: string;
+  negRisk: boolean;
+  tickSize: string;
 }
 
 export interface NewsItemData {
@@ -78,33 +82,6 @@ export interface TikTokData {
   videoUrl: string;
   likes?: string | null;
   views?: string | null;
-}
-
-export interface GasPriceData {
-  id: string;
-  eventId: string;
-  region: string;
-  grade: string;
-  price: number;
-  weekOf: string;
-}
-
-export interface TradeParams {
-  walletAddress: string;
-  marketTicker: string;
-  side: 'yes' | 'no';
-  amount: number;
-}
-
-export interface FeeBreakdown {
-  fee: number;
-  netAmount: number;
-  feeRate: number;
-}
-
-export interface KYCStatus {
-  verified: boolean;
-  redirectUrl?: string;
 }
 
 export interface TrendingEvent {

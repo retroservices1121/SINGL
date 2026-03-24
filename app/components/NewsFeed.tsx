@@ -1,16 +1,26 @@
 'use client';
 
 import type { NewsItemData } from '@/app/types';
-import { sentimentColor } from '@/app/lib/utils';
 
 interface NewsFeedProps {
   news: NewsItemData[];
 }
 
+function sentimentBadge(sentiment: string) {
+  switch (sentiment?.toLowerCase()) {
+    case 'positive':
+      return { bg: 'bg-green-100', text: 'text-green-700', label: 'Bullish' };
+    case 'negative':
+      return { bg: 'bg-red-100', text: 'text-red-700', label: 'Bearish' };
+    default:
+      return { bg: 'bg-slate-200', text: 'text-slate-600', label: 'Neutral' };
+  }
+}
+
 export default function NewsFeed({ news }: NewsFeedProps) {
   if (news.length === 0) {
     return (
-      <div className="text-center py-8 text-[var(--text-dim)] text-sm">
+      <div className="text-center py-12 text-[var(--secondary)] text-sm">
         No news articles yet
       </div>
     );
@@ -18,42 +28,37 @@ export default function NewsFeed({ news }: NewsFeedProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 mb-4">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-dim)]">
-          News & Analysis
-        </h3>
-        <span className="text-xs font-bold text-[var(--orange)] bg-[var(--orange-lt)] px-2 py-0.5 rounded-full">
-          {news.length}
-        </span>
-      </div>
-      {news.map((item, i) => (
-        <div
-          key={item.id || i}
-          className="bg-[var(--paper)] border border-[var(--border)] rounded-xl p-3 hover:-translate-y-[1px] transition-all duration-200"
-          style={{ animationDelay: `${i * 40}ms` }}
-        >
-          <div className="flex items-start justify-between gap-2 mb-1">
-            <h4 className="text-sm font-semibold text-[var(--text)] leading-tight flex-1">
+      <h3 className="text-sm font-black font-heading uppercase tracking-widest text-[var(--on-surface)] px-1">
+        Market Pulse
+      </h3>
+      {news.map((item, i) => {
+        const badge = sentimentBadge(item.sentiment);
+        return (
+          <div
+            key={item.id || i}
+            className="p-4 bg-[var(--surface-container-low)] rounded-lg space-y-2 border-l-2 border-[var(--primary-container)]/30 hover:border-[var(--primary-container)] transition-colors"
+            style={{ animationDelay: `${i * 40}ms` }}
+          >
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] font-bold text-[var(--secondary)] uppercase">{item.time}</span>
+              <span className={`px-2 py-0.5 rounded-full ${badge.bg} ${badge.text} text-[9px] font-black uppercase`}>
+                {badge.label}
+              </span>
+            </div>
+            <h4 className="text-xs font-semibold text-[var(--on-surface)] leading-relaxed">
               {item.url ? (
-                <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--orange)]">
+                <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--primary-container)] transition-colors">
                   {item.title}
                 </a>
               ) : (
                 item.title
               )}
             </h4>
-            <span className={`text-xs font-semibold uppercase ${sentimentColor(item.sentiment)}`}>
-              {item.sentiment}
-            </span>
+            <p className="text-xs text-[var(--secondary)] leading-relaxed">{item.summary}</p>
+            <span className="text-[10px] font-bold text-[var(--secondary)]">{item.source}</span>
           </div>
-          <p className="text-xs text-[var(--text-sec)] leading-relaxed mb-1">{item.summary}</p>
-          <div className="flex items-center gap-2 text-xs text-[var(--text-dim)]">
-            <span className="font-semibold">{item.source}</span>
-            <span>&middot;</span>
-            <span>{item.time}</span>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

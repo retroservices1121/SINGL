@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import type { MarketData } from '@/app/types';
 
-// Kalshi-style colors: yellow/gold, black, orange/brown for top 3, then more
+// Chart colors: yellow/gold, black, orange/brown for top 3, then more
 const COLORS = [
   '#D4A843', // gold/yellow
   '#1a1a1a', // black
@@ -192,7 +192,7 @@ export default function OutcomeChart({ markets, eventId, volume }: OutcomeChartP
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
-      {/* Legend — top, Kalshi style */}
+      {/* Legend */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mb-4">
         {topMarkets.map((m, i) => (
           <div key={m.ticker} className="flex items-center gap-1.5">

@@ -1,15 +1,46 @@
 @import "tailwindcss";
 
 :root {
-  --cream: #FBF8F3;
-  --paper: #FFFFFF;
-  --sand: #EDE8DE;
-  --border: #E5DFD3;
-  --text: #1A1A1A;
-  --text-sec: #5C5547;
-  --text-dim: #9B9484;
-  --orange: #F2841A;
-  --orange-lt: #FFF3E5;
+  /* Clinical Kineticism palette */
+  --surface: #F9F9FF;
+  --surface-dim: #CFdAF2;
+  --surface-container: #E7EEFF;
+  --surface-container-low: #F0F3FF;
+  --surface-container-high: #DEE8FF;
+  --surface-container-highest: #D8E3FB;
+  --surface-container-lowest: #FFFFFF;
+  --surface-bright: #F9F9FF;
+
+  --on-surface: #111C2D;
+  --on-surface-variant: #5A4136;
+  --on-background: #111C2D;
+
+  --primary: #A04100;
+  --primary-container: #FF6B00;
+  --primary-fixed: #FFDBCC;
+  --primary-fixed-dim: #FFB693;
+
+  --secondary: #565E74;
+  --secondary-container: #DAE2FD;
+
+  --tertiary: #0062A1;
+  --tertiary-container: #059EFF;
+
+  --outline: #8E7164;
+  --outline-variant: #E2BFB0;
+
+  --error: #BA1A1A;
+
+  /* Semantic aliases (backward compat) */
+  --cream: var(--surface);
+  --paper: var(--surface-container-lowest);
+  --sand: var(--surface-container-high);
+  --border: var(--outline-variant);
+  --text: var(--on-surface);
+  --text-sec: var(--secondary);
+  --text-dim: var(--outline);
+  --orange: var(--primary-container);
+  --orange-lt: var(--primary-fixed);
   --yes: #0AAE6F;
   --yes-bg: #E8F8F0;
   --no: #E84855;
@@ -17,23 +48,47 @@
 }
 
 @theme inline {
-  --color-background: var(--cream);
-  --color-foreground: var(--text);
+  --color-background: var(--surface);
+  --color-foreground: var(--on-surface);
 }
 
 body {
-  background: var(--cream);
-  color: var(--text);
-  font-family: 'Outfit', system-ui, sans-serif;
+  background: var(--surface);
+  color: var(--on-surface);
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 .font-heading {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
 }
 
 .font-mono {
   font-family: 'JetBrains Mono', monospace;
 }
+
+/* Glassmorphism */
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Ambient shadow for floating elements */
+.shadow-ambient {
+  box-shadow: 0px 20px 40px rgba(17, 28, 45, 0.06);
+}
+
+/* Gradient CTA */
+.gradient-cta {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+}
+
+/* Tonal surface layers */
+.tonal-base { background: var(--surface); }
+.tonal-low { background: var(--surface-container-low); }
+.tonal-mid { background: var(--surface-container); }
+.tonal-high { background: var(--surface-container-high); }
+.tonal-highest { background: var(--surface-container-highest); }
 
 @keyframes pop-in {
   from {
@@ -55,4 +110,9 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/db';
-import { getMarketsByEventTicker, getMarkets } from '@/app/lib/dflow';
+import { getMarketsBySearchTerms } from '@/app/lib/polymarket';
+import type { MarketData } from '@/app/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,6 @@ export async function GET() {
       xPosts: { orderBy: { fetchedAt: 'desc' }, take: 20 },
       videos: { orderBy: { fetchedAt: 'desc' }, take: 8 },
       tiktoks: { orderBy: { fetchedAt: 'desc' }, take: 8 },
-      gasPrices: { orderBy: { weekOf: 'desc' }, take: 52 },
     },
   });
 
@@ -26,19 +26,13 @@ export async function GET() {
     return NextResponse.json({ event: null });
   }
 
-  // Fetch live market data directly from DFlow — no DB caching
-  let markets: Awaited<ReturnType<typeof getMarkets>> = [];
+  // Fetch live market data from Polymarket Gamma API
+  let markets: MarketData[] = [];
   if (event.searchTerms.length > 0) {
     try {
-      const eventTicker = event.searchTerms.find(t => t.startsWith('KX'));
-      if (eventTicker) {
-        markets = await getMarketsByEventTicker(eventTicker);
-      }
-      if (markets.length === 0) {
-        markets = await getMarkets(event.searchTerms);
-      }
+      markets = await getMarketsBySearchTerms(event.searchTerms);
     } catch (err) {
-      console.error('DFlow live price fetch error:', err);
+      console.error('Polymarket live price fetch error:', err);
     }
   }
 

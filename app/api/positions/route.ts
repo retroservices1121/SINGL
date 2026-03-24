@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/db';
-import { calculateFee } from '@/app/lib/fees';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,29 +21,15 @@ export async function GET(req: NextRequest) {
 // POST: record a confirmed position
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { walletAddress, marketTicker, marketTitle, eventSlug, eventTitle, side, amount, price, txSignature } = body;
+  const { walletAddress, marketTicker, marketTitle, eventSlug, eventTitle, side, amount, price, orderId } = body;
 
-  if (!walletAddress || !marketTicker || !side || !amount || !txSignature) {
+  if (!walletAddress || !marketTicker || !side || !amount) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
-  const { fee, netAmount } = calculateFee(amount);
-  const shares = netAmount / (price || 0.5);
+  const shares = amount / (price || 0.5);
 
   try {
-    // Log the fee
-    await prisma.tradeFee.create({
-      data: {
-        walletAddress,
-        marketTicker,
-        side,
-        grossAmount: amount,
-        feeAmount: fee,
-        netAmount,
-      },
-    });
-
-    // Create position with tx proof
     const position = await prisma.position.create({
       data: {
         walletAddress,
@@ -55,8 +40,8 @@ export async function POST(req: NextRequest) {
         side,
         shares,
         avgPrice: price || 0.5,
-        costBasis: netAmount,
-        txSignature,
+        costBasis: amount,
+        orderId: orderId || null,
       },
     });
 

@@ -50,14 +50,14 @@ export default function ActiveEventPage() {
     return (
       <div className="max-w-6xl mx-auto px-4 py-32 text-center">
         <div className="text-5xl mb-4">🎯</div>
-        <h2 className="font-heading text-2xl font-bold text-[var(--text)] mb-2">
+        <h2 className="font-heading text-2xl font-black uppercase tracking-tight text-[var(--on-surface)] mb-2">
           No active event
         </h2>
-        <p className="text-[var(--text-sec)] text-sm">
+        <p className="text-[var(--secondary)] text-sm">
           Check back soon — the next market is being set up.
         </p>
         {error && (
-          <p className="text-xs text-red-400 mt-4">Error: {error}</p>
+          <p className="text-xs text-[var(--error)] mt-4">Error: {error}</p>
         )}
       </div>
     );

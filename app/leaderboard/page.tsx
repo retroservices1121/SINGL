@@ -1,26 +1,33 @@
-import ActiveEventPage from './components/ActiveEventPage';
-import WalletButton from './components/WalletButton';
+import LeaderboardClient from './LeaderboardClient';
+import WalletButton from '@/app/components/WalletButton';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export const dynamic = 'force-dynamic';
 
-export default function Home() {
+export const metadata = {
+  title: 'Leaderboard | SINGL by Spredd Markets',
+  description: 'Top traders ranked by volume on SINGL prediction markets.',
+};
+
+export default function LeaderboardPage() {
   return (
     <div className="min-h-screen bg-[var(--surface)]">
-      {/* Top Nav — glass blur, Clinical Kineticism style */}
+      {/* Top Nav */}
       <nav className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-[var(--surface-container)]">
         <div className="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto">
           <div className="flex items-center gap-8">
-            <Image src="/singls-logo.png" alt="SINGL" width={160} height={50} priority className="h-9 w-auto" />
-            <div className="hidden md:flex gap-6">
-              <Link href="/" className="text-[var(--primary-container)] font-bold text-sm uppercase tracking-tight border-b-2 border-[var(--primary-container)] pb-1">
+            <Link href="/">
+              <Image src="/singls-logo.png" alt="SINGL" width={160} height={50} className="h-9 w-auto" />
+            </Link>
+            <div className="hidden md:flex items-center gap-6 font-heading font-bold uppercase tracking-tight">
+              <Link href="/" className="text-[var(--secondary)] hover:text-[var(--primary-container)] transition-colors text-sm">
                 Markets
               </Link>
-              <Link href="/leaderboard" className="text-[var(--secondary)] font-bold text-sm uppercase tracking-tight hover:text-[var(--primary-container)] transition-colors">
+              <Link href="/leaderboard" className="text-[var(--primary-container)] border-b-2 border-[var(--primary-container)] pb-1 text-sm">
                 Leaderboard
               </Link>
-              <Link href="/profile" className="text-[var(--secondary)] font-bold text-sm uppercase tracking-tight hover:text-[var(--primary-container)] transition-colors">
+              <Link href="/profile" className="text-[var(--secondary)] hover:text-[var(--primary-container)] transition-colors text-sm">
                 Portfolio
               </Link>
             </div>
@@ -29,22 +36,17 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Active Event */}
-      <ActiveEventPage />
-
-      {/* Footer */}
-      <footer className="bg-[var(--surface-container-low)] px-4 py-8 flex flex-col items-center gap-2">
-        <Image src="/singls-logo.png" alt="SINGL" width={120} height={38} className="h-8 w-auto opacity-60" />
-        <p className="text-xs text-[var(--secondary)]">by Spredd Markets</p>
-      </footer>
+      <main className="max-w-screen-2xl mx-auto px-6 py-12">
+        <LeaderboardClient />
+      </main>
 
       {/* Mobile Bottom Nav */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 glass-card border-t border-[var(--surface-container)] px-6 py-3 flex justify-between items-center z-50">
-        <Link href="/" className="flex flex-col items-center gap-1 text-[var(--primary-container)]">
+        <Link href="/" className="flex flex-col items-center gap-1 text-[var(--secondary)]">
           <span className="material-symbols-outlined text-xl">sensors</span>
           <span className="text-[10px] font-bold uppercase">Live</span>
         </Link>
-        <Link href="/leaderboard" className="flex flex-col items-center gap-1 text-[var(--secondary)]">
+        <Link href="/leaderboard" className="flex flex-col items-center gap-1 text-[var(--primary-container)]">
           <span className="material-symbols-outlined text-xl">leaderboard</span>
           <span className="text-[10px] font-bold uppercase">Ranks</span>
         </Link>

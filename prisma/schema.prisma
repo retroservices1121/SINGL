@@ -15,6 +15,7 @@ model Event {
   color        String?
   imageUrl     String?
   searchTerms  String[]
+  contentTerms String[]  @default([])
   volume       Float?
   liquidity    Float?
   openInterest Float?
@@ -26,7 +27,6 @@ model Event {
   xPosts     XPost[]
   videos     Video[]
   tiktoks    TikTok[]
-  gasPrices  GasPrice[]
 }
 
 model Market {
@@ -43,7 +43,11 @@ model Market {
   rulesPrimary   String?
   closeTime      DateTime?
   expirationTime DateTime?
-  dflowData      Json?
+  conditionId    String?
+  yesTokenId     String?
+  noTokenId      String?
+  negRisk        Boolean  @default(false)
+  tickSize       String   @default("0.01")
   updatedAt      DateTime @updatedAt
 }
 
@@ -102,18 +106,6 @@ model TikTok {
   fetchedAt DateTime @default(now())
 }
 
-model TradeFee {
-  id            String   @id @default(cuid())
-  walletAddress String
-  marketTicker  String
-  side          String
-  grossAmount   Float
-  feeAmount     Float
-  netAmount     Float
-  txSignature   String?
-  createdAt     DateTime @default(now())
-}
-
 model SiteConfig {
   id    String @id @default("singleton")
   key   String @unique
@@ -131,20 +123,6 @@ model PriceSnapshot {
   @@index([eventId, marketTicker, timestamp])
 }
 
-model GasPrice {
-  id        String   @id @default(cuid())
-  eventId   String
-  event     Event    @relation(fields: [eventId], references: [id])
-  region    String   // e.g. "US", "PADD1", "PADD2", etc.
-  grade     String   // "regular", "midgrade", "premium", "diesel"
-  price     Float    // dollars per gallon
-  weekOf    DateTime // EIA reporting week
-  fetchedAt DateTime @default(now())
-
-  @@unique([eventId, region, grade, weekOf])
-  @@index([eventId, region, grade])
-}
-
 model Position {
   id            String   @id @default(cuid())
   walletAddress String
@@ -157,6 +135,7 @@ model Position {
   avgPrice      Float
   costBasis     Float
   status        String   @default("open")
+  orderId       String?
   txSignature   String?
   closeTxSig    String?
   closePrice    Float?

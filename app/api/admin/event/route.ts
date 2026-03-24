@@ -34,14 +34,17 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { slug, title, searchTerms, emoji, subtitle, imageUrl, eventMeta, markets: rawMarkets } = body;
+  const { slug, title, searchTerms, contentTerms, emoji, subtitle, imageUrl, eventMeta, markets: rawMarkets, eventTicker } = body;
 
   if (!slug) {
     return NextResponse.json({ error: 'slug is required' }, { status: 400 });
   }
 
   const eventTitle = title || slug.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-  const terms = searchTerms || [eventTitle];
+  // searchTerms: used for Polymarket market lookup (include event ticker if available)
+  const terms = searchTerms || (eventTicker ? [eventTicker, eventTitle] : [eventTitle]);
+  // contentTerms: used for news/social media searches (descriptive, human-readable)
+  const content = contentTerms || [eventTitle];
   const meta = eventMeta || {};
 
   let event = await prisma.event.upsert({
@@ -49,6 +52,7 @@ export async function POST(req: NextRequest) {
     update: {
       ...(title && { title }),
       ...(searchTerms && { searchTerms }),
+      ...(contentTerms && { contentTerms }),
       ...(emoji && { emoji }),
       ...(subtitle && { subtitle }),
       ...(imageUrl && { imageUrl }),
@@ -60,6 +64,7 @@ export async function POST(req: NextRequest) {
       slug,
       title: eventTitle,
       searchTerms: terms,
+      contentTerms: content,
       ...(emoji && { emoji }),
       ...(subtitle && { subtitle }),
       ...(imageUrl && { imageUrl }),
@@ -112,7 +117,7 @@ export async function POST(req: NextRequest) {
           const noBid = parseFloat(m.noBid || '0') || 0;
           const noAsk = parseFloat(m.noAsk || '0') || 0;
 
-          // Use ask price (buy price) matching DFlow/Kalshi display
+          // Use ask price (buy price) matching Polymarket display
           const yesPrice = yesAsk || yesBid || 0;
           const noPrice = noAsk || noBid || 0;
 

@@ -33,7 +33,7 @@ interface EventResult {
 
 interface ActiveEvent {
   activeEventSlug: string | null;
-  event?: { slug: string; title: string; searchTerms: string[]; markets: { ticker: string; title: string }[] } | null;
+  event?: { slug: string; title: string; searchTerms: string[]; contentTerms: string[]; markets: { ticker: string; title: string }[] } | null;
 }
 
 export default function AdminPage() {
@@ -310,7 +310,7 @@ export default function AdminPage() {
 
         {/* Search */}
         <div className="bg-[#16213e] rounded-xl p-5 mb-6 border border-gray-700">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Search DFlow Events</h2>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Search Polymarket Events</h2>
           <div className="flex gap-2">
             <input
               type="text"
@@ -401,7 +401,7 @@ export default function AdminPage() {
         )}
 
         {searching && (
-          <div className="text-center py-12 text-gray-400">Searching DFlow...</div>
+          <div className="text-center py-12 text-gray-400">Searching Polymarket...</div>
         )}
       </div>
     </div>

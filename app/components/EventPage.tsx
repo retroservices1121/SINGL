@@ -9,12 +9,10 @@ import NewsFeed from './NewsFeed';
 import XFeed from './XFeed';
 import VideoFeed from './VideoFeed';
 import StatsBar from './StatsBar';
-import KYCBanner from './KYCBanner';
 import TradePanel from './TradePanel';
 import OrderBookDepth from './OrderBookDepth';
 import RelatedMarkets from './RelatedMarkets';
 import TikTokFeed from './TikTokFeed';
-import GasPriceChart from './GasPriceChart';
 
 interface EventPageProps {
   event: EventData;
@@ -44,7 +42,7 @@ function ShareButton({ slug, title }: { slug: string; title: string }) {
     <div className="flex items-center gap-1.5 shrink-0">
       <button
         onClick={shareOnX}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-black text-white rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[var(--on-surface)] text-white rounded-md hover:opacity-90 transition-all cursor-pointer"
         title="Share on X"
       >
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
@@ -54,7 +52,7 @@ function ShareButton({ slug, title }: { slug: string; title: string }) {
       </button>
       <button
         onClick={copyLink}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-[var(--border)] text-[var(--text-sec)] rounded-lg hover:bg-[var(--sand)] transition-colors cursor-pointer"
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[var(--surface-container-high)] text-[var(--secondary)] rounded-md hover:bg-[var(--surface-container-highest)] transition-colors cursor-pointer"
         title="Copy link"
       >
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -74,74 +72,75 @@ export default function EventPage({ event }: EventPageProps) {
   }, [event, setCurrentEvent]);
 
   return (
-    <div className="min-h-screen bg-[var(--cream)]">
-      {/* Hero */}
-      <div className="bg-[var(--paper)] border-b border-[var(--border)] px-4 py-8 mb-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-4 mb-2">
-            {event.imageUrl ? (
-              <img src={event.imageUrl} alt="" className="w-16 h-16 rounded-xl object-cover" />
-            ) : event.emoji ? (
-              <span className="text-4xl">{event.emoji}</span>
-            ) : null}
-            <div className="flex-1">
-              <h1 className="font-heading text-2xl md:text-3xl font-bold text-[var(--text)]">
+    <div className="min-h-screen bg-[var(--surface)]">
+      {/* Hero — deep navy with tonal layering */}
+      <section className="relative overflow-hidden bg-[var(--on-surface)] px-6 py-12 mb-0">
+        <div className="absolute inset-0 bg-gradient-to-r from-[var(--on-surface)] via-[var(--on-surface)]/90 to-transparent z-[1]" />
+        {event.imageUrl && (
+          <div className="absolute inset-0 opacity-30">
+            <img src={event.imageUrl} alt="" className="w-full h-full object-cover" />
+          </div>
+        )}
+        <div className="relative z-10 max-w-6xl mx-auto">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-4 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--primary-container)] text-white text-xs font-bold tracking-widest uppercase">
+                <span className="w-2 h-2 rounded-full bg-white" style={{ animation: 'pulse-dot 2s ease-in-out infinite' }} />
+                Live Event
+              </div>
+              <h1 className="text-4xl md:text-6xl font-black text-white font-heading leading-[0.95] tracking-tighter uppercase">
                 {event.title}
               </h1>
               {event.subtitle && (
-                <p className="text-sm text-[var(--text-sec)] mt-1">{event.subtitle}</p>
+                <p className="text-base text-[var(--surface-dim)] max-w-lg">{event.subtitle}</p>
               )}
+              <div className="pt-2">
+                <StatsBar
+                  markets={event.markets}
+                  volume={event.volume}
+                  liquidity={event.liquidity}
+                  openInterest={event.openInterest}
+                  dark
+                />
+              </div>
             </div>
             <ShareButton slug={event.slug} title={event.title} />
           </div>
-          <div className="mt-4">
-            <StatsBar
-              markets={event.markets}
-              volume={event.volume}
-              liquidity={event.liquidity}
-              openInterest={event.openInterest}
-            />
-          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-6xl mx-auto px-4 pb-12">
-        {/* KYC Banner */}
-        <div className="mb-6">
-          <KYCBanner />
-        </div>
-
-        {/* Prediction Markets */}
-        <section className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-dim)]">
-              Prediction Markets
-            </h2>
-            <span className="text-xs font-bold text-[var(--orange)] bg-[var(--orange-lt)] px-2 py-0.5 rounded-full">
-              {event.markets.length}
-            </span>
-          </div>
-          {event.markets.length > 0 ? (
-            <OutcomeList markets={event.markets} />
-          ) : (
-            <div className="text-center py-8 text-[var(--text-dim)] text-sm bg-[var(--paper)] border border-[var(--border)] rounded-xl">
-              No markets found for this event
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Two-column: Markets + Active Slip */}
+        <section className="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-8">
+          {/* Prediction Markets — main area */}
+          <div className="xl:col-span-8 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-black font-heading tracking-tight uppercase">
+                Prediction Markets
+              </h2>
+              <span className="px-3 py-1 rounded-full bg-[var(--primary-fixed)] text-[var(--primary)] text-xs font-bold">
+                {event.markets.length} OUTCOMES
+              </span>
             </div>
-          )}
+            {event.markets.length > 0 ? (
+              <OutcomeList markets={event.markets} />
+            ) : (
+              <div className="text-center py-12 text-[var(--secondary)] text-sm bg-[var(--surface-container-lowest)] rounded-xl">
+                No markets found for this event
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar: Order Book */}
+          <div className="xl:col-span-4 space-y-6">
+            <OrderBookDepth markets={event.markets} />
+          </div>
         </section>
 
-        {/* Market Rules & Order Book */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Market Rules */}
+        <section className="mb-8">
           <MarketRules markets={event.markets} />
-          <OrderBookDepth markets={event.markets} />
         </section>
-
-        {/* Oil & Gas Prices */}
-        {event.gasPrices && event.gasPrices.length > 0 && (
-          <section className="mb-8">
-            <GasPriceChart gasPrices={event.gasPrices} />
-          </section>
-        )}
 
         {/* Two-column: News & X Posts */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

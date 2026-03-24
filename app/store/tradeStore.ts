@@ -8,12 +8,12 @@ interface TradeStore {
   amount: number;
   submitting: boolean;
   confirmed: boolean;
-  txSignature: string | null;
+  orderId: string | null;
   openTrade: (market: MarketData, side: 'yes' | 'no') => void;
   closeTrade: () => void;
   setAmount: (amount: number) => void;
   setSubmitting: (submitting: boolean) => void;
-  setConfirmed: (txSignature: string) => void;
+  setConfirmed: (orderId: string) => void;
 }
 
 export const useTradeStore = create<TradeStore>((set) => ({
@@ -23,7 +23,7 @@ export const useTradeStore = create<TradeStore>((set) => ({
   amount: 10,
   submitting: false,
   confirmed: false,
-  txSignature: null,
+  orderId: null,
   openTrade: (market, side) => set({
     isOpen: true,
     market,
@@ -31,16 +31,16 @@ export const useTradeStore = create<TradeStore>((set) => ({
     amount: 10,
     submitting: false,
     confirmed: false,
-    txSignature: null,
+    orderId: null,
   }),
   closeTrade: () => set({
     isOpen: false,
     market: null,
     submitting: false,
     confirmed: false,
-    txSignature: null,
+    orderId: null,
   }),
   setAmount: (amount) => set({ amount }),
   setSubmitting: (submitting) => set({ submitting }),
-  setConfirmed: (txSignature) => set({ confirmed: true, submitting: false, txSignature }),
+  setConfirmed: (orderId) => set({ confirmed: true, submitting: false, orderId }),
 }));

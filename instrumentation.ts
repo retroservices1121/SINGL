@@ -15,7 +15,6 @@ export async function register() {
       { name: 'youtube', endpoint: '/api/cron/youtube', intervalMs: 60 * 60 * 1000 },   // every 1 hour
       { name: 'twitter',   endpoint: '/api/cron/twitter',    intervalMs: 15 * 60 * 1000 },   // every 15 min
       { name: 'tiktok',    endpoint: '/api/cron/tiktok',     intervalMs: 60 * 60 * 1000 },   // every 1 hour
-      { name: 'gas-prices', endpoint: '/api/cron/gas-prices', intervalMs: 6 * 60 * 60 * 1000 }, // every 6 hours (EIA updates weekly)
     ];
 
     // Wait 30s after startup before first run

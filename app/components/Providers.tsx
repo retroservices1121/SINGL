@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 
-const WalletProviders = dynamic(() => import('./WalletProviders'), {
+const PrivyWalletProvider = dynamic(() => import('./PrivyWalletProvider'), {
   ssr: false,
   loading: () => null,
 });
@@ -19,5 +19,5 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  return <WalletProviders>{children}</WalletProviders>;
+  return <PrivyWalletProvider>{children}</PrivyWalletProvider>;
 }

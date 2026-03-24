@@ -9,7 +9,7 @@ interface VideoFeedProps {
 export default function VideoFeed({ videos }: VideoFeedProps) {
   if (videos.length === 0) {
     return (
-      <div className="text-center py-8 text-[var(--text-dim)] text-sm">
+      <div className="text-center py-12 text-[var(--secondary)] text-sm">
         No videos yet
       </div>
     );
@@ -17,44 +17,41 @@ export default function VideoFeed({ videos }: VideoFeedProps) {
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-4">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-dim)]">
+      <div className="flex items-center gap-3 mb-4">
+        <h3 className="text-sm font-black font-heading uppercase tracking-widest text-[var(--on-surface)]">
           Video Coverage
         </h3>
-        <span className="text-xs font-bold text-[var(--orange)] bg-[var(--orange-lt)] px-2 py-0.5 rounded-full">
+        <span className="px-2 py-0.5 rounded-full bg-[var(--surface-container-high)] text-[10px] font-bold text-[var(--secondary)]">
           {videos.length}
         </span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {videos.map((video, i) => (
           <a
             key={video.id || i}
             href={video.youtubeUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="group bg-[var(--paper)] border border-[var(--border)] rounded-xl overflow-hidden hover:-translate-y-[3px] transition-all duration-300"
-            style={{
-              animationDelay: `${i * 60}ms`,
-              transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
-            }}
+            className="group bg-[var(--surface-container-lowest)] rounded-xl overflow-hidden shadow-ambient hover:scale-[1.02] transition-transform"
+            style={{ animationDelay: `${i * 60}ms` }}
           >
             {video.thumbnail && (
-              <div className="relative aspect-video bg-[var(--sand)]">
+              <div className="relative aspect-video bg-[var(--surface-container-high)]">
                 <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" />
                 {video.duration && (
-                  <span className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded font-mono">
+                  <span className="absolute bottom-1.5 right-1.5 bg-black/80 text-white text-[10px] px-1.5 py-0.5 rounded font-mono">
                     {video.duration}
                   </span>
                 )}
               </div>
             )}
             <div className="p-3">
-              <h4 className="text-xs font-semibold text-[var(--text)] leading-tight line-clamp-2 group-hover:text-[var(--orange)] transition-colors">
+              <h4 className="text-xs font-semibold text-[var(--on-surface)] leading-tight line-clamp-2 group-hover:text-[var(--primary-container)] transition-colors">
                 {video.title}
               </h4>
-              <div className="flex items-center gap-2 mt-1.5 text-xs text-[var(--text-dim)]">
+              <div className="flex items-center gap-2 mt-1.5 text-[10px] text-[var(--secondary)]">
                 <span>{video.channel}</span>
-                {video.views && <span>&middot; {video.views} views</span>}
+                {video.views && <span>{video.views} views</span>}
               </div>
             </div>
           </a>
