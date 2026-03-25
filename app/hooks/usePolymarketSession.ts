@@ -6,11 +6,13 @@ import { ethers } from 'ethers';
 import { Side } from '@polymarket/clob-client';
 
 const CLOB_URL = 'https://clob.polymarket.com';
+const RELAYER_URL = 'https://relayer.polymarket.com';
 
 const SESSION_KEY = 'polymarket_session';
 
 interface PolymarketSession {
-  address: string;
+  eoaAddress: string;
+  safeAddress: string;
   apiKey: string;
   apiSecret: string;
   passphrase: string;
@@ -22,6 +24,16 @@ interface SessionState {
   initializing: boolean;
   error: string | null;
   session: PolymarketSession | null;
+}
+
+function getBuilderConfig() {
+  // Use remote builder config — signs via our /api/polymarket/sign endpoint
+  const { BuilderConfig } = require('@polymarket/builder-signing-sdk');
+  return new BuilderConfig({
+    remoteBuilderConfig: {
+      url: '/api/polymarket/sign',
+    },
+  });
 }
 
 export function usePolymarketSession(): SessionState & {
@@ -60,7 +72,7 @@ export function usePolymarketSession(): SessionState & {
         const session: PolymarketSession = JSON.parse(stored);
         setState(s => ({
           ...s,
-          safeAddress: session.address,
+          safeAddress: session.safeAddress,
           clobReady: true,
           session,
         }));
@@ -84,9 +96,44 @@ export function usePolymarketSession(): SessionState & {
       const rawProvider = await wallet.getEthereumProvider();
       const provider = new ethers.providers.Web3Provider(rawProvider as ethers.providers.ExternalProvider);
       const signer = provider.getSigner();
-      const address = await signer.getAddress();
+      const eoaAddress = await signer.getAddress();
 
-      // Initialize ClobClient with EOA signature type for API key derivation
+      const builderConfig = getBuilderConfig();
+
+      // Step 1: Initialize RelayClient to derive + deploy Safe
+      const { RelayClient } = await import('@polymarket/builder-relayer-client');
+
+      const relayClient = new RelayClient(
+        RELAYER_URL,
+        137,
+        signer as unknown as ethers.Wallet,
+        builderConfig,
+      );
+
+      // Derive the Safe proxy address from the EOA
+      const { deriveSafe } = await import(
+        /* webpackIgnore: true */
+        '@polymarket/builder-relayer-client/dist/builder/derive'
+      );
+      const safeFactory = relayClient.contractConfig.SafeContracts.SafeFactory;
+      const safeAddress = deriveSafe(eoaAddress, safeFactory);
+
+      // Deploy the Safe if not already deployed
+      try {
+        const deployResult = await relayClient.deploy();
+        console.log('[polymarket] Deploying Safe, tx:', deployResult.transactionID);
+        if (deployResult.wait) {
+          await deployResult.wait();
+        }
+        console.log('[polymarket] Safe deployed at:', safeAddress);
+      } catch (err: unknown) {
+        // Already deployed is fine
+        console.log('[polymarket] Safe already deployed at:', safeAddress);
+      }
+
+      console.log('[polymarket] Safe address:', safeAddress);
+
+      // Step 2: Derive CLOB API credentials using the Safe
       const { ClobClient } = await import('@polymarket/clob-client');
 
       const clobClient = new ClobClient(
@@ -94,10 +141,10 @@ export function usePolymarketSession(): SessionState & {
         137,
         signer as unknown as ethers.Wallet,
         undefined, // no creds yet
-        0, // SignatureType.EOA
+        2, // SignatureType.POLY_GNOSIS_SAFE
+        safeAddress, // funderAddress = Safe proxy
       );
 
-      // Derive or create API key
       let creds;
       try {
         creds = await clobClient.deriveApiKey();
@@ -105,9 +152,10 @@ export function usePolymarketSession(): SessionState & {
         creds = await clobClient.createApiKey();
       }
 
-      // Save session
+      // Step 3: Save session
       const session: PolymarketSession = {
-        address,
+        eoaAddress,
+        safeAddress,
         apiKey: creds.key,
         apiSecret: creds.secret,
         passphrase: creds.passphrase,
@@ -116,14 +164,14 @@ export function usePolymarketSession(): SessionState & {
       localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 
       setState({
-        safeAddress: address,
+        safeAddress,
         clobReady: true,
         initializing: false,
         error: null,
         session,
       });
 
-      console.log('[polymarket] Session initialized for:', address);
+      console.log('[polymarket] Session initialized, Safe:', safeAddress);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to initialize Polymarket session';
       console.error('[polymarket] Init error:', err);
@@ -168,7 +216,8 @@ export function usePolymarketSession(): SessionState & {
         secret: state.session.apiSecret,
         passphrase: state.session.passphrase,
       },
-      0, // SignatureType.EOA
+      2, // SignatureType.POLY_GNOSIS_SAFE
+      state.session.safeAddress, // funderAddress = Safe proxy
     );
 
     // Create and post a market order (FOK for instant fill)
