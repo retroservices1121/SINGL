@@ -74,11 +74,13 @@ export function usePolymarketSession(): SessionState & {
   });
 
   const initializingRef = useRef(false);
+  const restoredRef = useRef(false);
 
-  // Try to restore session from localStorage
+  // Try to restore session from localStorage (synchronously check on first render too)
   useEffect(() => {
     if (!authenticated) {
       setState(s => ({ ...s, safeAddress: null, eoaAddress: null, clobReady: false, session: null }));
+      restoredRef.current = false;
       return;
     }
 
@@ -86,6 +88,7 @@ export function usePolymarketSession(): SessionState & {
       const stored = localStorage.getItem(SESSION_KEY);
       if (stored) {
         const session: PolymarketSession = JSON.parse(stored);
+        restoredRef.current = true;
         setState(s => ({
           ...s,
           safeAddress: session.safeAddress,
@@ -199,8 +202,19 @@ export function usePolymarketSession(): SessionState & {
   }, [authenticated, ready, wallets]);
 
   // Auto-initialize when wallet connects and no session exists
+  // Skip if we already restored from localStorage
   useEffect(() => {
-    if (authenticated && ready && wallets.length > 0 && !state.clobReady && !state.initializing) {
+    if (authenticated && ready && wallets.length > 0 && !state.clobReady && !state.initializing && !restoredRef.current) {
+      // Check localStorage one more time to avoid race
+      const stored = localStorage.getItem(SESSION_KEY);
+      if (stored) {
+        try {
+          const session: PolymarketSession = JSON.parse(stored);
+          restoredRef.current = true;
+          setState(s => ({ ...s, safeAddress: session.safeAddress, eoaAddress: session.eoaAddress, clobReady: true, session }));
+          return;
+        } catch { /* ignore */ }
+      }
       initSession();
     }
   }, [authenticated, ready, wallets, state.clobReady, state.initializing, initSession]);
