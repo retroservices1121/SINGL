@@ -2,7 +2,7 @@
 
 import type { MarketData } from '@/app/types';
 import { useTradeStore } from '@/app/store/tradeStore';
-import { formatPercent, formatVolume } from '@/app/lib/utils';
+import { formatVolume } from '@/app/lib/utils';
 
 interface MarketCardProps {
   market: MarketData;
@@ -11,13 +11,15 @@ interface MarketCardProps {
 
 export default function MarketCard({ market, index }: MarketCardProps) {
   const openTrade = useTradeStore(s => s.openTrade);
+  const openDetail = useTradeStore(s => s.openDetail);
   const yesCents = Math.round(market.yesPrice * 100);
   const noCents = Math.round(market.noPrice * 100) || (100 - yesCents);
 
   return (
     <div
-      className="bg-[var(--surface-container-lowest)] rounded-xl p-5 shadow-ambient hover:scale-[1.02] transition-all duration-300 flex flex-col"
+      className="bg-[var(--surface-container-lowest)] rounded-xl p-5 shadow-ambient hover:scale-[1.02] transition-all duration-300 flex flex-col cursor-pointer"
       style={{ animationDelay: `${index * 40}ms` }}
+      onClick={() => openDetail(market)}
     >
       {/* Title */}
       <h4 className="font-heading font-bold text-sm text-[var(--on-surface)] leading-snug mb-4 uppercase tracking-tight flex-1">
@@ -49,13 +51,13 @@ export default function MarketCard({ market, index }: MarketCardProps) {
       {/* Trade buttons */}
       <div className="flex gap-2">
         <button
-          onClick={() => openTrade(market, 'yes')}
+          onClick={(e) => { e.stopPropagation(); openTrade(market, 'yes'); }}
           className="flex-1 py-2 text-xs font-bold rounded-md bg-[var(--yes-bg)] text-[var(--yes)] hover:bg-[var(--yes)] hover:text-white transition-colors cursor-pointer"
         >
           Buy Yes
         </button>
         <button
-          onClick={() => openTrade(market, 'no')}
+          onClick={(e) => { e.stopPropagation(); openTrade(market, 'no'); }}
           className="flex-1 py-2 text-xs font-bold rounded-md bg-[var(--no-bg)] text-[var(--no)] hover:bg-[var(--no)] hover:text-white transition-colors cursor-pointer"
         >
           Buy No

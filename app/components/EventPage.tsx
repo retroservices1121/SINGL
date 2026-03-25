@@ -14,6 +14,7 @@ import XFeed from './XFeed';
 import VideoFeed from './VideoFeed';
 import StatsBar from './StatsBar';
 import TradePanel from './TradePanel';
+import MarketDetailOverlay from './MarketDetailOverlay';
 import TikTokFeed from './TikTokFeed';
 
 interface EventPageProps {
@@ -119,9 +120,6 @@ export default function EventPage({ event }: EventPageProps) {
               <h1 className="text-4xl md:text-6xl font-black text-white font-heading leading-[0.95] tracking-tighter uppercase">
                 {event.title}
               </h1>
-              {event.subtitle && (
-                <p className="text-base text-[var(--surface-dim)] max-w-lg">{event.subtitle}</p>
-              )}
               <div className="pt-2">
                 <StatsBar markets={event.markets} volume={event.volume} liquidity={event.liquidity} openInterest={event.openInterest} dark />
               </div>
@@ -220,6 +218,7 @@ export default function EventPage({ event }: EventPageProps) {
         </section>
       </div>
 
+      <MarketDetailOverlay />
       <TradePanel />
     </div>
   );

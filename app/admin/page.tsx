@@ -175,8 +175,36 @@ export default function AdminPage() {
           <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Current Active Event</h2>
           {active?.event ? (
             <div>
-              <p className="text-lg font-semibold text-orange-400">{active.event.title}</p>
-              <p className="text-sm text-gray-400 mt-1">Slug: {active.activeEventSlug}</p>
+              {/* Editable title */}
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  id="eventTitleInput"
+                  type="text"
+                  defaultValue={active.event.title}
+                  className="text-lg font-semibold text-orange-400 bg-transparent border-b border-transparent hover:border-gray-600 focus:border-orange-500 focus:outline-none py-0.5 flex-1"
+                />
+                <button
+                  onClick={async () => {
+                    const input = document.getElementById('eventTitleInput') as HTMLInputElement;
+                    const newTitle = input.value.trim();
+                    if (!newTitle) return;
+                    const res = await fetch('/api/admin/event', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', 'x-admin-secret': secret },
+                      body: JSON.stringify({ slug: active.activeEventSlug, title: newTitle }),
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                      setMessage(`Title updated to "${newTitle}"`);
+                      fetchActive(secret);
+                    }
+                  }}
+                  className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
+                >
+                  Update Title
+                </button>
+              </div>
+              <p className="text-sm text-gray-400">Slug: {active.activeEventSlug}</p>
               <p className="text-sm text-gray-400">{active.event.markets?.length || 0} markets</p>
 
               {/* Search terms editor */}
