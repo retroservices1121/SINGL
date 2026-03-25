@@ -12,7 +12,7 @@ interface PricePoint {
 
 type TimeRange = '1d' | '1w' | '1m' | 'all';
 
-function PriceChart({ data, height = 200 }: { data: PricePoint[]; height?: number }) {
+function PriceChart({ data, height = 220 }: { data: PricePoint[]; height?: number }) {
   if (!data || data.length < 2) {
     return (
       <div className="flex items-center justify-center text-[var(--secondary)] text-xs" style={{ height }}>
@@ -26,29 +26,36 @@ function PriceChart({ data, height = 200 }: { data: PricePoint[]; height?: numbe
   const chartW = width - padding.left - padding.right;
   const chartH = height - padding.top - padding.bottom;
 
-  const prices = data.map(d => d.yesPrice);
-  const min = Math.max(0, Math.min(...prices) - 0.05);
-  const max = Math.min(1, Math.max(...prices) + 0.05);
-  const range = max - min || 0.1;
+  // Yes and No prices (No = 1 - Yes)
+  const yesPrices = data.map(d => d.yesPrice);
+  const noPrices = data.map(d => 1 - d.yesPrice);
+
+  // Fixed 0-100% range for clarity
+  const min = 0;
+  const max = 1;
+  const range = 1;
 
   const toX = (i: number) => padding.left + (i / (data.length - 1)) * chartW;
   const toY = (v: number) => padding.top + chartH - ((v - min) / range) * chartH;
 
-  // Build path
-  const points = data.map((d, i) => `${toX(i)},${toY(d.yesPrice)}`);
-  const linePath = `M${points.join(' L')}`;
-  const areaPath = `${linePath} L${toX(data.length - 1)},${padding.top + chartH} L${padding.left},${padding.top + chartH} Z`;
+  // Yes line
+  const yesPoints = data.map((d, i) => `${toX(i)},${toY(d.yesPrice)}`);
+  const yesLinePath = `M${yesPoints.join(' L')}`;
+  const yesAreaPath = `${yesLinePath} L${toX(data.length - 1)},${padding.top + chartH} L${padding.left},${padding.top + chartH} Z`;
 
-  // Trend
-  const first = prices[0];
-  const last = prices[prices.length - 1];
-  const trendColor = last > first ? 'var(--yes)' : last < first ? 'var(--no)' : 'var(--secondary)';
+  // No line
+  const noPoints = data.map((d, i) => `${toX(i)},${toY(1 - d.yesPrice)}`);
+  const noLinePath = `M${noPoints.join(' L')}`;
+  const noAreaPath = `${noLinePath} L${toX(data.length - 1)},${padding.top + chartH} L${padding.left},${padding.top + chartH} Z`;
+
+  const yesLast = yesPrices[yesPrices.length - 1];
+  const noLast = noPrices[noPrices.length - 1];
 
   // Y-axis labels
   const yTicks = 5;
-  const yLabels = Array.from({ length: yTicks }, (_, i) => min + (range * i) / (yTicks - 1));
+  const yLabels = Array.from({ length: yTicks }, (_, i) => i / (yTicks - 1));
 
-  // X-axis labels (first, mid, last)
+  // X-axis labels
   const xLabelIndices = [0, Math.floor(data.length / 2), data.length - 1];
   const formatDate = (ts: string) => {
     const d = new Date(ts);
@@ -58,9 +65,13 @@ function PriceChart({ data, height = 200 }: { data: PricePoint[]; height?: numbe
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ height }}>
       <defs>
-        <linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={trendColor} stopOpacity="0.15" />
-          <stop offset="100%" stopColor={trendColor} stopOpacity="0.02" />
+        <linearGradient id="yes-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--yes)" stopOpacity="0.12" />
+          <stop offset="100%" stopColor="var(--yes)" stopOpacity="0.01" />
+        </linearGradient>
+        <linearGradient id="no-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--no)" stopOpacity="0.08" />
+          <stop offset="100%" stopColor="var(--no)" stopOpacity="0.01" />
         </linearGradient>
       </defs>
 
@@ -85,15 +96,29 @@ function PriceChart({ data, height = 200 }: { data: PricePoint[]; height?: numbe
         </text>
       ))}
 
-      {/* Area fill */}
-      <path d={areaPath} fill="url(#chart-fill)" />
+      {/* No area + line */}
+      <path d={noAreaPath} fill="url(#no-fill)" />
+      <path d={noLinePath} fill="none" stroke="var(--no)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7" />
 
-      {/* Line */}
-      <path d={linePath} fill="none" stroke={trendColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      {/* Yes area + line (on top) */}
+      <path d={yesAreaPath} fill="url(#yes-fill)" />
+      <path d={yesLinePath} fill="none" stroke="var(--yes)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 
-      {/* End dot */}
-      <circle cx={toX(data.length - 1)} cy={toY(last)} r="4" fill={trendColor} />
-      <circle cx={toX(data.length - 1)} cy={toY(last)} r="7" fill={trendColor} opacity="0.2" />
+      {/* End dots — Yes */}
+      <circle cx={toX(data.length - 1)} cy={toY(yesLast)} r="4" fill="var(--yes)" />
+      <circle cx={toX(data.length - 1)} cy={toY(yesLast)} r="7" fill="var(--yes)" opacity="0.2" />
+
+      {/* End dots — No */}
+      <circle cx={toX(data.length - 1)} cy={toY(noLast)} r="3" fill="var(--no)" />
+      <circle cx={toX(data.length - 1)} cy={toY(noLast)} r="6" fill="var(--no)" opacity="0.15" />
+
+      {/* End labels */}
+      <text x={width - padding.right + 2} y={toY(yesLast) - 6} fill="var(--yes)" fontSize="9" fontWeight="bold" fontFamily="JetBrains Mono, monospace">
+        Yes
+      </text>
+      <text x={width - padding.right + 2} y={toY(noLast) - 6} fill="var(--no)" fontSize="9" fontWeight="bold" fontFamily="JetBrains Mono, monospace">
+        No
+      </text>
     </svg>
   );
 }
