@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
 import { useTradeStore } from '@/app/store/tradeStore';
@@ -13,24 +14,43 @@ export default function TradePanel() {
   const { isOpen, market, side, amount, submitting, confirmed, orderId, closeTrade, setAmount, setSubmitting, setConfirmed } = useTradeStore();
   const currentEvent = useEventStore(s => s.currentEvent);
   const { login, authenticated } = usePrivy();
-  const { safeAddress, clobReady, placeMarketOrder } = usePolymarketSession();
+  const { safeAddress, clobReady, initializing, error: sessionError, initSession, placeMarketOrder } = usePolymarketSession();
+  const [localError, setLocalError] = useState<string | null>(null);
 
   if (!isOpen || !market) return null;
 
-  const price = side === 'yes' ? market.yesPrice : market.noPrice;
+  const price = side === 'yes' ? market.yesPrice : (market.noPrice || (1 - market.yesPrice));
   const tokenId = side === 'yes' ? market.yesTokenId : market.noTokenId;
-  const shares = amount / price;
+  const shares = price > 0 ? amount / price : 0;
   const payout = shares;
   const profit = payout - amount;
 
   const handleSubmit = async () => {
+    setLocalError(null);
+
     if (!authenticated) {
       login();
       return;
     }
 
     if (!clobReady || !safeAddress) {
-      alert('Polymarket session initializing. Please wait a moment and try again.');
+      // Try to initialize session
+      setLocalError('Trading session not ready. Initializing...');
+      try {
+        await initSession();
+      } catch {
+        setLocalError('Failed to initialize trading session. Please try again.');
+      }
+      return;
+    }
+
+    if (!tokenId) {
+      setLocalError('Market token ID not available. Cannot place trade.');
+      return;
+    }
+
+    if (price <= 0) {
+      setLocalError('Invalid market price. Cannot place trade.');
       return;
     }
 
@@ -66,7 +86,7 @@ export default function TradePanel() {
       console.error('[trade] Client error:', err);
       const msg = err instanceof Error ? err.message : 'Trade failed';
       if (!msg.includes('rejected')) {
-        alert(`Trade error: ${msg}`);
+        setLocalError(`Trade error: ${msg}`);
       }
       setSubmitting(false);
     }
@@ -74,7 +94,7 @@ export default function TradePanel() {
 
   if (confirmed) {
     return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={closeTrade}>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4" onClick={closeTrade}>
         <div
           className="bg-[var(--surface-container-lowest)] rounded-xl p-8 max-w-sm w-full text-center animate-[pop-in_0.3s_ease-out] shadow-ambient"
           onClick={e => e.stopPropagation()}
@@ -102,8 +122,22 @@ export default function TradePanel() {
     );
   }
 
+  // Determine button state and label
+  let buttonLabel = '';
+  let buttonDisabled = submitting || amount <= 0;
+  if (!authenticated) {
+    buttonLabel = 'Connect Wallet to Trade';
+  } else if (initializing) {
+    buttonLabel = 'Initializing Session...';
+    buttonDisabled = true;
+  } else if (!clobReady) {
+    buttonLabel = 'Initialize Trading Session';
+  } else {
+    buttonLabel = `Confirm ${side.toUpperCase()} - ${formatUSD(amount)}`;
+  }
+
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={closeTrade}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4" onClick={closeTrade}>
       <div
         className="bg-[var(--surface-container-lowest)] rounded-xl max-w-sm w-full animate-[pop-in_0.3s_ease-out] shadow-ambient border-t-4 border-[var(--primary-container)]"
         onClick={e => e.stopPropagation()}
@@ -120,6 +154,26 @@ export default function TradePanel() {
 
         <div className="p-5 space-y-5">
           <p className="text-xs text-[var(--secondary)] leading-snug">{market.title}</p>
+
+          {/* Session status */}
+          {authenticated && !clobReady && !initializing && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+              <span className="material-symbols-outlined text-sm">warning</span>
+              <span>Trading session not initialized. Click the button below to set up.</span>
+            </div>
+          )}
+          {authenticated && initializing && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
+              <Spinner size="sm" />
+              <span>Setting up Polymarket trading session...</span>
+            </div>
+          )}
+          {sessionError && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
+              <span className="material-symbols-outlined text-sm">error</span>
+              <span>{sessionError}</span>
+            </div>
+          )}
 
           {/* Amount input */}
           <div>
@@ -172,18 +226,34 @@ export default function TradePanel() {
             </div>
           </div>
 
+          {/* Error */}
+          {localError && (
+            <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
+              {localError}
+            </div>
+          )}
+
           {/* Submit */}
           <button
             onClick={handleSubmit}
-            disabled={submitting || amount <= 0}
+            disabled={buttonDisabled}
             className={`w-full py-4 rounded-md font-black text-sm uppercase tracking-widest shadow-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
               side === 'yes'
                 ? 'bg-[var(--yes)] text-white shadow-[var(--yes)]/20 hover:brightness-110'
                 : 'bg-[var(--no)] text-white shadow-[var(--no)]/20 hover:brightness-110'
             }`}
           >
-            {submitting ? <><Spinner size="sm" /> Processing...</> : authenticated ? `Confirm ${side.toUpperCase()} - ${formatUSD(amount)}` : 'Connect to Trade'}
+            {submitting ? <><Spinner size="sm" /> Processing...</> : buttonLabel}
           </button>
+
+          {/* Safe wallet info */}
+          {authenticated && safeAddress && (
+            <div className="text-center">
+              <span className="text-[9px] text-[var(--secondary)]">
+                Trading via Safe: <span className="font-mono">{safeAddress.slice(0, 6)}...{safeAddress.slice(-4)}</span>
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>

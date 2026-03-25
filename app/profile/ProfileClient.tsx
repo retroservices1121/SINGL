@@ -54,7 +54,7 @@ interface Position {
 export default function ProfileClient() {
   const { login, authenticated, user } = usePrivy();
   const { wallets } = useWallets();
-  const { safeAddress, eoaAddress, clobReady, initializing, placeMarketOrder } = usePolymarketSession();
+  const { safeAddress, eoaAddress, clobReady, initializing, error: sessionError, initSession, placeMarketOrder } = usePolymarketSession();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [selling, setSelling] = useState<string | null>(null);
@@ -63,17 +63,17 @@ export default function ProfileClient() {
 
   const walletAddr = eoaAddress || wallets[0]?.address || safeAddress;
 
-  // Fetch USDC balance for the Safe (trading) wallet
+  // Fetch USDC balance for the trading wallet (Safe or EOA)
+  const balanceAddr = safeAddress || walletAddr;
   useEffect(() => {
-    if (!safeAddress) {
+    if (!balanceAddr) {
       setUsdcBalance(null);
       return;
     }
 
     const fetchBalance = async () => {
       try {
-        // USDC on Polygon: 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174 (PoS bridged)
-        // USDC native on Polygon: 0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359
+        // USDC on Polygon: bridged + native
         const usdcAddresses = [
           '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
           '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
@@ -81,9 +81,8 @@ export default function ProfileClient() {
 
         let totalBalance = 0;
         for (const usdcAddr of usdcAddresses) {
-          const res = await fetch(
-            `https://polygon-rpc.com`,
-            {
+          try {
+            const res = await fetch('https://polygon-rpc.com', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -93,17 +92,19 @@ export default function ProfileClient() {
                 params: [
                   {
                     to: usdcAddr,
-                    data: `0x70a08231000000000000000000000000${safeAddress.slice(2)}`,
+                    data: `0x70a08231000000000000000000000000${balanceAddr.slice(2)}`,
                   },
                   'latest',
                 ],
               }),
+            });
+            const data = await res.json();
+            if (data.result && data.result !== '0x' && data.result !== '0x0') {
+              const raw = BigInt(data.result);
+              totalBalance += Number(raw) / 1e6;
             }
-          );
-          const data = await res.json();
-          if (data.result && data.result !== '0x') {
-            const raw = BigInt(data.result);
-            totalBalance += Number(raw) / 1e6; // USDC has 6 decimals
+          } catch {
+            // Skip this contract if it fails
           }
         }
         setUsdcBalance(totalBalance.toFixed(2));
@@ -115,7 +116,7 @@ export default function ProfileClient() {
     fetchBalance();
     const interval = setInterval(fetchBalance, 30000);
     return () => clearInterval(interval);
-  }, [safeAddress]);
+  }, [balanceAddr]);
 
   const fetchPositions = useCallback(() => {
     if (!authenticated || !walletAddr) {
@@ -222,7 +223,7 @@ export default function ProfileClient() {
             </h1>
             <div className="space-y-1.5">
               {(() => {
-                const walletAddr = eoaAddress || wallets[0]?.address || null;
+                const primaryWallet = eoaAddress || wallets[0]?.address || null;
                 const email = user?.email?.address;
                 return (
                   <>
@@ -232,19 +233,38 @@ export default function ProfileClient() {
                         <span className="text-xs text-[var(--on-surface)]">{email}</span>
                       </div>
                     )}
-                    {walletAddr && (
-                      <CopyableAddress label="EOA Wallet" address={walletAddr} />
+                    {primaryWallet && (
+                      <CopyableAddress label="EOA Wallet" address={primaryWallet} />
                     )}
                     {safeAddress && (
                       <CopyableAddress label="Safe (Trading)" address={safeAddress} />
                     )}
+                    {!safeAddress && !initializing && authenticated && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">Safe Wallet</span>
+                        <button
+                          onClick={() => initSession()}
+                          className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary-fixed)] px-2 py-0.5 rounded hover:bg-[var(--primary-fixed-dim)] transition-colors cursor-pointer"
+                        >
+                          Initialize Trading
+                        </button>
+                      </div>
+                    )}
                     {!safeAddress && initializing && (
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">Safe Wallet</span>
-                        <span className="text-xs text-[var(--secondary)]">Initializing...</span>
+                        <span className="text-xs text-[var(--secondary)] flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary-container)] animate-pulse" />
+                          Initializing...
+                        </span>
                       </div>
                     )}
-                    {!walletAddr && !safeAddress && !email && (
+                    {sessionError && (
+                      <div className="text-[10px] text-red-500 mt-1">
+                        Session error: {sessionError}
+                      </div>
+                    )}
+                    {!primaryWallet && !safeAddress && !email && (
                       <p className="text-[var(--secondary)] font-medium tracking-wide">Connected</p>
                     )}
                   </>
@@ -254,13 +274,16 @@ export default function ProfileClient() {
           </div>
           <div className="flex flex-col gap-3">
             {/* USDC Balance */}
-            {safeAddress && (
+            {balanceAddr && (
               <div className="bg-[var(--on-surface)] p-5 rounded-xl text-white relative overflow-hidden">
                 <div className="absolute -right-6 -top-6 w-20 h-20 bg-[var(--primary-container)]/20 rounded-full blur-2xl" />
                 <div className="relative z-10">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">USDC Balance</span>
                     <span className="text-[8px] font-bold text-slate-500 bg-white/10 px-1.5 py-0.5 rounded">Polygon</span>
+                    {!safeAddress && (
+                      <span className="text-[8px] font-bold text-amber-400 bg-white/10 px-1.5 py-0.5 rounded">EOA</span>
+                    )}
                   </div>
                   <span className="font-heading text-3xl font-bold">
                     {usdcBalance !== null ? `$${usdcBalance}` : '...'}
