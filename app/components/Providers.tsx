@@ -15,8 +15,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
+  // Don't render children at all until mounted + wrapped in Privy
+  // This prevents hooks like usePrivy/useWallets from being called outside the provider
   if (!mounted) {
-    return <>{children}</>;
+    return null;
   }
 
   return <PrivyWalletProvider>{children}</PrivyWalletProvider>;

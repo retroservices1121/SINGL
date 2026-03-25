@@ -7,6 +7,30 @@ import { formatUSD, formatPercent } from '@/app/lib/utils';
 import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
 
+function CopyableAddress({ label, address }: { label: string; address: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    await navigator.clipboard.writeText(address);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">{label}</span>
+      <button
+        onClick={copy}
+        className="flex items-center gap-1.5 px-2 py-1 rounded bg-[var(--surface-container-high)] hover:bg-[var(--surface-container-highest)] transition-colors cursor-pointer"
+        title={address}
+      >
+        <span className="font-mono text-xs text-[var(--on-surface)]">{address}</span>
+        <span className="material-symbols-outlined text-xs text-[var(--secondary)]">
+          {copied ? 'check' : 'content_copy'}
+        </span>
+      </button>
+    </div>
+  );
+}
+
 interface Position {
   id: string;
   marketTicker: string;
@@ -28,7 +52,7 @@ interface Position {
 
 export default function ProfileClient() {
   const { login, authenticated } = usePrivy();
-  const { safeAddress, clobReady, placeMarketOrder } = usePolymarketSession();
+  const { safeAddress, eoaAddress, clobReady, placeMarketOrder } = usePolymarketSession();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [selling, setSelling] = useState<string | null>(null);
@@ -134,12 +158,17 @@ export default function ProfileClient() {
       <header className="mb-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h1 className="font-heading text-5xl font-black uppercase tracking-tighter text-[var(--on-surface)] mb-2">
+            <h1 className="font-heading text-5xl font-black uppercase tracking-tighter text-[var(--on-surface)] mb-3">
               Portfolio Overview
             </h1>
-            <p className="text-[var(--secondary)] font-medium tracking-wide">
-              Account: {safeAddress ? `${safeAddress.slice(0, 6)}...${safeAddress.slice(-4)}` : '—'}
-            </p>
+            <div className="space-y-1.5">
+              {eoaAddress && (
+                <CopyableAddress label="Wallet" address={eoaAddress} />
+              )}
+              {safeAddress && safeAddress !== eoaAddress && (
+                <CopyableAddress label="Trading (Safe)" address={safeAddress} />
+              )}
+            </div>
           </div>
           <div className="bg-[var(--surface-container-lowest)] p-6 rounded-xl shadow-ambient border-l-4 border-[var(--primary-container)]">
             <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-[0.2em] mb-1 block">Total Wallet Balance</span>

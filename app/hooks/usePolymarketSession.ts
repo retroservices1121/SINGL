@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import { Side } from '@polymarket/clob-client';
 
@@ -19,38 +20,11 @@ interface PolymarketSession {
 
 interface SessionState {
   safeAddress: string | null;
+  eoaAddress: string | null;
   clobReady: boolean;
   initializing: boolean;
   error: string | null;
   session: PolymarketSession | null;
-}
-
-function getBuilderConfig() {
-  const { BuilderConfig } = require('@polymarket/builder-signing-sdk');
-  return new BuilderConfig({
-    remoteBuilderConfig: {
-      url: '/api/polymarket/sign',
-    },
-  });
-}
-
-// Safe hook that returns defaults when called outside PrivyProvider
-function usePrivySafe() {
-  try {
-    const { usePrivy } = require('@privy-io/react-auth');
-    return usePrivy();
-  } catch {
-    return { authenticated: false, ready: false, login: () => {}, logout: () => {} };
-  }
-}
-
-function useWalletsSafe() {
-  try {
-    const { useWallets } = require('@privy-io/react-auth');
-    return useWallets();
-  } catch {
-    return { wallets: [] };
-  }
 }
 
 export function usePolymarketSession(): SessionState & {
@@ -64,10 +38,11 @@ export function usePolymarketSession(): SessionState & {
     tickSize: string;
   }) => Promise<{ orderID: string }>;
 } {
-  const { authenticated, ready } = usePrivySafe();
-  const { wallets } = useWalletsSafe();
+  const { authenticated, ready } = usePrivy();
+  const { wallets } = useWallets();
   const [state, setState] = useState<SessionState>({
     safeAddress: null,
+    eoaAddress: null,
     clobReady: false,
     initializing: false,
     error: null,
@@ -79,7 +54,7 @@ export function usePolymarketSession(): SessionState & {
   // Try to restore session from localStorage
   useEffect(() => {
     if (!authenticated) {
-      setState(s => ({ ...s, safeAddress: null, clobReady: false, session: null }));
+      setState(s => ({ ...s, safeAddress: null, eoaAddress: null, clobReady: false, session: null }));
       return;
     }
 
@@ -90,6 +65,7 @@ export function usePolymarketSession(): SessionState & {
         setState(s => ({
           ...s,
           safeAddress: session.safeAddress,
+          eoaAddress: session.eoaAddress,
           clobReady: true,
           session,
         }));
@@ -115,7 +91,12 @@ export function usePolymarketSession(): SessionState & {
       const signer = provider.getSigner();
       const eoaAddress = await signer.getAddress();
 
-      const builderConfig = getBuilderConfig();
+      const { BuilderConfig } = await import('@polymarket/builder-signing-sdk');
+      const builderConfig = new BuilderConfig({
+        remoteBuilderConfig: {
+          url: '/api/polymarket/sign',
+        },
+      });
 
       // Step 1: Initialize RelayClient to derive + deploy Safe
       const { RelayClient } = await import('@polymarket/builder-relayer-client');
@@ -143,8 +124,7 @@ export function usePolymarketSession(): SessionState & {
           await deployResult.wait();
         }
         console.log('[polymarket] Safe deployed at:', safeAddress);
-      } catch (err: unknown) {
-        // Already deployed is fine
+      } catch {
         console.log('[polymarket] Safe already deployed at:', safeAddress);
       }
 
@@ -155,9 +135,9 @@ export function usePolymarketSession(): SessionState & {
         CLOB_URL,
         137,
         signer as unknown as ethers.Wallet,
-        undefined, // no creds yet
+        undefined,
         2, // SignatureType.POLY_GNOSIS_SAFE
-        safeAddress, // funderAddress = Safe proxy
+        safeAddress,
       );
 
       let creds;
@@ -180,6 +160,7 @@ export function usePolymarketSession(): SessionState & {
 
       setState({
         safeAddress,
+        eoaAddress,
         clobReady: true,
         initializing: false,
         error: null,
@@ -232,7 +213,7 @@ export function usePolymarketSession(): SessionState & {
         passphrase: state.session.passphrase,
       },
       2, // SignatureType.POLY_GNOSIS_SAFE
-      state.session.safeAddress, // funderAddress = Safe proxy
+      state.session.safeAddress,
     );
 
     const order = await clobClient.createMarketOrder({
