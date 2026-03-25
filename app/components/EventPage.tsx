@@ -3,7 +3,12 @@
 import { useEffect, useState } from 'react';
 import type { EventData } from '@/app/types';
 import { useEventStore } from '@/app/store/eventStore';
+import { parseMarkets, buildTeamProfiles } from '@/app/lib/ncaa';
 import MarketCard from './MarketCard';
+import TeamCard from './TeamCard';
+import BracketVisualizer from './BracketVisualizer';
+import UpsetAlertBanner from './UpsetAlertBanner';
+import OddsMovementTracker from './OddsMovementTracker';
 import NewsFeed from './NewsFeed';
 import XFeed from './XFeed';
 import VideoFeed from './VideoFeed';
@@ -16,6 +21,8 @@ interface EventPageProps {
 }
 
 const SITE_URL = 'https://singl.spredd.markets';
+
+type ViewMode = 'teams' | 'markets' | 'bracket';
 
 function ShareButton({ slug, title }: { slug: string; title: string }) {
   const [copied, setCopied] = useState(false);
@@ -37,35 +44,57 @@ function ShareButton({ slug, title }: { slug: string; title: string }) {
 
   return (
     <div className="flex items-center gap-1.5 shrink-0">
-      <button
-        onClick={shareOnX}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[var(--on-surface)] text-white rounded-md hover:opacity-90 transition-all cursor-pointer"
-      >
-        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-        </svg>
+      <button onClick={shareOnX} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[var(--on-surface)] text-white rounded-md hover:opacity-90 transition-all cursor-pointer">
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
         Share
       </button>
-      <button
-        onClick={copyLink}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[var(--surface-container-high)] text-[var(--secondary)] rounded-md hover:bg-[var(--surface-container-highest)] transition-colors cursor-pointer"
-      >
-        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-        </svg>
+      <button onClick={copyLink} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[var(--surface-container-high)] text-[var(--secondary)] rounded-md hover:bg-[var(--surface-container-highest)] transition-colors cursor-pointer">
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
         {copied ? 'Copied!' : 'Copy'}
       </button>
     </div>
   );
 }
 
+function ViewToggle({ view, setView }: { view: ViewMode; setView: (v: ViewMode) => void }) {
+  const modes: { key: ViewMode; label: string; icon: string }[] = [
+    { key: 'teams', label: 'Teams', icon: 'groups' },
+    { key: 'markets', label: 'Markets', icon: 'grid_view' },
+    { key: 'bracket', label: 'Bracket', icon: 'account_tree' },
+  ];
+
+  return (
+    <div className="flex gap-1 bg-[var(--surface-container-high)] rounded-lg p-1">
+      {modes.map(m => (
+        <button
+          key={m.key}
+          onClick={() => setView(m.key)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-widest rounded-md transition-all cursor-pointer ${
+            view === m.key
+              ? 'bg-[var(--primary-container)] text-white'
+              : 'text-[var(--secondary)] hover:text-[var(--on-surface)]'
+          }`}
+        >
+          <span className="material-symbols-outlined text-sm">{m.icon}</span>
+          <span className="hidden sm:inline">{m.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function EventPage({ event }: EventPageProps) {
   const setCurrentEvent = useEventStore(s => s.setCurrentEvent);
+  const [view, setView] = useState<ViewMode>('teams');
   const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     setCurrentEvent(event);
   }, [event, setCurrentEvent]);
+
+  // Parse markets into structured data
+  const parsedMarkets = parseMarkets(event.markets);
+  const teamProfiles = buildTeamProfiles(parsedMarkets);
 
   const visibleMarkets = showAll ? event.markets : event.markets.slice(0, 12);
   const hasMore = event.markets.length > 12;
@@ -94,13 +123,7 @@ export default function EventPage({ event }: EventPageProps) {
                 <p className="text-base text-[var(--surface-dim)] max-w-lg">{event.subtitle}</p>
               )}
               <div className="pt-2">
-                <StatsBar
-                  markets={event.markets}
-                  volume={event.volume}
-                  liquidity={event.liquidity}
-                  openInterest={event.openInterest}
-                  dark
-                />
+                <StatsBar markets={event.markets} volume={event.volume} liquidity={event.liquidity} openInterest={event.openInterest} dark />
               </div>
             </div>
             <ShareButton slug={event.slug} title={event.title} />
@@ -109,41 +132,74 @@ export default function EventPage({ event }: EventPageProps) {
       </section>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Markets Grid — trading card style */}
-        <section className="mb-8">
-          <div className="flex items-center justify-between mb-6">
+        {/* Upset Alerts */}
+        <UpsetAlertBanner markets={parsedMarkets} />
+
+        {/* Odds Movement Tracker */}
+        <OddsMovementTracker teams={teamProfiles} />
+
+        {/* View toggle + count */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
             <h2 className="text-xl font-black font-heading tracking-tight uppercase">
-              Prediction Markets
+              {view === 'teams' ? `${teamProfiles.length} Teams` : view === 'bracket' ? 'Tournament Bracket' : `${event.markets.length} Markets`}
             </h2>
             <span className="px-3 py-1 rounded-full bg-[var(--primary-fixed)] text-[var(--primary)] text-xs font-bold">
-              {event.markets.length} MARKETS
+              LIVE
             </span>
           </div>
+          <ViewToggle view={view} setView={setView} />
+        </div>
 
-          {event.markets.length > 0 ? (
-            <>
+        {/* Teams View */}
+        {view === 'teams' && (
+          <section className="mb-8">
+            {teamProfiles.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {visibleMarkets.map((market, i) => (
-                  <MarketCard key={market.id || market.ticker || i} market={market} index={i} />
+                {teamProfiles.map((team, i) => (
+                  <TeamCard key={team.name} team={team} index={i} />
                 ))}
               </div>
-              {hasMore && !showAll && (
-                <div className="text-center mt-6">
-                  <button
-                    onClick={() => setShowAll(true)}
-                    className="px-8 py-3 bg-[var(--surface-container-high)] text-[var(--on-surface)] rounded-md font-heading font-bold uppercase tracking-widest text-sm hover:bg-[var(--surface-container-highest)] transition-all cursor-pointer"
-                  >
-                    Show All {event.markets.length} Markets
-                  </button>
+            ) : (
+              <div className="text-center py-12 text-[var(--secondary)] text-sm bg-[var(--surface-container-lowest)] rounded-xl">
+                No team data available
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Markets View */}
+        {view === 'markets' && (
+          <section className="mb-8">
+            {event.markets.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {visibleMarkets.map((market, i) => (
+                    <MarketCard key={market.id || market.ticker || i} market={market} index={i} />
+                  ))}
                 </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-12 text-[var(--secondary)] text-sm bg-[var(--surface-container-lowest)] rounded-xl">
-              No markets found for this event
-            </div>
-          )}
-        </section>
+                {hasMore && !showAll && (
+                  <div className="text-center mt-6">
+                    <button onClick={() => setShowAll(true)} className="px-8 py-3 bg-[var(--surface-container-high)] text-[var(--on-surface)] rounded-md font-heading font-bold uppercase tracking-widest text-sm hover:bg-[var(--surface-container-highest)] transition-all cursor-pointer">
+                      Show All {event.markets.length} Markets
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-12 text-[var(--secondary)] text-sm bg-[var(--surface-container-lowest)] rounded-xl">
+                No markets found
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Bracket View */}
+        {view === 'bracket' && (
+          <section className="mb-8">
+            <BracketVisualizer teams={teamProfiles} />
+          </section>
+        )}
 
         {/* Two-column: News & X Posts */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -164,7 +220,6 @@ export default function EventPage({ event }: EventPageProps) {
         </section>
       </div>
 
-      {/* Trade Modal */}
       <TradePanel />
     </div>
   );
