@@ -92,9 +92,11 @@ export function usePolymarketSession(): SessionState & {
       const eoaAddress = await signer.getAddress();
 
       const { BuilderConfig } = await import('@polymarket/builder-signing-sdk');
+      // SDK requires absolute URL
+      const baseUrl = window.location.origin;
       const builderConfig = new BuilderConfig({
         remoteBuilderConfig: {
-          url: '/api/polymarket/sign',
+          url: `${baseUrl}/api/polymarket/sign`,
         },
       });
 

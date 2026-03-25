@@ -82,7 +82,7 @@ export default function ProfileClient() {
         let totalBalance = 0;
         for (const usdcAddr of usdcAddresses) {
           try {
-            const res = await fetch('https://polygon-rpc.com', {
+            const res = await fetch('https://polygon-bor-rpc.publicnode.com', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
