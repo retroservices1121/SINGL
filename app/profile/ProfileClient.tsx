@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
 import { formatUSD, formatPercent } from '@/app/lib/utils';
 import Button from '../components/ui/Button';
@@ -51,26 +51,29 @@ interface Position {
 }
 
 export default function ProfileClient() {
-  const { login, authenticated } = usePrivy();
+  const { login, authenticated, user } = usePrivy();
+  const { wallets } = useWallets();
   const { safeAddress, eoaAddress, clobReady, placeMarketOrder } = usePolymarketSession();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [selling, setSelling] = useState<string | null>(null);
   const [filter, setFilter] = useState('');
 
+  const walletAddr = eoaAddress || wallets[0]?.address || safeAddress;
+
   const fetchPositions = useCallback(() => {
-    if (!authenticated || !safeAddress) {
+    if (!authenticated || !walletAddr) {
       setLoading(false);
       return;
     }
-    fetch(`/api/positions?wallet=${safeAddress}`)
+    fetch(`/api/positions?wallet=${walletAddr}`)
       .then(r => r.json())
       .then(data => {
         setPositions(data.positions || []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [authenticated, safeAddress]);
+  }, [authenticated, walletAddr]);
 
   useEffect(() => {
     fetchPositions();
@@ -162,12 +165,29 @@ export default function ProfileClient() {
               Portfolio Overview
             </h1>
             <div className="space-y-1.5">
-              {eoaAddress && (
-                <CopyableAddress label="Wallet" address={eoaAddress} />
-              )}
-              {safeAddress && safeAddress !== eoaAddress && (
-                <CopyableAddress label="Trading (Safe)" address={safeAddress} />
-              )}
+              {(() => {
+                const walletAddr = eoaAddress || wallets[0]?.address || null;
+                const email = user?.email?.address;
+                return (
+                  <>
+                    {email && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">Email</span>
+                        <span className="text-xs text-[var(--on-surface)]">{email}</span>
+                      </div>
+                    )}
+                    {walletAddr && (
+                      <CopyableAddress label="Wallet" address={walletAddr} />
+                    )}
+                    {safeAddress && safeAddress !== walletAddr && (
+                      <CopyableAddress label="Trading (Safe)" address={safeAddress} />
+                    )}
+                    {!walletAddr && !safeAddress && !email && (
+                      <p className="text-[var(--secondary)] font-medium tracking-wide">Connected</p>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
           <div className="bg-[var(--surface-container-lowest)] p-6 rounded-xl shadow-ambient border-l-4 border-[var(--primary-container)]">
