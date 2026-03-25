@@ -4,6 +4,17 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import { Side } from '@polymarket/clob-client';
+import { getCreate2Address, keccak256, encodeAbiParameters } from 'viem';
+
+const SAFE_INIT_CODE_HASH = '0x2bce2127ff07fb632d16c8347c4ebf501f4841168bed00d9e6ef715ddb6fcecf' as `0x${string}`;
+
+function deriveSafeAddress(eoaAddress: string, safeFactory: string): string {
+  return getCreate2Address({
+    bytecodeHash: SAFE_INIT_CODE_HASH,
+    from: safeFactory as `0x${string}`,
+    salt: keccak256(encodeAbiParameters([{ name: 'address', type: 'address' }], [eoaAddress as `0x${string}`])),
+  });
+}
 
 const CLOB_URL = 'https://clob.polymarket.com';
 const RELAYER_URL = 'https://relayer.polymarket.com';
@@ -111,12 +122,8 @@ export function usePolymarketSession(): SessionState & {
       );
 
       // Derive the Safe proxy address from the EOA
-      const { deriveSafe } = await import(
-        /* webpackIgnore: true */
-        '@polymarket/builder-relayer-client/dist/builder/derive'
-      );
       const safeFactory = relayClient.contractConfig.SafeContracts.SafeFactory;
-      const safeAddress = deriveSafe(eoaAddress, safeFactory);
+      const safeAddress = deriveSafeAddress(eoaAddress, safeFactory);
 
       // Deploy the Safe if not already deployed
       try {
