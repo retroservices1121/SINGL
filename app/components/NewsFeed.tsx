@@ -29,7 +29,7 @@ export default function NewsFeed({ news }: NewsFeedProps) {
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-black font-heading uppercase tracking-widest text-[var(--on-surface)] px-1">
-        Market Pulse
+        News
       </h3>
       {news.map((item, i) => {
         const badge = sentimentBadge(item.sentiment);

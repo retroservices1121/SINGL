@@ -74,10 +74,14 @@ export default function LeaderboardClient() {
       ) : (
         <>
           {/* Podium — Top 3 Asymmetric Grid */}
-          {top3.length >= 3 && (
+          {top3.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 items-end">
               {/* Rank 2 */}
-              <PodiumCard leader={top3[1]} className="order-2 md:order-1" />
+              {top3[1] ? (
+                <PodiumCard leader={top3[1]} className="order-2 md:order-1" />
+              ) : (
+                <div className="order-2 md:order-1" />
+              )}
 
               {/* Rank 1 — Featured */}
               <div className="order-1 md:order-2 bg-white p-10 rounded-xl relative border-t-4 border-[var(--primary-container)] shadow-2xl shadow-orange-500/10 scale-105 z-10">
@@ -114,7 +118,11 @@ export default function LeaderboardClient() {
               </div>
 
               {/* Rank 3 */}
-              <PodiumCard leader={top3[2]} className="order-3" rank3 />
+              {top3[2] ? (
+                <PodiumCard leader={top3[2]} className="order-3" rank3 />
+              ) : (
+                <div className="order-3" />
+              )}
             </div>
           )}
 
@@ -127,7 +135,7 @@ export default function LeaderboardClient() {
           </div>
 
           <div className="flex flex-col bg-white">
-            {visible.slice(top3.length >= 3 ? 3 : 0).map((leader) => (
+            {visible.slice(top3.length > 0 ? top3.length : 0).map((leader) => (
               <div
                 key={leader.walletAddress}
                 className="px-8 py-6 flex justify-between items-center border-b border-slate-50 hover:bg-slate-50/50 transition-colors group"

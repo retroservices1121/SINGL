@@ -3,15 +3,12 @@
 import { useEffect, useState } from 'react';
 import type { EventData } from '@/app/types';
 import { useEventStore } from '@/app/store/eventStore';
-import OutcomeList from './OutcomeList';
-import MarketRules from './MarketRules';
+import MarketCard from './MarketCard';
 import NewsFeed from './NewsFeed';
 import XFeed from './XFeed';
 import VideoFeed from './VideoFeed';
 import StatsBar from './StatsBar';
 import TradePanel from './TradePanel';
-import OrderBookDepth from './OrderBookDepth';
-import RelatedMarkets from './RelatedMarkets';
 import TikTokFeed from './TikTokFeed';
 
 interface EventPageProps {
@@ -43,7 +40,6 @@ function ShareButton({ slug, title }: { slug: string; title: string }) {
       <button
         onClick={shareOnX}
         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[var(--on-surface)] text-white rounded-md hover:opacity-90 transition-all cursor-pointer"
-        title="Share on X"
       >
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -53,7 +49,6 @@ function ShareButton({ slug, title }: { slug: string; title: string }) {
       <button
         onClick={copyLink}
         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[var(--surface-container-high)] text-[var(--secondary)] rounded-md hover:bg-[var(--surface-container-highest)] transition-colors cursor-pointer"
-        title="Copy link"
       >
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -66,14 +61,18 @@ function ShareButton({ slug, title }: { slug: string; title: string }) {
 
 export default function EventPage({ event }: EventPageProps) {
   const setCurrentEvent = useEventStore(s => s.setCurrentEvent);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     setCurrentEvent(event);
   }, [event, setCurrentEvent]);
 
+  const visibleMarkets = showAll ? event.markets : event.markets.slice(0, 12);
+  const hasMore = event.markets.length > 12;
+
   return (
     <div className="min-h-screen bg-[var(--surface)]">
-      {/* Hero — deep navy with tonal layering */}
+      {/* Hero */}
       <section className="relative overflow-hidden bg-[var(--on-surface)] px-6 py-12 mb-0">
         <div className="absolute inset-0 bg-gradient-to-r from-[var(--on-surface)] via-[var(--on-surface)]/90 to-transparent z-[1]" />
         {event.imageUrl && (
@@ -110,36 +109,40 @@ export default function EventPage({ event }: EventPageProps) {
       </section>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Two-column: Markets + Active Slip */}
-        <section className="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-8">
-          {/* Prediction Markets — main area */}
-          <div className="xl:col-span-8 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-black font-heading tracking-tight uppercase">
-                Prediction Markets
-              </h2>
-              <span className="px-3 py-1 rounded-full bg-[var(--primary-fixed)] text-[var(--primary)] text-xs font-bold">
-                {event.markets.length} OUTCOMES
-              </span>
-            </div>
-            {event.markets.length > 0 ? (
-              <OutcomeList markets={event.markets} />
-            ) : (
-              <div className="text-center py-12 text-[var(--secondary)] text-sm bg-[var(--surface-container-lowest)] rounded-xl">
-                No markets found for this event
-              </div>
-            )}
-          </div>
-
-          {/* Sidebar: Order Book */}
-          <div className="xl:col-span-4 space-y-6">
-            <OrderBookDepth markets={event.markets} />
-          </div>
-        </section>
-
-        {/* Market Rules */}
+        {/* Markets Grid — trading card style */}
         <section className="mb-8">
-          <MarketRules markets={event.markets} />
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-black font-heading tracking-tight uppercase">
+              Prediction Markets
+            </h2>
+            <span className="px-3 py-1 rounded-full bg-[var(--primary-fixed)] text-[var(--primary)] text-xs font-bold">
+              {event.markets.length} MARKETS
+            </span>
+          </div>
+
+          {event.markets.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {visibleMarkets.map((market, i) => (
+                  <MarketCard key={market.id || market.ticker || i} market={market} index={i} />
+                ))}
+              </div>
+              {hasMore && !showAll && (
+                <div className="text-center mt-6">
+                  <button
+                    onClick={() => setShowAll(true)}
+                    className="px-8 py-3 bg-[var(--surface-container-high)] text-[var(--on-surface)] rounded-md font-heading font-bold uppercase tracking-widest text-sm hover:bg-[var(--surface-container-highest)] transition-all cursor-pointer"
+                  >
+                    Show All {event.markets.length} Markets
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-12 text-[var(--secondary)] text-sm bg-[var(--surface-container-lowest)] rounded-xl">
+              No markets found for this event
+            </div>
+          )}
         </section>
 
         {/* Two-column: News & X Posts */}
@@ -155,15 +158,9 @@ export default function EventPage({ event }: EventPageProps) {
           </section>
         )}
 
-        {/* Video & Related */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2">
-            <VideoFeed videos={event.videos} />
-          </div>
-          <RelatedMarkets
-            eventTitle={event.title}
-            currentTickers={event.markets.map(m => m.ticker)}
-          />
+        {/* Video */}
+        <section className="mb-8">
+          <VideoFeed videos={event.videos} />
         </section>
       </div>
 

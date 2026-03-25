@@ -9,6 +9,7 @@ import Spinner from '../components/ui/Spinner';
 
 function CopyableAddress({ label, address }: { label: string; address: string }) {
   const [copied, setCopied] = useState(false);
+  const truncated = `${address.slice(0, 6)}...${address.slice(-4)}`;
   const copy = async () => {
     await navigator.clipboard.writeText(address);
     setCopied(true);
@@ -20,9 +21,9 @@ function CopyableAddress({ label, address }: { label: string; address: string })
       <button
         onClick={copy}
         className="flex items-center gap-1.5 px-2 py-1 rounded bg-[var(--surface-container-high)] hover:bg-[var(--surface-container-highest)] transition-colors cursor-pointer"
-        title={address}
+        title={`Click to copy: ${address}`}
       >
-        <span className="font-mono text-xs text-[var(--on-surface)]">{address}</span>
+        <span className="font-mono text-xs text-[var(--on-surface)]">{truncated}</span>
         <span className="material-symbols-outlined text-xs text-[var(--secondary)]">
           {copied ? 'check' : 'content_copy'}
         </span>
@@ -177,10 +178,10 @@ export default function ProfileClient() {
                       </div>
                     )}
                     {walletAddr && (
-                      <CopyableAddress label="Wallet" address={walletAddr} />
+                      <CopyableAddress label="EOA Wallet" address={walletAddr} />
                     )}
                     {safeAddress && safeAddress !== walletAddr && (
-                      <CopyableAddress label="Trading (Safe)" address={safeAddress} />
+                      <CopyableAddress label="Trading Wallet (Safe)" address={safeAddress} />
                     )}
                     {!walletAddr && !safeAddress && !email && (
                       <p className="text-[var(--secondary)] font-medium tracking-wide">Connected</p>

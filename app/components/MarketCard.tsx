@@ -3,8 +3,6 @@
 import type { MarketData } from '@/app/types';
 import { useTradeStore } from '@/app/store/tradeStore';
 import { formatPercent, formatVolume } from '@/app/lib/utils';
-import Badge from './ui/Badge';
-import Button from './ui/Button';
 
 interface MarketCardProps {
   market: MarketData;
@@ -13,51 +11,55 @@ interface MarketCardProps {
 
 export default function MarketCard({ market, index }: MarketCardProps) {
   const openTrade = useTradeStore(s => s.openTrade);
+  const yesCents = Math.round(market.yesPrice * 100);
+  const noCents = Math.round(market.noPrice * 100) || (100 - yesCents);
 
   return (
     <div
-      className="bg-[var(--paper)] border border-[var(--border)] rounded-xl p-4 hover:-translate-y-[3px] transition-all duration-300"
-      style={{
-        animationDelay: `${index * 60}ms`,
-        transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
-      }}
+      className="bg-[var(--surface-container-lowest)] rounded-xl p-5 shadow-ambient hover:scale-[1.02] transition-all duration-300 flex flex-col"
+      style={{ animationDelay: `${index * 40}ms` }}
     >
-      <div className="flex items-start justify-between mb-3">
-        <h4 className="font-heading text-sm font-semibold text-[var(--text)] leading-tight flex-1 pr-2">
-          {market.title}
-        </h4>
-        {market.category && <Badge category={market.category} />}
+      {/* Title */}
+      <h4 className="font-heading font-bold text-sm text-[var(--on-surface)] leading-snug mb-4 uppercase tracking-tight flex-1">
+        {market.title}
+      </h4>
+
+      {/* Odds bar */}
+      <div className="flex items-center gap-1 mb-3 h-2 rounded-full overflow-hidden bg-[var(--surface-container-high)]">
+        <div
+          className="h-full bg-[var(--yes)] rounded-full transition-all"
+          style={{ width: `${yesCents}%` }}
+        />
       </div>
 
-      <div className="flex items-center gap-3 mb-3">
-        <div className="flex-1 text-center bg-[var(--yes-bg)] rounded-lg py-2">
-          <div className="text-xs text-[var(--text-dim)] mb-0.5">YES</div>
-          <div className="text-lg font-bold text-[var(--yes)]">{formatPercent(market.yesPrice)}</div>
+      {/* Prices */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-[var(--yes)]">Yes {yesCents}c</span>
+          <span className="text-[var(--surface-container-highest)]">|</span>
+          <span className="text-xs font-bold text-[var(--no)]">No {noCents}c</span>
         </div>
-        <div className="flex-1 text-center bg-[var(--no-bg)] rounded-lg py-2">
-          <div className="text-xs text-[var(--text-dim)] mb-0.5">NO</div>
-          <div className="text-lg font-bold text-[var(--no)]">{formatPercent(market.noPrice)}</div>
-        </div>
+        {market.volume != null && market.volume > 0 && (
+          <span className="text-[10px] text-[var(--secondary)]">
+            Vol: {formatVolume(market.volume)}
+          </span>
+        )}
       </div>
 
-      {market.volume != null && (
-        <div className="text-xs text-[var(--text-dim)] mb-3">
-          Vol: {formatVolume(market.volume)}
-          {market.change24h != null && (
-            <span className={`ml-2 ${market.change24h >= 0 ? 'text-[var(--yes)]' : 'text-[var(--no)]'}`}>
-              {market.change24h >= 0 ? '+' : ''}{(market.change24h * 100).toFixed(1)}%
-            </span>
-          )}
-        </div>
-      )}
-
+      {/* Trade buttons */}
       <div className="flex gap-2">
-        <Button variant="yes" size="sm" className="flex-1" onClick={() => openTrade(market, 'yes')}>
-          Buy YES
-        </Button>
-        <Button variant="no" size="sm" className="flex-1" onClick={() => openTrade(market, 'no')}>
-          Buy NO
-        </Button>
+        <button
+          onClick={() => openTrade(market, 'yes')}
+          className="flex-1 py-2 text-xs font-bold rounded-md bg-[var(--yes-bg)] text-[var(--yes)] hover:bg-[var(--yes)] hover:text-white transition-colors cursor-pointer"
+        >
+          Buy Yes
+        </button>
+        <button
+          onClick={() => openTrade(market, 'no')}
+          className="flex-1 py-2 text-xs font-bold rounded-md bg-[var(--no-bg)] text-[var(--no)] hover:bg-[var(--no)] hover:text-white transition-colors cursor-pointer"
+        >
+          Buy No
+        </button>
       </div>
     </div>
   );
