@@ -1,10 +1,41 @@
 'use client';
 
-import { usePrivy } from '@privy-io/react-auth';
+import { useState, useEffect } from 'react';
 import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
 
 export default function WalletButton() {
-  const { login, logout, authenticated, user } = usePrivy();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <button className="gradient-cta text-white px-6 py-2 rounded-md font-bold text-sm tracking-tight shadow-lg opacity-50 cursor-default">
+        Connect Wallet
+      </button>
+    );
+  }
+
+  return <WalletButtonInner />;
+}
+
+function WalletButtonInner() {
+  let authenticated = false;
+  let login = () => {};
+  let logout = () => {};
+  let user: { email?: { address: string } } | null = null;
+
+  try {
+    const privy = require('@privy-io/react-auth');
+    const result = privy.usePrivy();
+    authenticated = result.authenticated;
+    login = result.login;
+    logout = result.logout;
+    user = result.user;
+  } catch {
+    // Not inside PrivyProvider yet
+  }
+
   const { safeAddress, initializing } = usePolymarketSession();
 
   if (!authenticated) {

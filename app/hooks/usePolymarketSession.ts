@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import { Side } from '@polymarket/clob-client';
 
@@ -27,13 +26,31 @@ interface SessionState {
 }
 
 function getBuilderConfig() {
-  // Use remote builder config — signs via our /api/polymarket/sign endpoint
   const { BuilderConfig } = require('@polymarket/builder-signing-sdk');
   return new BuilderConfig({
     remoteBuilderConfig: {
       url: '/api/polymarket/sign',
     },
   });
+}
+
+// Safe hook that returns defaults when called outside PrivyProvider
+function usePrivySafe() {
+  try {
+    const { usePrivy } = require('@privy-io/react-auth');
+    return usePrivy();
+  } catch {
+    return { authenticated: false, ready: false, login: () => {}, logout: () => {} };
+  }
+}
+
+function useWalletsSafe() {
+  try {
+    const { useWallets } = require('@privy-io/react-auth');
+    return useWallets();
+  } catch {
+    return { wallets: [] };
+  }
 }
 
 export function usePolymarketSession(): SessionState & {
@@ -47,8 +64,8 @@ export function usePolymarketSession(): SessionState & {
     tickSize: string;
   }) => Promise<{ orderID: string }>;
 } {
-  const { authenticated, ready } = usePrivy();
-  const { wallets } = useWallets();
+  const { authenticated, ready } = usePrivySafe();
+  const { wallets } = useWalletsSafe();
   const [state, setState] = useState<SessionState>({
     safeAddress: null,
     clobReady: false,
@@ -130,8 +147,6 @@ export function usePolymarketSession(): SessionState & {
         // Already deployed is fine
         console.log('[polymarket] Safe already deployed at:', safeAddress);
       }
-
-      console.log('[polymarket] Safe address:', safeAddress);
 
       // Step 2: Derive CLOB API credentials using the Safe
       const { ClobClient } = await import('@polymarket/clob-client');
@@ -220,7 +235,6 @@ export function usePolymarketSession(): SessionState & {
       state.session.safeAddress, // funderAddress = Safe proxy
     );
 
-    // Create and post a market order (FOK for instant fill)
     const order = await clobClient.createMarketOrder({
       tokenID: params.tokenId,
       price: params.price,
