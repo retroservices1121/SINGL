@@ -106,7 +106,7 @@ export default function MarketDetailOverlay() {
   const [timeRange, setTimeRange] = useState<TimeRange>('1w');
 
   useEffect(() => {
-    if (!detailOpen || !detailMarket || !currentEvent) {
+    if (!detailOpen || !detailMarket) {
       setPriceHistory([]);
       return;
     }
@@ -114,10 +114,52 @@ export default function MarketDetailOverlay() {
     const fetchPrices = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/prices?eventId=${currentEvent.id}&range=${timeRange}`);
-        const data = await res.json();
-        const marketPrices = data.snapshots?.[detailMarket.ticker] || [];
-        setPriceHistory(marketPrices);
+        // Fidelity: minutes per data point based on time range
+        const fidelityMap: Record<TimeRange, string> = { '1d': '5', '1w': '60', '1m': '360', 'all': '1440' };
+        const fidelity = fidelityMap[timeRange];
+
+        // Fetch directly from Polymarket CLOB via our proxy
+        const tokenId = detailMarket.yesTokenId;
+        if (tokenId) {
+          const res = await fetch(`/api/prices/history?tokenId=${encodeURIComponent(tokenId)}&fidelity=${fidelity}`);
+          const data = await res.json();
+
+          if (data.history && data.history.length > 0) {
+            // Filter by time range
+            const now = Date.now();
+            const rangeMs: Record<TimeRange, number> = {
+              '1d': 24 * 60 * 60 * 1000,
+              '1w': 7 * 24 * 60 * 60 * 1000,
+              '1m': 30 * 24 * 60 * 60 * 1000,
+              'all': Infinity,
+            };
+            const cutoff = now - rangeMs[timeRange];
+
+            const filtered = data.history
+              .filter((p: { t: number }) => p.t * 1000 >= cutoff)
+              .map((p: { t: number; p: number }) => ({
+                timestamp: new Date(p.t * 1000).toISOString(),
+                yesPrice: p.p,
+              }));
+
+            if (filtered.length > 0) {
+              setPriceHistory(filtered);
+              setLoading(false);
+              return;
+            }
+          }
+        }
+
+        // Fallback: try DB snapshots
+        if (currentEvent) {
+          const dbRes = await fetch(`/api/prices?eventId=${currentEvent.id}&range=${timeRange}`);
+          const dbData = await dbRes.json();
+          const marketPrices = dbData.snapshots?.[detailMarket.ticker] ||
+            dbData.snapshots?.[detailMarket.conditionId] || [];
+          setPriceHistory(marketPrices);
+        } else {
+          setPriceHistory([]);
+        }
       } catch {
         setPriceHistory([]);
       }
