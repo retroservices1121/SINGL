@@ -1,89 +1,111 @@
 import type { MarketData } from '@/app/types';
 
-// Polymarket API base URLs
 const GAMMA_API = 'https://gamma-api.polymarket.com';
 const CLOB_API = 'https://clob.polymarket.com';
 
-// --- Gamma API types ---
-
-interface PolymarketToken {
-  token_id: string;
-  outcome: string; // "Yes" or "No"
-  price?: number;
-  winner?: boolean;
-}
-
-interface PolymarketMarket {
-  condition_id: string;
+// Gamma API returns markets in this format from public-search
+interface GammaMarket {
+  id?: string;
   question: string;
+  conditionId?: string;
+  condition_id?: string;
   description?: string;
-  tokens?: PolymarketToken[];
-  volume?: number;
-  volume_24hr?: number;
-  liquidity?: number;
+  outcomes?: string; // JSON string like '["Yes","No"]'
+  outcomePrices?: string; // JSON string like '["0.5","0.5"]'
+  clobTokenIds?: string; // JSON string like '["123","456"]'
+  tokens?: Array<{ token_id: string; outcome: string; price?: number }>;
+  volume?: number | string;
+  volume_24hr?: number | string;
+  liquidity?: number | string;
   active?: boolean;
   closed?: boolean;
+  endDateIso?: string;
   end_date_iso?: string;
   slug?: string;
+  negRisk?: boolean;
   neg_risk?: boolean;
+  orderPriceMinTickSize?: number | string;
   minimum_tick_size?: string;
-  market_slug?: string;
+  bestBid?: number | string;
+  bestAsk?: number | string;
 }
 
-interface PolymarketEvent {
+interface GammaEvent {
   id: string;
   slug: string;
   title: string;
   description?: string;
-  markets: PolymarketMarket[];
-  volume?: number;
-  volume_24hr?: number;
-  liquidity?: number;
+  markets: GammaMarket[];
+  volume?: number | string;
+  volume_24hr?: number | string;
+  liquidity?: number | string;
   active?: boolean;
   closed?: boolean;
-  end_date_iso?: string;
 }
 
-interface GammaSearchResult {
-  events?: PolymarketEvent[];
-  markets?: PolymarketMarket[];
+function parseJsonArray(val: string | string[] | undefined): string[] {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  try { return JSON.parse(val); } catch { return []; }
 }
 
-// --- Market data mapping ---
+function parseNum(val: string | number | undefined | null): number {
+  if (val === undefined || val === null) return 0;
+  if (typeof val === 'number') return val;
+  return parseFloat(val) || 0;
+}
 
-function mapMarketToData(market: PolymarketMarket, eventVolume?: number): MarketData | null {
-  // Skip markets without tokens (multi-outcome markets without standard Yes/No)
-  if (!market.tokens || !Array.isArray(market.tokens) || market.tokens.length === 0) {
+function mapGammaMarket(m: GammaMarket, eventVolume?: number | string): MarketData | null {
+  // Parse outcomes, prices, and token IDs
+  const outcomes = parseJsonArray(m.outcomes);
+  const prices = parseJsonArray(m.outcomePrices);
+  const tokenIds = parseJsonArray(m.clobTokenIds);
+
+  // Also support old format with tokens array
+  let yesPrice = 0, noPrice = 0, yesTokenId = '', noTokenId = '';
+
+  if (m.tokens && Array.isArray(m.tokens) && m.tokens.length > 0) {
+    const yesToken = m.tokens.find(t => t.outcome === 'Yes');
+    const noToken = m.tokens.find(t => t.outcome === 'No');
+    if (!yesToken && !noToken) return null;
+    yesPrice = yesToken?.price ?? 0.5;
+    noPrice = noToken?.price ?? 0.5;
+    yesTokenId = yesToken?.token_id ?? '';
+    noTokenId = noToken?.token_id ?? '';
+  } else if (outcomes.length >= 2 && prices.length >= 2) {
+    const yesIdx = outcomes.indexOf('Yes');
+    const noIdx = outcomes.indexOf('No');
+    if (yesIdx === -1 && noIdx === -1) return null;
+    yesPrice = yesIdx >= 0 ? parseNum(prices[yesIdx]) : 0;
+    noPrice = noIdx >= 0 ? parseNum(prices[noIdx]) : 0;
+    yesTokenId = yesIdx >= 0 && tokenIds[yesIdx] ? tokenIds[yesIdx] : '';
+    noTokenId = noIdx >= 0 && tokenIds[noIdx] ? tokenIds[noIdx] : '';
+  } else {
+    // No usable price data
     return null;
   }
 
-  const yesToken = market.tokens.find(t => t.outcome === 'Yes');
-  const noToken = market.tokens.find(t => t.outcome === 'No');
-
-  // If no Yes/No tokens, skip (e.g. multi-outcome with named outcomes)
-  if (!yesToken && !noToken) return null;
-
-  const yesPrice = yesToken?.price ?? 0.5;
-  const noPrice = noToken?.price ?? 0.5;
+  const conditionId = m.conditionId || m.condition_id || m.id || '';
+  const vol = parseNum(m.volume) || parseNum(eventVolume);
 
   return {
-    id: market.condition_id,
+    id: conditionId,
     eventId: '',
-    ticker: market.condition_id,
-    title: market.question,
+    ticker: conditionId,
+    title: m.question,
     yesPrice: Math.round(yesPrice * 100) / 100,
     noPrice: Math.round(noPrice * 100) / 100,
-    volume: typeof market.volume === 'string' ? parseFloat(market.volume) : (market.volume ?? eventVolume ?? null),
+    volume: vol || null,
     change24h: null,
     category: null,
-    rulesPrimary: market.description ?? null,
-    closeTime: market.end_date_iso ?? null,
-    expirationTime: market.end_date_iso ?? null,
-    conditionId: market.condition_id,
-    yesTokenId: yesToken?.token_id ?? '',
-    noTokenId: noToken?.token_id ?? '',
-    negRisk: market.neg_risk ?? false,
-    tickSize: market.minimum_tick_size ?? '0.01',
+    rulesPrimary: m.description ?? null,
+    closeTime: m.endDateIso || m.end_date_iso || null,
+    expirationTime: m.endDateIso || m.end_date_iso || null,
+    conditionId,
+    yesTokenId,
+    noTokenId,
+    negRisk: m.negRisk ?? m.neg_risk ?? false,
+    tickSize: String(m.orderPriceMinTickSize || m.minimum_tick_size || '0.01'),
   };
 }
 
@@ -92,29 +114,27 @@ function mapMarketToData(market: PolymarketMarket, eventVolume?: number): Market
 export async function searchMarkets(query: string): Promise<MarketData[]> {
   try {
     const res = await fetch(
-      `${GAMMA_API}/public-search?q=${encodeURIComponent(query)}&limit_per_type=20`,
+      `${GAMMA_API}/public-search?q=${encodeURIComponent(query)}&limit_per_type=50`,
     );
     if (!res.ok) throw new Error(`Gamma search returned ${res.status}`);
-    const data: GammaSearchResult = await res.json();
+    const data = await res.json();
 
     const markets: MarketData[] = [];
 
-    // Map event markets
     if (data.events) {
       for (const event of data.events) {
         for (const market of event.markets || []) {
           if (market.closed || !market.active) continue;
-          const mapped = mapMarketToData(market, event.volume);
+          const mapped = mapGammaMarket(market, event.volume);
           if (mapped) markets.push(mapped);
         }
       }
     }
 
-    // Map standalone markets
     if (data.markets) {
       for (const market of data.markets) {
         if (market.closed || !market.active) continue;
-        const mapped = mapMarketToData(market);
+        const mapped = mapGammaMarket(market);
         if (mapped) markets.push(mapped);
       }
     }
@@ -126,15 +146,15 @@ export async function searchMarkets(query: string): Promise<MarketData[]> {
   }
 }
 
-export async function getEventBySlug(slug: string): Promise<{ event: PolymarketEvent | null; markets: MarketData[] }> {
+export async function getEventBySlug(slug: string): Promise<{ event: GammaEvent | null; markets: MarketData[] }> {
   try {
     const res = await fetch(`${GAMMA_API}/events/slug/${encodeURIComponent(slug)}`);
     if (!res.ok) return { event: null, markets: [] };
-    const event: PolymarketEvent = await res.json();
+    const event: GammaEvent = await res.json();
 
     const markets = (event.markets || [])
       .filter(m => m.active && !m.closed)
-      .map(m => mapMarketToData(m, event.volume))
+      .map(m => mapGammaMarket(m, event.volume))
       .filter((m): m is MarketData => m !== null);
 
     return { event, markets };
@@ -146,21 +166,19 @@ export async function getEventBySlug(slug: string): Promise<{ event: PolymarketE
 
 /**
  * Fetch ALL active NCAA March Madness markets from Polymarket.
- * Uses multiple search strategies to get comprehensive coverage.
  */
-export async function getNCAAMarkets(): Promise<{ markets: MarketData[]; events: PolymarketEvent[] }> {
-  const allEvents: PolymarketEvent[] = [];
+export async function getNCAAMarkets(): Promise<{ markets: MarketData[]; totalVolume: number }> {
   const seen = new Set<string>();
   const allMarkets: MarketData[] = [];
 
-  // Strategy 1: Search for NCAA tournament markets
   const searchQueries = [
     'NCAA Tournament 2026',
-    'March Madness',
-    'NCAA Basketball',
-    'Sweet 16',
-    'Elite Eight',
-    'Final Four',
+    'March Madness 2026',
+    'NCAA Basketball Championship',
+    'Sweet 16 2026',
+    'Elite Eight 2026',
+    'Final Four 2026',
+    'NCAA Tournament Winner',
   ];
 
   for (const query of searchQueries) {
@@ -169,29 +187,27 @@ export async function getNCAAMarkets(): Promise<{ markets: MarketData[]; events:
         `${GAMMA_API}/public-search?q=${encodeURIComponent(query)}&limit_per_type=50`,
       );
       if (!res.ok) continue;
-      const data: GammaSearchResult = await res.json();
+      const data = await res.json();
 
       if (data.events) {
         for (const event of data.events) {
           if (event.closed || !event.active) continue;
-          // Check if this is actually NCAA-related
-          const titleLower = event.title.toLowerCase();
+          const titleLower = (event.title || '').toLowerCase();
           const isNCAA = titleLower.includes('ncaa') ||
             titleLower.includes('march madness') ||
             titleLower.includes('sweet 16') || titleLower.includes('sweet sixteen') ||
             titleLower.includes('elite eight') || titleLower.includes('elite 8') ||
             titleLower.includes('final four') ||
-            titleLower.includes('tournament winner') ||
-            titleLower.includes('championship');
+            titleLower.includes('tournament');
 
           if (!isNCAA) continue;
 
-          allEvents.push(event);
           for (const market of event.markets || []) {
             if (market.closed || !market.active) continue;
-            if (seen.has(market.condition_id)) continue;
-            seen.add(market.condition_id);
-            const mapped = mapMarketToData(market, event.volume);
+            const key = market.conditionId || market.condition_id || market.id || market.question;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            const mapped = mapGammaMarket(market, event.volume);
             if (mapped) allMarkets.push(mapped);
           }
         }
@@ -204,7 +220,9 @@ export async function getNCAAMarkets(): Promise<{ markets: MarketData[]; events:
   // Sort by volume descending
   allMarkets.sort((a, b) => (b.volume || 0) - (a.volume || 0));
 
-  return { markets: allMarkets, events: allEvents };
+  const totalVolume = allMarkets.reduce((sum, m) => sum + (m.volume || 0), 0);
+
+  return { markets: allMarkets, totalVolume };
 }
 
 export async function getMarketsBySearchTerms(searchTerms: string[]): Promise<MarketData[]> {
@@ -218,7 +236,7 @@ export async function getMarketsBySearchTerms(searchTerms: string[]): Promise<Ma
       const slug = term.replace('polymarket:', '');
       const result = await getEventBySlug(slug);
       markets = result.markets;
-    } else if (term === 'NCAA' || term === 'ncaab' || term.toLowerCase().includes('march madness') || term.toLowerCase().includes('ncaa')) {
+    } else if (term.toLowerCase().includes('ncaa') || term.toLowerCase().includes('march madness')) {
       const result = await getNCAAMarkets();
       markets = result.markets;
     } else {
@@ -258,7 +276,6 @@ export async function getOrderBook(tokenId: string): Promise<{
     const res = await fetch(`${CLOB_API}/book?token_id=${tokenId}`);
     if (!res.ok) return null;
     const data = await res.json();
-
     return {
       bids: (data.bids || []).map((b: { price: string; size: string }) => ({
         price: parseFloat(b.price),
