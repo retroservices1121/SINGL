@@ -105,8 +105,40 @@ export default function EventPage({ event }: EventPageProps) {
       {/* Hero */}
       <section className="relative overflow-hidden bg-[var(--on-surface)] px-6 py-12 mb-0">
         <div className="absolute inset-0 bg-gradient-to-r from-[var(--on-surface)] via-[var(--on-surface)]/90 to-transparent z-[1]" />
+        {/* Basketball court background */}
+        <div className="absolute inset-0 opacity-[0.08]">
+          <svg viewBox="0 0 940 500" className="w-full h-full" preserveAspectRatio="xMidYMid slice" fill="none" stroke="white" strokeWidth="2">
+            {/* Court outline */}
+            <rect x="20" y="20" width="900" height="460" rx="0" />
+            {/* Half court line */}
+            <line x1="470" y1="20" x2="470" y2="480" />
+            {/* Center circle */}
+            <circle cx="470" cy="250" r="60" />
+            <circle cx="470" cy="250" r="6" fill="white" stroke="none" />
+            {/* Left key / paint */}
+            <rect x="20" y="131" width="190" height="238" />
+            <circle cx="210" cy="250" r="60" />
+            {/* Left free throw arc (dashed, bottom half) */}
+            <path d="M 210 190 A 60 60 0 0 0 210 310" strokeDasharray="6 6" />
+            {/* Left basket */}
+            <circle cx="63" cy="250" r="10" />
+            <rect x="20" y="220" width="43" height="60" />
+            {/* Left three-point arc */}
+            <path d="M 20 91 L 140 91 A 160 160 0 0 1 140 409 L 20 409" />
+            {/* Right key / paint */}
+            <rect x="730" y="131" width="190" height="238" />
+            <circle cx="730" cy="250" r="60" />
+            {/* Right free throw arc (dashed, top half) */}
+            <path d="M 730 190 A 60 60 0 0 1 730 310" strokeDasharray="6 6" />
+            {/* Right basket */}
+            <circle cx="877" cy="250" r="10" />
+            <rect x="877" y="220" width="43" height="60" />
+            {/* Right three-point arc */}
+            <path d="M 920 91 L 800 91 A 160 160 0 0 0 800 409 L 920 409" />
+          </svg>
+        </div>
         {event.imageUrl && (
-          <div className="absolute inset-0 opacity-30">
+          <div className="absolute inset-0 opacity-20">
             <img src={event.imageUrl} alt="" className="w-full h-full object-cover" />
           </div>
         )}
