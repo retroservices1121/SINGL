@@ -4,10 +4,6 @@ import type { MarketData } from '@/app/types';
 const GAMMA_API = 'https://gamma-api.polymarket.com';
 const CLOB_API = 'https://clob.polymarket.com';
 
-// NCAA Basketball tag IDs from Polymarket sports metadata
-const NCAAB_TAGS = '1,100149,100639';
-const NCAAB_SERIES = '39';
-
 // --- Gamma API types ---
 
 interface PolymarketToken {
@@ -21,7 +17,7 @@ interface PolymarketMarket {
   condition_id: string;
   question: string;
   description?: string;
-  tokens: PolymarketToken[];
+  tokens?: PolymarketToken[];
   volume?: number;
   volume_24hr?: number;
   liquidity?: number;
@@ -55,9 +51,17 @@ interface GammaSearchResult {
 
 // --- Market data mapping ---
 
-function mapMarketToData(market: PolymarketMarket, eventVolume?: number): MarketData {
+function mapMarketToData(market: PolymarketMarket, eventVolume?: number): MarketData | null {
+  // Skip markets without tokens (multi-outcome markets without standard Yes/No)
+  if (!market.tokens || !Array.isArray(market.tokens) || market.tokens.length === 0) {
+    return null;
+  }
+
   const yesToken = market.tokens.find(t => t.outcome === 'Yes');
   const noToken = market.tokens.find(t => t.outcome === 'No');
+
+  // If no Yes/No tokens, skip (e.g. multi-outcome with named outcomes)
+  if (!yesToken && !noToken) return null;
 
   const yesPrice = yesToken?.price ?? 0.5;
   const noPrice = noToken?.price ?? 0.5;
@@ -69,7 +73,7 @@ function mapMarketToData(market: PolymarketMarket, eventVolume?: number): Market
     title: market.question,
     yesPrice: Math.round(yesPrice * 100) / 100,
     noPrice: Math.round(noPrice * 100) / 100,
-    volume: market.volume ?? eventVolume ?? null,
+    volume: typeof market.volume === 'string' ? parseFloat(market.volume) : (market.volume ?? eventVolume ?? null),
     change24h: null,
     category: null,
     rulesPrimary: market.description ?? null,
@@ -100,7 +104,8 @@ export async function searchMarkets(query: string): Promise<MarketData[]> {
       for (const event of data.events) {
         for (const market of event.markets || []) {
           if (market.closed || !market.active) continue;
-          markets.push(mapMarketToData(market, event.volume));
+          const mapped = mapMarketToData(market, event.volume);
+          if (mapped) markets.push(mapped);
         }
       }
     }
@@ -109,7 +114,8 @@ export async function searchMarkets(query: string): Promise<MarketData[]> {
     if (data.markets) {
       for (const market of data.markets) {
         if (market.closed || !market.active) continue;
-        markets.push(mapMarketToData(market));
+        const mapped = mapMarketToData(market);
+        if (mapped) markets.push(mapped);
       }
     }
 
@@ -128,7 +134,8 @@ export async function getEventBySlug(slug: string): Promise<{ event: PolymarketE
 
     const markets = (event.markets || [])
       .filter(m => m.active && !m.closed)
-      .map(m => mapMarketToData(m, event.volume));
+      .map(m => mapMarketToData(m, event.volume))
+      .filter((m): m is MarketData => m !== null);
 
     return { event, markets };
   } catch (err) {
@@ -137,58 +144,83 @@ export async function getEventBySlug(slug: string): Promise<{ event: PolymarketE
   }
 }
 
-export async function getNCAAMarkets(): Promise<MarketData[]> {
-  try {
-    // Fetch active NCAA basketball events from Gamma API
-    const params = new URLSearchParams({
-      tag_id: NCAAB_TAGS.split(',')[0], // primary tag
-      active: 'true',
-      closed: 'false',
-      order: 'volume_24hr',
-      ascending: 'false',
-      limit: '100',
-    });
+/**
+ * Fetch ALL active NCAA March Madness markets from Polymarket.
+ * Uses multiple search strategies to get comprehensive coverage.
+ */
+export async function getNCAAMarkets(): Promise<{ markets: MarketData[]; events: PolymarketEvent[] }> {
+  const allEvents: PolymarketEvent[] = [];
+  const seen = new Set<string>();
+  const allMarkets: MarketData[] = [];
 
-    const res = await fetch(`${GAMMA_API}/events?${params}`);
-    if (!res.ok) throw new Error(`Gamma NCAA fetch returned ${res.status}`);
-    const events: PolymarketEvent[] = await res.json();
+  // Strategy 1: Search for NCAA tournament markets
+  const searchQueries = [
+    'NCAA Tournament 2026',
+    'March Madness',
+    'NCAA Basketball',
+    'Sweet 16',
+    'Elite Eight',
+    'Final Four',
+  ];
 
-    const markets: MarketData[] = [];
-    for (const event of events) {
-      for (const market of event.markets || []) {
-        if (market.closed || !market.active) continue;
-        markets.push(mapMarketToData(market, event.volume));
+  for (const query of searchQueries) {
+    try {
+      const res = await fetch(
+        `${GAMMA_API}/public-search?q=${encodeURIComponent(query)}&limit_per_type=50`,
+      );
+      if (!res.ok) continue;
+      const data: GammaSearchResult = await res.json();
+
+      if (data.events) {
+        for (const event of data.events) {
+          if (event.closed || !event.active) continue;
+          // Check if this is actually NCAA-related
+          const titleLower = event.title.toLowerCase();
+          const isNCAA = titleLower.includes('ncaa') ||
+            titleLower.includes('march madness') ||
+            titleLower.includes('sweet 16') || titleLower.includes('sweet sixteen') ||
+            titleLower.includes('elite eight') || titleLower.includes('elite 8') ||
+            titleLower.includes('final four') ||
+            titleLower.includes('tournament winner') ||
+            titleLower.includes('championship');
+
+          if (!isNCAA) continue;
+
+          allEvents.push(event);
+          for (const market of event.markets || []) {
+            if (market.closed || !market.active) continue;
+            if (seen.has(market.condition_id)) continue;
+            seen.add(market.condition_id);
+            const mapped = mapMarketToData(market, event.volume);
+            if (mapped) allMarkets.push(mapped);
+          }
+        }
       }
+    } catch (err) {
+      console.error(`NCAA search error for "${query}":`, err);
     }
-
-    // If tag-based search returns nothing, fall back to keyword search
-    if (markets.length === 0) {
-      return searchMarkets('NCAA March Madness basketball');
-    }
-
-    return markets;
-  } catch (err) {
-    console.error('Polymarket NCAA fetch error:', err);
-    // Fall back to keyword search
-    return searchMarkets('NCAA March Madness basketball');
   }
+
+  // Sort by volume descending
+  allMarkets.sort((a, b) => (b.volume || 0) - (a.volume || 0));
+
+  return { markets: allMarkets, events: allEvents };
 }
 
 export async function getMarketsBySearchTerms(searchTerms: string[]): Promise<MarketData[]> {
-  // Try each search term and collect unique markets
   const seen = new Set<string>();
   const allMarkets: MarketData[] = [];
 
   for (const term of searchTerms) {
     let markets: MarketData[];
 
-    // Check if term looks like a Polymarket event slug
     if (term.startsWith('polymarket:')) {
       const slug = term.replace('polymarket:', '');
       const result = await getEventBySlug(slug);
       markets = result.markets;
-    } else if (term === 'NCAA' || term === 'ncaab' || term.toLowerCase().includes('march madness')) {
-      markets = await getNCAAMarkets();
+    } else if (term === 'NCAA' || term === 'ncaab' || term.toLowerCase().includes('march madness') || term.toLowerCase().includes('ncaa')) {
+      const result = await getNCAAMarkets();
+      markets = result.markets;
     } else {
       markets = await searchMarkets(term);
     }

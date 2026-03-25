@@ -90,17 +90,20 @@ export async function POST(req: NextRequest) {
   let receivedCount = 0;
 
   interface RawMarket {
-    ticker: string;
+    ticker?: string;
+    condition_id?: string;
     title: string;
+    yesPrice?: number;
+    noPrice?: number;
     yesBid?: string;
     yesAsk?: string;
     noBid?: string;
     noAsk?: string;
-    volume?: number;
+    volume?: number | string;
     openInterest?: number;
     rulesPrimary?: string;
-    closeTime?: number;
-    expirationTime?: number;
+    closeTime?: number | string;
+    expirationTime?: number | string;
   }
 
   const marketList: RawMarket[] = Array.isArray(rawMarkets) ? rawMarkets : [];
@@ -112,27 +115,44 @@ export async function POST(req: NextRequest) {
 
       await Promise.all(
         marketList.map(m => {
-          const yesBid = parseFloat(m.yesBid || '0') || 0;
-          const yesAsk = parseFloat(m.yesAsk || '0') || 0;
-          const noBid = parseFloat(m.noBid || '0') || 0;
-          const noAsk = parseFloat(m.noAsk || '0') || 0;
+          // Support both old format (yesBid/yesAsk) and Polymarket format (yesPrice/noPrice)
+          let yesPrice = m.yesPrice ?? 0;
+          let noPrice = m.noPrice ?? 0;
 
-          // Use ask price (buy price) matching Polymarket display
-          const yesPrice = yesAsk || yesBid || 0;
-          const noPrice = noAsk || noBid || 0;
+          if (!yesPrice && !noPrice) {
+            const yesBid = parseFloat(m.yesBid || '0') || 0;
+            const yesAsk = parseFloat(m.yesAsk || '0') || 0;
+            const noBid = parseFloat(m.noBid || '0') || 0;
+            const noAsk = parseFloat(m.noAsk || '0') || 0;
+            yesPrice = yesAsk || yesBid || 0;
+            noPrice = noAsk || noBid || 0;
+          }
 
-          // If both are 0, use 0 (not 0.5) — means no liquidity
+          // ticker can come as ticker or condition_id from Polymarket
+          const ticker = m.ticker || m.condition_id || m.title.slice(0, 50);
+          const vol = typeof m.volume === 'string' ? parseFloat(m.volume) || null : (m.volume ?? null);
+
+          // closeTime can be ISO string or unix timestamp
+          let closeTime: Date | null = null;
+          if (m.closeTime) {
+            closeTime = typeof m.closeTime === 'string' ? new Date(m.closeTime) : new Date(m.closeTime * 1000);
+          }
+          let expirationTime: Date | null = null;
+          if (m.expirationTime) {
+            expirationTime = typeof m.expirationTime === 'string' ? new Date(m.expirationTime) : new Date(m.expirationTime * 1000);
+          }
+
           return prisma.market.create({
             data: {
               eventId: event.id,
-              ticker: m.ticker,
+              ticker,
               title: m.title,
               yesPrice: Math.round(yesPrice * 100) / 100,
               noPrice: Math.round(noPrice * 100) / 100,
-              volume: m.volume ?? null,
+              volume: vol,
               rulesPrimary: m.rulesPrimary ?? null,
-              closeTime: m.closeTime ? new Date(m.closeTime * 1000) : null,
-              expirationTime: m.expirationTime ? new Date(m.expirationTime * 1000) : null,
+              closeTime,
+              expirationTime,
               change24h: null,
               category: null,
             },
