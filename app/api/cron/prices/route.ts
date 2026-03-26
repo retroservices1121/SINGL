@@ -25,47 +25,87 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Event not found or no markets' }, { status: 404 });
   }
 
-  // Backfill missing token IDs from Polymarket Gamma API
-  const marketsNeedingTokenIds = event.markets.filter(m => !m.yesTokenId || !m.noTokenId);
-  if (marketsNeedingTokenIds.length > 0) {
-    try {
-      const gammaRes = await fetch(
-        `https://gamma-api.polymarket.com/events?slug=${encodeURIComponent(event.slug)}`
-      );
-      if (gammaRes.ok) {
-        const gammaEvents = await gammaRes.json();
-        const gammaEvent = Array.isArray(gammaEvents) ? gammaEvents[0] : gammaEvents;
-        const gammaMarkets = gammaEvent?.markets || [];
+  // Sync markets from Polymarket Gamma API: backfill token IDs + import missing markets
+  let newMarketsAdded = 0;
+  let tokenIdsBackfilled = 0;
+  try {
+    const gammaRes = await fetch(
+      `https://gamma-api.polymarket.com/events?slug=${encodeURIComponent(event.slug)}`
+    );
+    if (gammaRes.ok) {
+      const gammaEvents = await gammaRes.json();
+      const gammaEvent = Array.isArray(gammaEvents) ? gammaEvents[0] : gammaEvents;
+      const gammaMarkets: Array<{
+        condition_id?: string;
+        question?: string;
+        description?: string;
+        tokens?: Array<{ token_id: string; outcome: string; price?: number }>;
+        volume?: number;
+        end_date_iso?: string;
+        neg_risk?: boolean;
+        minimum_tick_size?: string;
+        active?: boolean;
+        closed?: boolean;
+      }> = (gammaEvent?.markets || []).filter((g: { active?: boolean; closed?: boolean }) => g.active && !g.closed);
 
-        for (const market of marketsNeedingTokenIds) {
-          // Match by condition_id (stored as ticker in our DB)
-          const gm = gammaMarkets.find((g: { condition_id?: string }) => g.condition_id === market.ticker);
-          if (!gm?.tokens) continue;
+      const existingTickers = new Set(event.markets.map(m => m.ticker));
 
-          const yesToken = gm.tokens.find((t: { outcome: string }) => t.outcome === 'Yes');
-          const noToken = gm.tokens.find((t: { outcome: string }) => t.outcome === 'No');
+      for (const gm of gammaMarkets) {
+        if (!gm.condition_id || !gm.tokens) continue;
 
-          if (yesToken?.token_id || noToken?.token_id) {
+        const yesToken = gm.tokens.find(t => t.outcome === 'Yes');
+        const noToken = gm.tokens.find(t => t.outcome === 'No');
+        if (!yesToken && !noToken) continue;
+
+        if (existingTickers.has(gm.condition_id)) {
+          // Update existing market with missing token IDs
+          const existing = event.markets.find(m => m.ticker === gm.condition_id);
+          if (existing && (!existing.yesTokenId || !existing.noTokenId)) {
             await prisma.market.update({
-              where: { id: market.id },
+              where: { id: existing.id },
               data: {
                 yesTokenId: yesToken?.token_id || null,
                 noTokenId: noToken?.token_id || null,
-                conditionId: gm.condition_id || market.ticker,
-                negRisk: gm.neg_risk ?? market.negRisk,
-                tickSize: gm.minimum_tick_size || market.tickSize,
+                conditionId: gm.condition_id,
+                negRisk: gm.neg_risk ?? existing.negRisk,
+                tickSize: gm.minimum_tick_size || existing.tickSize,
               },
             });
-            // Update in-memory too so price fetch works below
-            market.yesTokenId = yesToken?.token_id || null;
-            market.noTokenId = noToken?.token_id || null;
-            console.log(`[prices] Backfilled token IDs for ${market.title}`);
+            existing.yesTokenId = yesToken?.token_id || null;
+            existing.noTokenId = noToken?.token_id || null;
+            tokenIdsBackfilled++;
+            console.log(`[prices] Backfilled token IDs for ${existing.title}`);
           }
+        } else {
+          // Import new market
+          const yesPrice = yesToken?.price ?? 0.5;
+          const noPrice = noToken?.price ?? 0.5;
+          const newMarket = await prisma.market.create({
+            data: {
+              eventId: event.id,
+              ticker: gm.condition_id,
+              title: gm.question || gm.condition_id,
+              yesPrice: Math.round(yesPrice * 100) / 100,
+              noPrice: Math.round(noPrice * 100) / 100,
+              volume: gm.volume ?? null,
+              rulesPrimary: gm.description ?? null,
+              closeTime: gm.end_date_iso ? new Date(gm.end_date_iso) : null,
+              expirationTime: gm.end_date_iso ? new Date(gm.end_date_iso) : null,
+              conditionId: gm.condition_id,
+              yesTokenId: yesToken?.token_id || null,
+              noTokenId: noToken?.token_id || null,
+              negRisk: gm.neg_risk ?? false,
+              tickSize: gm.minimum_tick_size || '0.01',
+            },
+          });
+          event.markets.push(newMarket as typeof event.markets[0]);
+          newMarketsAdded++;
+          console.log(`[prices] Imported new market: ${gm.question}`);
         }
       }
-    } catch (err) {
-      console.error('[prices] Token ID backfill error:', err);
     }
+  } catch (err) {
+    console.error('[prices] Market sync error:', err);
   }
 
   // Fetch live prices from Polymarket CLOB for each market
@@ -115,5 +155,7 @@ export async function GET(req: NextRequest) {
     snapshots: snapshotCount,
     updatedMarkets: updated,
     totalMarkets: event.markets.length,
+    newMarketsAdded,
+    tokenIdsBackfilled,
   });
 }
