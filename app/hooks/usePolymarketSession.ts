@@ -264,6 +264,13 @@ export function usePolymarketSession(): SessionState & {
       state.session.safeAddress,
     );
 
+    // Pre-populate SDK caches to prevent direct CLOB API calls from browser (CORS)
+    // The SDK's _resolveTickSize/getNegRisk/getFeeRateBps always fetch from API even when
+    // options are passed, which fails in browser due to CORS
+    (clobClient as any).tickSizes[params.tokenId] = params.tickSize;
+    (clobClient as any).negRisk[params.tokenId] = params.negRisk;
+    (clobClient as any).feeRates[params.tokenId] = 0;
+
     // Round price to 2 decimals for Polymarket precision requirements
     const roundedPrice = Math.round(params.price * 100) / 100;
     if (roundedPrice <= 0 || roundedPrice >= 1) {
