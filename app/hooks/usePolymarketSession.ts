@@ -264,15 +264,40 @@ export function usePolymarketSession(): SessionState & {
       state.session.safeAddress,
     );
 
+    // Round price to 2 decimals and amount to whole number for Polymarket precision requirements
+    // makerAmount: max 4 decimal places, takerAmount: max 2 decimal places
+    const roundedPrice = Math.round(params.price * 100) / 100;
+    const roundedAmount = Math.floor(params.amount); // Whole USDC
+
+    if (roundedPrice <= 0 || roundedPrice >= 1) {
+      throw new Error(`Invalid price: ${roundedPrice}. Must be between 0.01 and 0.99.`);
+    }
+    if (roundedAmount < 1) {
+      throw new Error('Minimum trade amount is $1.');
+    }
+
     // Create the signed order locally (EIP-712 signing in wallet)
     const order = await clobClient.createMarketOrder({
       tokenID: params.tokenId,
-      price: params.price,
-      amount: params.amount,
+      price: roundedPrice,
+      amount: roundedAmount,
       side: params.side === 'BUY' ? Side.BUY : Side.SELL,
     });
 
-    console.log('[polymarket] Order created locally, posting via proxy...');
+    // Ensure amounts meet Polymarket's decimal precision requirements
+    // makerAmount: max 4 decimals (raw must be divisible by 100)
+    // takerAmount: max 2 decimals (raw must be divisible by 10000)
+    const fixedOrder = { ...order } as Record<string, unknown>;
+    if (order.makerAmount) {
+      const makerRaw = BigInt(order.makerAmount);
+      fixedOrder.makerAmount = (makerRaw - makerRaw % BigInt(100)).toString();
+    }
+    if (order.takerAmount) {
+      const takerRaw = BigInt(order.takerAmount);
+      fixedOrder.takerAmount = (takerRaw - takerRaw % BigInt(10000)).toString();
+    }
+
+    console.log('[polymarket] Order created, makerAmount:', fixedOrder.makerAmount, 'takerAmount:', fixedOrder.takerAmount);
 
     // Send the raw signed order to our server proxy.
     // The server uses ClobClient.postOrder() which handles:
@@ -280,7 +305,7 @@ export function usePolymarketSession(): SessionState & {
     // - L2 HMAC header signing
     // - Proper request format
     try {
-      const response = await clobProxy('/order', 'POST', order, {
+      const response = await clobProxy('/order', 'POST', fixedOrder, {
         apiKey: state.session.apiKey,
         apiSecret: state.session.apiSecret,
         passphrase: state.session.passphrase,
