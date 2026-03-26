@@ -1,136 +1,153 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { TeamProfile } from '@/app/lib/ncaa';
 import { useTradeStore } from '@/app/store/tradeStore';
+
+// ── Types from the bracket API ─────────────────────────────────────────────
+
+interface BracketTeam {
+  name: string;
+  nameShort: string;
+  seed: number;
+  isWinner: boolean;
+  score: number | null;
+}
+
+interface BracketGame {
+  id: string;
+  round: number;
+  roundName: string;
+  region: string;
+  gameState: 'P' | 'I' | 'F';
+  startTime: string | null;
+  score: [number, number] | null;
+  winnerIndex: number | null;
+  feedsInto: string | null;
+  teams: BracketTeam[];
+}
+
+interface BracketRegion {
+  name: string;
+  games: BracketGame[];
+}
+
+interface BracketResponse {
+  regions: BracketRegion[];
+  finalFour: BracketGame[];
+  championship: BracketGame | null;
+  teams: Array<{ name: string; nameShort: string; seed: number; region: string }>;
+}
+
+// ── Props ──────────────────────────────────────────────────────────────────
 
 interface BracketVisualizerProps {
   teams: TeamProfile[];
 }
 
-type BracketRound = 'S16' | 'E8' | 'F4' | 'CHAMP';
+// ── Helpers ────────────────────────────────────────────────────────────────
 
-interface BracketSlot {
-  team: TeamProfile | null;
-  odds: number; // championship odds 0-1
-  roundOdds: number; // odds to reach this specific round 0-1
+function findMarketForTeam(teamShort: string, profiles: TeamProfile[]): TeamProfile | null {
+  const lower = teamShort.toLowerCase();
+  return (
+    profiles.find(p => p.name.toLowerCase() === lower) ||
+    profiles.find(p => p.name.toLowerCase().includes(lower) || lower.includes(p.name.toLowerCase())) ||
+    null
+  );
 }
 
-interface Matchup {
-  top: BracketSlot;
-  bottom: BracketSlot;
-  round: BracketRound;
-}
+// ── Game Card Component ────────────────────────────────────────────────────
 
-const REGIONS = ['East', 'West', 'South', 'Midwest'] as const;
-type Region = (typeof REGIONS)[number];
-
-const ROUND_LABELS: Record<BracketRound, string> = {
-  S16: 'Sweet 16',
-  E8: 'Elite 8',
-  F4: 'Final Four',
-  CHAMP: 'Championship',
-};
-
-// Assign teams to regions based on their region field, or distribute evenly
-function assignRegions(teams: TeamProfile[]): Record<Region, TeamProfile[]> {
-  const regions: Record<Region, TeamProfile[]> = { East: [], West: [], South: [], Midwest: [] };
-
-  // First pass: assign teams that have a region
-  for (const team of teams) {
-    if (team.region) {
-      const r = REGIONS.find(rg => team.region!.toLowerCase().includes(rg.toLowerCase()));
-      if (r) {
-        regions[r].push(team);
-        continue;
-      }
-    }
-    // Will be distributed in second pass
-  }
-
-  // Second pass: distribute unassigned teams evenly, sorted by championship odds
-  const unassigned = teams.filter(t => {
-    if (!t.region) return true;
-    return !REGIONS.some(rg => t.region!.toLowerCase().includes(rg.toLowerCase()));
-  }).sort((a, b) => (b.championshipOdds || 0) - (a.championshipOdds || 0));
-
-  for (const team of unassigned) {
-    // Find smallest region
-    const smallest = REGIONS.reduce((min, r) => regions[r].length < regions[min].length ? r : min, REGIONS[0]);
-    regions[smallest].push(team);
-  }
-
-  // Sort each region by championship odds
-  for (const r of REGIONS) {
-    regions[r].sort((a, b) => (b.championshipOdds || 0) - (a.championshipOdds || 0));
-  }
-
-  return regions;
-}
-
-// Build matchups for a region (Sweet 16 → Elite 8)
-function buildRegionMatchups(regionTeams: TeamProfile[]): { sweet16: Matchup[]; elite8: Matchup } {
-  const slot = (team: TeamProfile | null): BracketSlot => ({
-    team,
-    odds: team?.championshipOdds || 0,
-    roundOdds: team?.currentRoundOdds || team?.championshipOdds || 0,
-  });
-
-  // Pair teams: 1v4, 2v3 seeding style (by odds ranking)
-  const t = regionTeams.slice(0, 4);
-  const sweet16: Matchup[] = [
-    { top: slot(t[0] || null), bottom: slot(t[3] || null), round: 'S16' },
-    { top: slot(t[1] || null), bottom: slot(t[2] || null), round: 'S16' },
-  ];
-
-  // Elite 8 winner placeholder — show top seed from each S16 matchup
-  const e8Top = t[0] || t[3] || null;
-  const e8Bot = t[1] || t[2] || null;
-  const elite8: Matchup = { top: slot(e8Top), bottom: slot(e8Bot), round: 'E8' };
-
-  return { sweet16, elite8 };
-}
-
-function MatchupCard({ matchup, compact }: { matchup: Matchup; compact?: boolean }) {
+function GameCard({
+  game,
+  profiles,
+  compact,
+}: {
+  game: BracketGame;
+  profiles: TeamProfile[];
+  compact?: boolean;
+}) {
   const openTrade = useTradeStore(s => s.openTrade);
 
-  const renderSlot = (slot: BracketSlot, position: 'top' | 'bottom') => {
-    if (!slot.team) {
+  const renderTeamSlot = (team: BracketTeam | undefined, position: 'top' | 'bottom', otherTeam?: BracketTeam) => {
+    const isTBD = !team || team.nameShort === 'TBD' || team.seed === 0;
+
+    if (isTBD) {
       return (
-        <div className={`flex items-center justify-between px-3 py-2 bg-[var(--surface-container-high)] ${position === 'top' ? 'rounded-t-lg' : 'rounded-b-lg'} ${compact ? 'py-1.5' : ''}`}>
+        <div
+          className={`flex items-center justify-between px-3 ${compact ? 'py-1.5' : 'py-2'} bg-[var(--surface-container-high)] ${
+            position === 'top' ? 'rounded-t-lg border-b border-[var(--surface-container-highest)]' : 'rounded-b-lg'
+          }`}
+        >
           <span className="text-[10px] text-[var(--secondary)] italic">TBD</span>
         </div>
       );
     }
 
-    const team = slot.team;
-    const odds = Math.round(slot.odds * 100);
-    const isHigher = matchup.top.team && matchup.bottom.team
-      ? slot.odds > (position === 'top' ? matchup.bottom.odds : matchup.top.odds)
-      : false;
+    const profile = findMarketForTeam(team.nameShort, profiles);
+    const isWinner = team.isWinner;
+    const isLoser = game.gameState === 'F' && !team.isWinner && otherTeam?.isWinner;
+    const isLive = game.gameState === 'I';
+    const odds = profile?.championshipOdds ? Math.round(profile.championshipOdds * 100) : null;
 
     return (
       <div
-        className={`flex items-center justify-between px-3 ${compact ? 'py-1.5' : 'py-2'} cursor-pointer transition-all hover:bg-[var(--surface-container)] group ${position === 'top' ? 'rounded-t-lg border-b border-[var(--surface-container-high)]' : 'rounded-b-lg'} ${isHigher ? 'bg-[var(--surface-container-lowest)]' : 'bg-[var(--surface-container-low)]'}`}
-        onClick={() => team.championshipMarket && openTrade(team.championshipMarket, 'yes')}
+        className={`flex items-center justify-between px-3 ${compact ? 'py-1.5' : 'py-2'} transition-all group ${
+          position === 'top' ? 'rounded-t-lg border-b border-[var(--surface-container-highest)]' : 'rounded-b-lg'
+        } ${
+          isWinner
+            ? 'bg-[var(--surface-container-lowest)]'
+            : isLoser
+            ? 'bg-[var(--surface-container-high)] opacity-60'
+            : 'bg-[var(--surface-container-low)]'
+        } ${profile?.championshipMarket ? 'cursor-pointer hover:bg-[var(--surface-container)]' : ''}`}
+        onClick={() => profile?.championshipMarket && openTrade(profile.championshipMarket, 'yes')}
       >
         <div className="flex items-center gap-2 min-w-0">
-          {team.seed && (
+          {team.seed > 0 && (
             <span className="text-[9px] font-bold text-[var(--secondary)] bg-[var(--surface-container-high)] px-1 py-0.5 rounded shrink-0">
               {team.seed}
             </span>
           )}
-          <span className={`font-heading font-bold uppercase tracking-tight truncate ${compact ? 'text-[10px]' : 'text-xs'} ${isHigher ? 'text-[var(--on-surface)]' : 'text-[var(--secondary)]'}`}>
-            {team.name}
+          <span
+            className={`font-heading font-bold uppercase tracking-tight truncate ${compact ? 'text-[10px]' : 'text-xs'} ${
+              isWinner ? 'text-[var(--on-surface)]' : isLoser ? 'text-[var(--secondary)]' : 'text-[var(--on-surface)]'
+            }`}
+          >
+            {team.nameShort}
           </span>
+          {isWinner && game.gameState === 'F' && (
+            <span className="material-symbols-outlined text-[10px] text-[var(--yes)]">check_circle</span>
+          )}
+          {isLive && (
+            <span className="inline-flex items-center gap-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-[8px] font-bold text-red-400 uppercase tracking-widest">Live</span>
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className={`font-mono font-bold ${compact ? 'text-[10px]' : 'text-xs'} ${isHigher ? 'text-[var(--yes)]' : 'text-[var(--secondary)]'}`}>
-            {odds > 0 ? `${odds}%` : '<1%'}
-          </span>
-          <span className="material-symbols-outlined text-[10px] text-[var(--secondary)] opacity-0 group-hover:opacity-100 transition-opacity">
-            arrow_forward
-          </span>
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Show score for completed/live games */}
+          {(game.gameState === 'F' || game.gameState === 'I') && team.score != null && (
+            <span
+              className={`font-mono font-bold ${compact ? 'text-[10px]' : 'text-xs'} ${
+                isWinner ? 'text-[var(--on-surface)]' : 'text-[var(--secondary)]'
+              }`}
+            >
+              {team.score}
+            </span>
+          )}
+          {/* Show odds for future games */}
+          {game.gameState === 'P' && odds !== null && (
+            <span className={`font-mono font-bold ${compact ? 'text-[10px]' : 'text-xs'} text-[var(--yes)]`}>
+              {odds > 0 ? `${odds}%` : '<1%'}
+            </span>
+          )}
+          {profile?.championshipMarket && (
+            <span className="material-symbols-outlined text-[10px] text-[var(--secondary)] opacity-0 group-hover:opacity-100 transition-opacity">
+              arrow_forward
+            </span>
+          )}
         </div>
       </div>
     );
@@ -138,65 +155,154 @@ function MatchupCard({ matchup, compact }: { matchup: Matchup; compact?: boolean
 
   return (
     <div className="w-full rounded-lg shadow-ambient overflow-hidden border border-[var(--surface-container-high)]">
-      {renderSlot(matchup.top, 'top')}
-      {renderSlot(matchup.bottom, 'bottom')}
+      {renderTeamSlot(game.teams[0], 'top', game.teams[1])}
+      {renderTeamSlot(game.teams[1], 'bottom', game.teams[0])}
     </div>
   );
 }
 
-function RegionBracket({ region, teams }: { region: Region; teams: TeamProfile[] }) {
-  const { sweet16, elite8 } = buildRegionMatchups(teams);
-  const regionWinner = teams[0]; // Top seed as projected winner
+// ── Round Column Component ─────────────────────────────────────────────────
+
+function RoundColumn({
+  roundName,
+  games,
+  profiles,
+  compact,
+}: {
+  roundName: string;
+  games: BracketGame[];
+  profiles: TeamProfile[];
+  compact?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-4 min-w-[160px]">
+      <div className="text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest text-center mb-1">
+        {roundName}
+      </div>
+      <div className="flex flex-col justify-around gap-4 h-full">
+        {games.map(game => (
+          <GameCard key={game.id} game={game} profiles={profiles} compact={compact} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Region Bracket Component ───────────────────────────────────────────────
+
+function RegionBracket({
+  region,
+  profiles,
+}: {
+  region: BracketRegion;
+  profiles: TeamProfile[];
+}) {
+  // Group games by round
+  const gamesByRound = new Map<number, BracketGame[]>();
+  for (const g of region.games) {
+    const arr = gamesByRound.get(g.round) || [];
+    arr.push(g);
+    gamesByRound.set(g.round, arr);
+  }
+
+  // Sort rounds
+  const rounds = Array.from(gamesByRound.entries()).sort((a, b) => a[0] - b[0]);
+
+  // For display, show the last 3-4 rounds that have games
+  // Typically: R64(8) -> R32(4) -> S16(2) -> E8(1)
+  // But we may also have First Four games (round 1)
+  const displayRounds = rounds.filter(([rn]) => rn >= 2); // Skip First Four in main display
+  const firstFourGames = gamesByRound.get(1) || [];
+
+  // Find the Elite Eight winner (the team advancing from this region)
+  const e8Games = gamesByRound.get(5) || [];
+  const regionWinner = e8Games.length > 0 && e8Games[0].gameState === 'F'
+    ? e8Games[0].teams.find(t => t.isWinner)
+    : null;
+
+  // Determine which rounds to show based on tournament progress
+  // Show most recent active rounds + one future round
+  // For compact display: show latest 2-3 rounds
+  const latestFinished = Math.max(...region.games.filter(g => g.gameState === 'F').map(g => g.round), 0);
+
+  // Show: the round in progress or most recently completed, plus the next round
+  // Always show at least Sweet 16 and Elite Eight if they exist
+  let startRound = Math.max(latestFinished, 2);
+  // Show 2-3 rounds at a time
+  const visibleRounds = displayRounds.filter(([rn]) => rn >= startRound - 1 && rn <= startRound + 1);
+  // If nothing visible, show whatever we have
+  const showRounds = visibleRounds.length > 0 ? visibleRounds : displayRounds.slice(-3);
 
   return (
     <div className="space-y-3">
       {/* Region Header */}
-      <div className="flex items-center gap-2">
-        <div className="w-1 h-5 rounded-full bg-[var(--primary-container)]" />
-        <h4 className="text-xs font-black font-heading uppercase tracking-widest text-[var(--on-surface)]">
-          {region} Region
-        </h4>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-1 h-5 rounded-full bg-[var(--primary-container)]" />
+          <h4 className="text-xs font-black font-heading uppercase tracking-widest text-[var(--on-surface)]">
+            {region.name} Region
+          </h4>
+        </div>
+        {regionWinner && (
+          <div className="flex items-center gap-1 px-2 py-0.5 bg-[var(--primary-fixed)] rounded text-[9px]">
+            <span className="material-symbols-outlined text-[10px] text-[var(--primary)]">arrow_forward</span>
+            <span className="font-bold text-[var(--primary)] uppercase tracking-wider">
+              {regionWinner.nameShort} to Final Four
+            </span>
+          </div>
+        )}
       </div>
 
-      <div className="flex items-center gap-3">
-        {/* Sweet 16 matchups */}
-        <div className="flex flex-col gap-4 w-[45%] shrink-0">
-          {sweet16.map((m, i) => (
-            <MatchupCard key={i} matchup={m} />
+      {/* First Four callout if present */}
+      {firstFourGames.length > 0 && (
+        <div className="flex gap-2 mb-1">
+          {firstFourGames.map(g => (
+            <div key={g.id} className="flex-1">
+              <div className="text-[8px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-1">First Four</div>
+              <GameCard game={g} profiles={profiles} compact />
+            </div>
           ))}
         </div>
+      )}
 
-        {/* Connector lines */}
-        <div className="flex flex-col items-center justify-center w-4 shrink-0 relative">
-          <svg viewBox="0 0 16 100" className="w-4 h-full" preserveAspectRatio="none">
-            <path d="M0,25 L8,25 L8,75 L0,75" fill="none" stroke="var(--surface-container-highest)" strokeWidth="1.5" />
-            <path d="M8,50 L16,50" fill="none" stroke="var(--surface-container-highest)" strokeWidth="1.5" />
-          </svg>
-        </div>
+      {/* Rounds */}
+      <div className="flex gap-3 overflow-x-auto pb-2">
+        {showRounds.map(([roundNum, games]) => (
+          <div key={roundNum} className="flex-1 min-w-[140px]">
+            <RoundColumn
+              roundName={games[0]?.roundName || `Round ${roundNum}`}
+              games={games}
+              profiles={profiles}
+              compact={roundNum <= 3}
+            />
+          </div>
+        ))}
 
-        {/* Elite 8 */}
-        <div className="flex flex-col justify-center w-[45%] shrink-0">
-          <MatchupCard matchup={elite8} compact />
-          {/* Projected region winner */}
-          {regionWinner && (
-            <div className="mt-2 flex items-center gap-1.5 px-2 py-1 bg-[var(--primary-fixed)] rounded text-[10px]">
-              <span className="material-symbols-outlined text-[12px] text-[var(--primary)]">arrow_forward</span>
-              <span className="font-bold text-[var(--primary)] uppercase tracking-wider">{regionWinner.name}</span>
-              <span className="font-mono text-[var(--primary)] ml-auto">{Math.round((regionWinner.championshipOdds || 0) * 100)}%</span>
-            </div>
-          )}
-        </div>
+        {/* Connector to region winner */}
+        {e8Games.length > 0 && showRounds.every(([rn]) => rn < 5) && (
+          <div className="flex-1 min-w-[140px]">
+            <RoundColumn roundName="Elite Eight" games={e8Games} profiles={profiles} />
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function FinalFourSection({ teams }: { teams: Record<Region, TeamProfile[]> }) {
-  const openTrade = useTradeStore(s => s.openTrade);
-  // Get top team from each region for Final Four
-  const f4Teams = REGIONS.map(r => teams[r][0]).filter(Boolean);
+// ── Final Four Section ─────────────────────────────────────────────────────
 
-  if (f4Teams.length < 2) return null;
+function FinalFourSection({
+  finalFour,
+  championship,
+  profiles,
+}: {
+  finalFour: BracketGame[];
+  championship: BracketGame | null;
+  profiles: TeamProfile[];
+}) {
+  const openTrade = useTradeStore(s => s.openTrade);
+
+  if (finalFour.length === 0 && !championship) return null;
 
   return (
     <div className="relative">
@@ -208,116 +314,194 @@ function FinalFourSection({ teams }: { teams: Record<Region, TeamProfile[]> }) {
       </div>
 
       <div className="grid grid-cols-2 gap-6">
-        {/* Semi 1: East vs West */}
-        <div className="space-y-3">
-          <div className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest text-center">Semifinal 1</div>
-          <div className="rounded-xl border border-[var(--surface-container-high)] overflow-hidden shadow-ambient">
-            {[teams.East[0], teams.West[0]].map((team, i) => team ? (
-              <div
-                key={team.name}
-                className={`flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-[var(--surface-container)] transition-all ${i === 0 ? 'border-b border-[var(--surface-container-high)]' : ''} bg-[var(--surface-container-lowest)]`}
-                onClick={() => team.championshipMarket && openTrade(team.championshipMarket, 'yes')}
-              >
-                <div className="flex items-center gap-2">
-                  {team.seed && (
-                    <span className="text-[9px] font-bold text-white bg-[var(--on-surface)] px-1.5 py-0.5 rounded">
-                      {team.seed}
-                    </span>
-                  )}
-                  <div>
-                    <div className="font-heading font-black text-sm uppercase tracking-tight text-[var(--on-surface)]">{team.name}</div>
-                    <div className="text-[9px] text-[var(--secondary)] uppercase tracking-widest">{team.region || 'East'}</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-mono font-bold text-lg text-[var(--on-surface)]">{Math.round((team.championshipOdds || 0) * 100)}%</div>
-                  <div className="text-[9px] text-[var(--secondary)]">to win it all</div>
-                </div>
-              </div>
-            ) : (
-              <div key={i} className={`px-4 py-3 ${i === 0 ? 'border-b border-[var(--surface-container-high)]' : ''}`}>
-                <span className="text-[10px] text-[var(--secondary)] italic">TBD</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        {finalFour.map((game, i) => (
+          <div key={game.id} className="space-y-3">
+            <div className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest text-center">
+              Semifinal {i + 1}
+            </div>
+            <div className="rounded-xl border border-[var(--surface-container-high)] overflow-hidden shadow-ambient">
+              {game.teams.map((team, ti) => {
+                const isTBD = !team || team.nameShort === 'TBD' || team.seed === 0;
+                const profile = !isTBD ? findMarketForTeam(team.nameShort, profiles) : null;
+                const isWinner = team.isWinner && game.gameState === 'F';
+                const isLive = game.gameState === 'I';
+                const odds = profile?.championshipOdds ? Math.round(profile.championshipOdds * 100) : null;
 
-        {/* Semi 2: South vs Midwest */}
-        <div className="space-y-3">
-          <div className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest text-center">Semifinal 2</div>
-          <div className="rounded-xl border border-[var(--surface-container-high)] overflow-hidden shadow-ambient">
-            {[teams.South[0], teams.Midwest[0]].map((team, i) => team ? (
-              <div
-                key={team.name}
-                className={`flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-[var(--surface-container)] transition-all ${i === 0 ? 'border-b border-[var(--surface-container-high)]' : ''} bg-[var(--surface-container-lowest)]`}
-                onClick={() => team.championshipMarket && openTrade(team.championshipMarket, 'yes')}
-              >
-                <div className="flex items-center gap-2">
-                  {team.seed && (
-                    <span className="text-[9px] font-bold text-white bg-[var(--on-surface)] px-1.5 py-0.5 rounded">
-                      {team.seed}
-                    </span>
-                  )}
-                  <div>
-                    <div className="font-heading font-black text-sm uppercase tracking-tight text-[var(--on-surface)]">{team.name}</div>
-                    <div className="text-[9px] text-[var(--secondary)] uppercase tracking-widest">{team.region || 'South'}</div>
+                if (isTBD) {
+                  return (
+                    <div
+                      key={ti}
+                      className={`px-4 py-3 bg-[var(--surface-container-low)] ${
+                        ti === 0 ? 'border-b border-[var(--surface-container-high)]' : ''
+                      }`}
+                    >
+                      <span className="text-[10px] text-[var(--secondary)] italic">TBD</span>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={team.nameShort}
+                    className={`flex items-center justify-between px-4 py-3 transition-all ${
+                      ti === 0 ? 'border-b border-[var(--surface-container-high)]' : ''
+                    } ${isWinner ? 'bg-[var(--surface-container-lowest)]' : 'bg-[var(--surface-container-low)]'} ${
+                      profile?.championshipMarket ? 'cursor-pointer hover:bg-[var(--surface-container)]' : ''
+                    }`}
+                    onClick={() => profile?.championshipMarket && openTrade(profile.championshipMarket, 'yes')}
+                  >
+                    <div className="flex items-center gap-2">
+                      {team.seed > 0 && (
+                        <span className="text-[9px] font-bold text-white bg-[var(--on-surface)] px-1.5 py-0.5 rounded">
+                          {team.seed}
+                        </span>
+                      )}
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-heading font-black text-sm uppercase tracking-tight text-[var(--on-surface)]">
+                            {team.nameShort}
+                          </span>
+                          {isWinner && (
+                            <span className="material-symbols-outlined text-[12px] text-[var(--yes)]">check_circle</span>
+                          )}
+                          {isLive && (
+                            <span className="inline-flex items-center gap-0.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                              <span className="text-[8px] font-bold text-red-400 uppercase">Live</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      {(game.gameState === 'F' || game.gameState === 'I') && team.score != null ? (
+                        <div className={`font-mono font-bold text-lg ${isWinner ? 'text-[var(--on-surface)]' : 'text-[var(--secondary)]'}`}>
+                          {team.score}
+                        </div>
+                      ) : odds !== null ? (
+                        <>
+                          <div className="font-mono font-bold text-lg text-[var(--on-surface)]">{odds}%</div>
+                          <div className="text-[9px] text-[var(--secondary)]">to win it all</div>
+                        </>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-mono font-bold text-lg text-[var(--on-surface)]">{Math.round((team.championshipOdds || 0) * 100)}%</div>
-                  <div className="text-[9px] text-[var(--secondary)]">to win it all</div>
-                </div>
-              </div>
-            ) : (
-              <div key={i} className={`px-4 py-3 ${i === 0 ? 'border-b border-[var(--surface-container-high)]' : ''}`}>
-                <span className="text-[10px] text-[var(--secondary)] italic">TBD</span>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        ))}
       </div>
 
-      {/* Championship — projected winner */}
-      {f4Teams.length > 0 && (
+      {/* Championship Game */}
+      {championship && (
         <div className="mt-6">
-          <div className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest text-center mb-3">Projected Champion</div>
-          <div
-            className="max-w-sm mx-auto bg-[var(--on-surface)] rounded-xl p-5 text-white text-center cursor-pointer hover:scale-[1.02] transition-all"
-            onClick={() => f4Teams[0]?.championshipMarket && openTrade(f4Teams[0].championshipMarket, 'yes')}
-          >
-            <div className="absolute -right-6 -top-6 w-24 h-24 bg-[var(--primary-container)]/20 rounded-full blur-2xl" />
-            <span className="material-symbols-outlined text-4xl text-[var(--primary-container)] mb-2">emoji_events</span>
-            <h3 className="font-heading font-black text-2xl uppercase tracking-tight mb-1">{f4Teams[0]?.name}</h3>
-            {f4Teams[0]?.seed && (
-              <span className="text-[10px] font-bold bg-white/10 px-2 py-0.5 rounded">{f4Teams[0].seed}-seed</span>
-            )}
-            <div className="mt-3 font-mono text-4xl font-bold text-[var(--primary-container)]">
-              {Math.round((f4Teams[0]?.championshipOdds || 0) * 100)}%
-            </div>
-            <div className="text-xs text-slate-400 mt-1">implied probability to win championship</div>
-            <button className="mt-4 w-full py-2.5 text-xs font-bold uppercase tracking-widest rounded-md bg-[var(--primary-container)] text-white hover:brightness-110 transition-all cursor-pointer">
-              Trade Championship
-            </button>
+          <div className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest text-center mb-3">
+            Championship
           </div>
+
+          {championship.teams.some(t => t.nameShort !== 'TBD' && t.seed > 0) ? (
+            <div className="max-w-sm mx-auto rounded-xl border border-[var(--surface-container-high)] overflow-hidden shadow-ambient">
+              {championship.teams.map((team, ti) => {
+                const isTBD = team.nameShort === 'TBD' || team.seed === 0;
+                const profile = !isTBD ? findMarketForTeam(team.nameShort, profiles) : null;
+                const isWinner = team.isWinner && championship.gameState === 'F';
+                const odds = profile?.championshipOdds ? Math.round(profile.championshipOdds * 100) : null;
+
+                if (isTBD) {
+                  return (
+                    <div
+                      key={ti}
+                      className={`px-4 py-3 bg-[var(--surface-container-low)] ${
+                        ti === 0 ? 'border-b border-[var(--surface-container-high)]' : ''
+                      }`}
+                    >
+                      <span className="text-[10px] text-[var(--secondary)] italic">TBD</span>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={team.nameShort}
+                    className={`flex items-center justify-between px-4 py-4 transition-all ${
+                      ti === 0 ? 'border-b border-[var(--surface-container-high)]' : ''
+                    } ${isWinner ? 'bg-[var(--surface-container-lowest)]' : 'bg-[var(--surface-container-low)]'} ${
+                      profile?.championshipMarket ? 'cursor-pointer hover:bg-[var(--surface-container)]' : ''
+                    }`}
+                    onClick={() => profile?.championshipMarket && openTrade(profile.championshipMarket, 'yes')}
+                  >
+                    <div className="flex items-center gap-2">
+                      {team.seed > 0 && (
+                        <span className="text-[9px] font-bold text-white bg-[var(--on-surface)] px-1.5 py-0.5 rounded">
+                          {team.seed}
+                        </span>
+                      )}
+                      <span className="font-heading font-black text-sm uppercase tracking-tight text-[var(--on-surface)]">
+                        {team.nameShort}
+                      </span>
+                      {isWinner && (
+                        <span className="material-symbols-outlined text-[14px] text-[var(--yes)]">emoji_events</span>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      {championship.gameState === 'F' && team.score != null ? (
+                        <span className={`font-mono font-bold text-xl ${isWinner ? 'text-[var(--on-surface)]' : 'text-[var(--secondary)]'}`}>
+                          {team.score}
+                        </span>
+                      ) : odds !== null ? (
+                        <span className="font-mono font-bold text-lg text-[var(--yes)]">{odds}%</span>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            // TBD championship - show projected champion from Polymarket odds
+            (() => {
+              const topTeam = profiles.filter(p => p.championshipOdds).sort((a, b) => (b.championshipOdds || 0) - (a.championshipOdds || 0))[0];
+              if (!topTeam) return null;
+              return (
+                <div
+                  className="max-w-sm mx-auto bg-[var(--on-surface)] rounded-xl p-5 text-white text-center cursor-pointer hover:scale-[1.02] transition-all relative overflow-hidden"
+                  onClick={() => topTeam.championshipMarket && openTrade(topTeam.championshipMarket, 'yes')}
+                >
+                  <div className="absolute -right-6 -top-6 w-24 h-24 bg-[var(--primary-container)]/20 rounded-full blur-2xl" />
+                  <span className="material-symbols-outlined text-4xl text-[var(--primary-container)] mb-2">emoji_events</span>
+                  <h3 className="font-heading font-black text-2xl uppercase tracking-tight mb-1">{topTeam.name}</h3>
+                  {topTeam.seed && (
+                    <span className="text-[10px] font-bold bg-white/10 px-2 py-0.5 rounded">{topTeam.seed}-seed</span>
+                  )}
+                  <div className="mt-3 font-mono text-4xl font-bold text-[var(--primary-container)]">
+                    {Math.round((topTeam.championshipOdds || 0) * 100)}%
+                  </div>
+                  <div className="text-xs text-slate-400 mt-1">market-implied favorite</div>
+                  <button className="mt-4 w-full py-2.5 text-xs font-bold uppercase tracking-widest rounded-md bg-[var(--primary-container)] text-white hover:brightness-110 transition-all cursor-pointer">
+                    Trade Championship
+                  </button>
+                </div>
+              );
+            })()
+          )}
         </div>
       )}
     </div>
   );
 }
 
-// Path to Championship calculator
+// ── Path Calculator (kept from original) ───────────────────────────────────
+
 function PathCalculator({ teams }: { teams: TeamProfile[] }) {
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
   const top16 = teams.filter(t => t.championshipOdds !== null).slice(0, 16);
 
   if (top16.length === 0) return null;
 
-  // Calculate path probability through rounds
   const getPathOdds = (team: TeamProfile) => {
     const rounds = ['S16', 'E8', 'F4', 'CHAMP', 'WINNER'];
     const roundMarkets = team.markets.filter(m => m.round && rounds.includes(m.round));
 
-    // If we have the championship market, that's the path probability
     if (team.championshipOdds) {
       return {
         overall: team.championshipOdds,
@@ -339,9 +523,10 @@ function PathCalculator({ teams }: { teams: TeamProfile[] }) {
           Path to Championship
         </h4>
       </div>
-      <p className="text-[10px] text-[var(--secondary)] mb-4 uppercase tracking-wider">Select a team to see their implied path probability</p>
+      <p className="text-[10px] text-[var(--secondary)] mb-4 uppercase tracking-wider">
+        Select a team to see their implied path probability
+      </p>
 
-      {/* Team selector */}
       <div className="flex flex-wrap gap-1.5 mb-4">
         {top16.map(team => (
           <button
@@ -358,12 +543,16 @@ function PathCalculator({ teams }: { teams: TeamProfile[] }) {
         ))}
       </div>
 
-      {/* Path display */}
       {selectedTeam && (
         <div className="space-y-3">
           <div className="flex items-center gap-3 overflow-x-auto pb-2">
             {['S16', 'E8', 'F4', 'CHAMP'].map((round, i) => {
-              const roundLabels: Record<string, string> = { S16: 'Sweet 16', E8: 'Elite 8', F4: 'Final Four', CHAMP: 'Champion' };
+              const roundLabels: Record<string, string> = {
+                S16: 'Sweet 16',
+                E8: 'Elite 8',
+                F4: 'Final Four',
+                CHAMP: 'Champion',
+              };
               const pathData = getPathOdds(selectedTeam);
               const roundMarket = pathData.rounds.find(r => r.round === round);
               const roundOdds = roundMarket ? Math.round(roundMarket.odds * 100) : null;
@@ -371,22 +560,29 @@ function PathCalculator({ teams }: { teams: TeamProfile[] }) {
               return (
                 <div key={round} className="flex items-center gap-3">
                   <div className="text-center shrink-0">
-                    <div className="text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-1">{roundLabels[round]}</div>
-                    <div className={`w-16 h-16 rounded-lg flex items-center justify-center font-mono font-bold text-lg ${
-                      roundOdds !== null ? 'bg-[var(--yes-bg)] text-[var(--yes)]' : 'bg-[var(--surface-container-high)] text-[var(--secondary)]'
-                    }`}>
-                      {roundOdds !== null ? `${roundOdds}%` : '—'}
+                    <div className="text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-1">
+                      {roundLabels[round]}
+                    </div>
+                    <div
+                      className={`w-16 h-16 rounded-lg flex items-center justify-center font-mono font-bold text-lg ${
+                        roundOdds !== null
+                          ? 'bg-[var(--yes-bg)] text-[var(--yes)]'
+                          : 'bg-[var(--surface-container-high)] text-[var(--secondary)]'
+                      }`}
+                    >
+                      {roundOdds !== null ? `${roundOdds}%` : '\u2014'}
                     </div>
                   </div>
                   {i < 3 && (
-                    <span className="material-symbols-outlined text-[var(--secondary)] text-sm shrink-0">chevron_right</span>
+                    <span className="material-symbols-outlined text-[var(--secondary)] text-sm shrink-0">
+                      chevron_right
+                    </span>
                   )}
                 </div>
               );
             })}
           </div>
 
-          {/* Overall championship odds */}
           <div className="flex items-center justify-between p-3 bg-[var(--on-surface)] rounded-lg">
             <span className="text-xs text-slate-400 uppercase tracking-widest">Championship Probability</span>
             <span className="font-mono text-xl font-bold text-[var(--primary-container)]">
@@ -399,22 +595,104 @@ function PathCalculator({ teams }: { teams: TeamProfile[] }) {
   );
 }
 
-export default function BracketVisualizer({ teams }: BracketVisualizerProps) {
-  const regions = assignRegions(teams);
+// ── Loading skeleton ───────────────────────────────────────────────────────
 
-  if (teams.length === 0) return null;
+function BracketSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      {[1, 2, 3, 4].map(i => (
+        <div key={i} className="space-y-3">
+          <div className="h-4 w-32 bg-[var(--surface-container-high)] rounded" />
+          <div className="flex gap-3">
+            {[1, 2, 3].map(j => (
+              <div key={j} className="flex-1 space-y-3">
+                <div className="h-3 w-16 bg-[var(--surface-container-high)] rounded mx-auto" />
+                {[1, 2].map(k => (
+                  <div key={k} className="h-16 bg-[var(--surface-container-high)] rounded-lg" />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Main Component ─────────────────────────────────────────────────────────
+
+export default function BracketVisualizer({ teams }: BracketVisualizerProps) {
+  const [bracket, setBracket] = useState<BracketResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchBracket() {
+      try {
+        setLoading(true);
+        const res = await fetch('/api/bracket');
+        if (!res.ok) throw new Error(`Failed to fetch bracket: ${res.status}`);
+        const data: BracketResponse = await res.json();
+        if (!cancelled) {
+          setBracket(data);
+          setError(null);
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          setError(err.message || 'Failed to load bracket');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    fetchBracket();
+    // Refresh every 60 seconds for live games
+    const interval = setInterval(fetchBracket, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
+  if (loading && !bracket) return <BracketSkeleton />;
+
+  if (error && !bracket) {
+    return (
+      <div className="p-6 bg-[var(--surface-container-low)] rounded-xl text-center">
+        <span className="material-symbols-outlined text-2xl text-[var(--secondary)] mb-2">error</span>
+        <p className="text-xs text-[var(--secondary)]">{error}</p>
+      </div>
+    );
+  }
+
+  if (!bracket) return null;
 
   return (
     <div className="space-y-8">
+      {/* Live indicator if any games are in progress */}
+      {bracket.regions.some(r => r.games.some(g => g.gameState === 'I')) && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+          <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Games in progress</span>
+        </div>
+      )}
+
       {/* Regional brackets in 2x2 grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {REGIONS.map(region => (
-          <RegionBracket key={region} region={region} teams={regions[region]} />
+        {bracket.regions.map(region => (
+          <RegionBracket key={region.name} region={region} profiles={teams} />
         ))}
       </div>
 
       {/* Final Four */}
-      <FinalFourSection teams={regions} />
+      <FinalFourSection
+        finalFour={bracket.finalFour}
+        championship={bracket.championship}
+        profiles={teams}
+      />
 
       {/* Path Calculator */}
       <PathCalculator teams={teams} />

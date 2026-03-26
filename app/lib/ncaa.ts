@@ -220,3 +220,120 @@ export function extractSeedFromDescription(description: string | null): number |
   const match = description.match(/\((\d{1,2})\s*seed\)/i) || description.match(/(\d{1,2})-seed/i);
   return match ? parseInt(match[1]) : null;
 }
+
+// ── Bracket enrichment ─────────────────────────────────────────────────────
+
+interface BracketTeamInfo {
+  name: string;
+  nameShort: string;
+  seed: number;
+  region: string;
+}
+
+interface BracketGameInfo {
+  id: string;
+  round: number;
+  roundName: string;
+  region: string;
+  gameState: 'P' | 'I' | 'F';
+  teams: Array<{
+    name: string;
+    nameShort: string;
+    seed: number;
+    isWinner: boolean;
+    score: number | null;
+  }>;
+}
+
+interface BracketData {
+  regions: Array<{ name: string; games: BracketGameInfo[] }>;
+  finalFour: BracketGameInfo[];
+  championship: BracketGameInfo | null;
+  teams: BracketTeamInfo[];
+}
+
+/**
+ * Enrich TeamProfile[] with real bracket data (seed, region, nextOpponent).
+ * Matches teams by comparing nameShort from the bracket API against
+ * the team name from Polymarket.
+ */
+export function enrichTeamProfilesWithBracket(
+  profiles: TeamProfile[],
+  bracket: BracketData,
+): TeamProfile[] {
+  // Build lookup: lowercase nameShort -> bracket team info
+  const bracketLookup = new Map<string, BracketTeamInfo>();
+  for (const t of bracket.teams) {
+    bracketLookup.set(t.nameShort.toLowerCase(), t);
+    // Also index by full name
+    if (t.name) bracketLookup.set(t.name.toLowerCase(), t);
+  }
+
+  // Build a map of all games per team for opponent lookup
+  const allGames: BracketGameInfo[] = [];
+  for (const r of bracket.regions) {
+    allGames.push(...r.games);
+  }
+  allGames.push(...bracket.finalFour);
+  if (bracket.championship) allGames.push(bracket.championship);
+
+  // Find the current/next game for a team (first non-final game, or last final game)
+  function findCurrentGame(teamShort: string): BracketGameInfo | null {
+    const lower = teamShort.toLowerCase();
+    // Find the latest game involving this team
+    const teamGames = allGames.filter(g =>
+      g.teams.some(t => t.nameShort.toLowerCase() === lower),
+    );
+    if (teamGames.length === 0) return null;
+
+    // Sort by round descending
+    teamGames.sort((a, b) => b.round - a.round);
+
+    // Find first non-final (upcoming) game
+    const upcoming = teamGames.find(g => g.gameState === 'P' || g.gameState === 'I');
+    if (upcoming) return upcoming;
+
+    // If all games are final, return the latest one
+    return teamGames[0];
+  }
+
+  function matchBracketTeam(profileName: string): BracketTeamInfo | null {
+    const lower = profileName.toLowerCase();
+    // Direct match
+    if (bracketLookup.has(lower)) return bracketLookup.get(lower)!;
+    // Partial match
+    for (const [key, val] of bracketLookup.entries()) {
+      if (lower.includes(key) || key.includes(lower)) return val;
+    }
+    return null;
+  }
+
+  return profiles.map(profile => {
+    const bt = matchBracketTeam(profile.name);
+    if (!bt) return profile;
+
+    const enriched = { ...profile };
+    enriched.seed = bt.seed;
+    enriched.region = bt.region;
+
+    // Find opponent from current/next game
+    const currentGame = findCurrentGame(bt.nameShort);
+    if (currentGame) {
+      const opponent = currentGame.teams.find(
+        t => t.nameShort.toLowerCase() !== bt.nameShort.toLowerCase(),
+      );
+      if (opponent && opponent.nameShort !== 'TBD') {
+        enriched.nextOpponent = opponent.nameShort;
+      }
+      // Update currentRound from bracket if not set from markets
+      if (!enriched.currentRound) {
+        const roundMap: Record<number, string> = {
+          1: 'R64', 2: 'R64', 3: 'R32', 4: 'S16', 5: 'E8', 6: 'F4', 7: 'CHAMP',
+        };
+        enriched.currentRound = roundMap[currentGame.round] || null;
+      }
+    }
+
+    return enriched;
+  });
+}
