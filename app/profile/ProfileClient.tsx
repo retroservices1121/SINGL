@@ -134,6 +134,57 @@ export default function ProfileClient() {
   }, [fetchPositions]);
 
   const [sellError, setSellError] = useState<string | null>(null);
+  const [redeeming, setRedeeming] = useState<string | null>(null);
+
+  const handleRedeem = async (pos: Position) => {
+    if (!authenticated || !safeAddress) {
+      setSellError('Wallet not connected.');
+      return;
+    }
+
+    setRedeeming(pos.id);
+    setSellError(null);
+    try {
+      const session = JSON.parse(localStorage.getItem('polymarket_session') || '{}');
+      if (!session.apiKey) {
+        setSellError('Trading session not initialized. Please go to Markets and reconnect.');
+        setRedeeming(null);
+        return;
+      }
+
+      const res = await fetch('/api/polymarket/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conditionId: pos.marketTicker,
+          apiKey: session.apiKey,
+          apiSecret: session.apiSecret,
+          passphrase: session.passphrase,
+          address: session.eoaAddress,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setSellError(data.error || 'Redeem failed');
+      } else {
+        // Mark position as closed
+        await fetch('/api/positions', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            positionId: pos.id,
+            closeTxSig: 'redeemed',
+            closePrice: 1,
+          }),
+        });
+        fetchPositions();
+      }
+    } catch (err) {
+      setSellError(err instanceof Error ? err.message : 'Redeem failed');
+    }
+    setRedeeming(null);
+  };
 
   const handleSell = async (pos: Position) => {
     if (!authenticated || !clobReady) {
@@ -520,6 +571,13 @@ export default function ProfileClient() {
                               >
                                 {selling === pos.id ? 'Selling...' : 'Sell'}
                               </button>
+                              <button
+                                onClick={() => handleRedeem(pos)}
+                                disabled={redeeming === pos.id}
+                                className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-[var(--yes-bg)] text-[var(--yes)] rounded-full hover:bg-[var(--yes)] hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+                              >
+                                {redeeming === pos.id ? 'Redeeming...' : 'Redeem'}
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -563,10 +621,24 @@ export default function ProfileClient() {
                           </span>
                         </td>
                         <td className="px-6 py-4 rounded-r-xl text-right">
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
-                            <span className="w-1.5 h-1.5 bg-slate-400 rounded-full" />
-                            Closed
-                          </span>
+                          <div className="flex items-center justify-end gap-2">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full" />
+                              Closed
+                            </span>
+                            {!pos.closeTxSig?.includes('redeemed') && (
+                              <button
+                                onClick={() => handleRedeem(pos)}
+                                disabled={redeeming === pos.id}
+                                className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-[var(--yes-bg)] text-[var(--yes)] rounded-full hover:bg-[var(--yes)] hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+                              >
+                                {redeeming === pos.id ? 'Redeeming...' : 'Redeem'}
+                              </button>
+                            )}
+                            {pos.closeTxSig?.includes('redeemed') && (
+                              <span className="text-[10px] font-bold text-[var(--yes)] uppercase tracking-wider">Redeemed</span>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
