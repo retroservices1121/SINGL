@@ -235,10 +235,12 @@ export default function ProfileClient() {
     }
 
     try {
-      // Use current market price for sell, falling back to avgPrice
-      const sellPrice = pos.side === 'Yes'
+      // Use current market price minus slippage to ensure FOK fill
+      // Selling at mid-price won't fill — need to cross the spread
+      const midPrice = pos.side === 'Yes'
         ? (pos.currentYesPrice ?? pos.avgPrice)
         : (pos.currentNoPrice ?? pos.avgPrice);
+      const sellPrice = Math.max(0.01, midPrice - 0.03); // 3 cent slippage tolerance
 
       const result = await placeMarketOrder({
         tokenId: sellTokenId,
@@ -249,13 +251,41 @@ export default function ProfileClient() {
         tickSize: pos.tickSize ?? '0.01',
       });
 
+      // Verify the order actually filled before marking closed
+      if (!result.orderID || result.orderID === 'submitted') {
+        setSellError('Sell order submitted but may not have filled. Check Polymarket.');
+        setSelling(null);
+        return;
+      }
+
+      // Check order status via proxy
+      try {
+        const statusRes = await fetch('/api/polymarket/clob', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            endpoint: `/data/order/${result.orderID}`,
+            method: 'GET',
+          }),
+        });
+        const statusData = await statusRes.json();
+        const status = statusData?.status || statusData?.order_status;
+        if (status && status !== 'MATCHED' && status !== 'FILLED' && status !== 'CLOSED') {
+          setSellError(`Sell order status: ${status}. Order may not have filled.`);
+          setSelling(null);
+          return;
+        }
+      } catch {
+        // If status check fails, proceed optimistically
+      }
+
       await fetch('/api/positions', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           positionId: pos.id,
           closeTxSig: result.orderID,
-          closePrice: pos.avgPrice,
+          closePrice: sellPrice,
         }),
       });
 
