@@ -61,6 +61,7 @@ export default function ProfileClient() {
   const [filter, setFilter] = useState('');
   const [usdceBalance, setUsdceBalance] = useState<string | null>(null);
   const [usdcBalance, setUsdcBalance] = useState<string | null>(null);
+  const [balancesLoaded, setBalancesLoaded] = useState(false);
 
   const walletAddr = eoaAddress || wallets[0]?.address || safeAddress;
 
@@ -70,6 +71,7 @@ export default function ProfileClient() {
     if (!balanceAddr) {
       setUsdcBalance(null);
       setUsdceBalance(null);
+      setBalancesLoaded(false);
       return;
     }
 
@@ -104,8 +106,10 @@ export default function ProfileClient() {
         fetchTokenBalance('0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'), // USDC.e (bridged)
         fetchTokenBalance('0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'), // USDC (native)
       ]);
+      // Set both at once to avoid partial render
       setUsdceBalance(usdce.toFixed(2));
       setUsdcBalance(usdc.toFixed(2));
+      setBalancesLoaded(true);
     };
 
     fetchBalances();
@@ -113,19 +117,41 @@ export default function ProfileClient() {
     return () => clearInterval(interval);
   }, [balanceAddr]);
 
-  const fetchPositions = useCallback(() => {
+  const fetchPositions = useCallback(async () => {
     if (!authenticated || !walletAddr) {
       setLoading(false);
       return;
     }
-    fetch(`/api/positions?wallet=${walletAddr}`)
-      .then(r => r.json())
-      .then(data => {
-        setPositions(data.positions || []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [authenticated, walletAddr]);
+
+    // Fetch positions by both EOA and Safe addresses (trade may be stored under either)
+    const addresses = new Set<string>();
+    if (walletAddr) addresses.add(walletAddr);
+    if (safeAddress) addresses.add(safeAddress);
+    if (eoaAddress) addresses.add(eoaAddress);
+
+    try {
+      const allPositions: Position[] = [];
+      const seenIds = new Set<string>();
+
+      for (const addr of addresses) {
+        const res = await fetch(`/api/positions?wallet=${addr}`);
+        const data = await res.json();
+        for (const pos of (data.positions || [])) {
+          if (!seenIds.has(pos.id)) {
+            seenIds.add(pos.id);
+            allPositions.push(pos);
+          }
+        }
+      }
+
+      // Sort by newest first
+      allPositions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setPositions(allPositions);
+    } catch {
+      // ignore
+    }
+    setLoading(false);
+  }, [authenticated, walletAddr, safeAddress, eoaAddress]);
 
   useEffect(() => {
     fetchPositions();
@@ -326,7 +352,7 @@ export default function ProfileClient() {
           </div>
           <div className="flex flex-col gap-3">
             {/* Token Balances */}
-            {balanceAddr && (
+            {balanceAddr && balancesLoaded && (
               <div className="bg-[var(--on-surface)] p-5 rounded-xl text-white relative overflow-hidden">
                 <div className="absolute -right-6 -top-6 w-20 h-20 bg-[var(--primary-container)]/20 rounded-full blur-2xl" />
                 <div className="relative z-10">
