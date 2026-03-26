@@ -56,7 +56,9 @@ export default function LeaderboardClient() {
           Global Ranking
         </h1>
         <p className="text-[var(--secondary)] max-w-2xl text-lg">
-          Real-time market analytics and high-volume traders. Clinical precision. Total Volume: <span className="text-[var(--primary-container)] font-mono font-bold">{formatVolume(totalVolume)}</span>
+          Real-time market analytics and high-volume traders. Clinical precision.
+          <br />
+          Total Volume: <span className="text-[var(--primary-container)] font-mono font-bold">{formatVolume(totalVolume)}</span>
         </p>
       </div>
 
