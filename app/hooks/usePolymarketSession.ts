@@ -6,9 +6,9 @@ import { ethers } from 'ethers';
 import { Side } from '@polymarket/clob-client';
 import { getCreate2Address, keccak256, encodeAbiParameters } from 'viem';
 
-// Polymarket Safe proxy constants
+// Polymarket Safe proxy constants (from docs: https://docs.polymarket.com/builders/overview)
 const SAFE_INIT_CODE_HASH = '0x2bce2127ff07fb632d16c8347c4ebf501f4841168bed00d9e6ef715ddb6fcecf' as `0x${string}`;
-const SAFE_FACTORY = '0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2' as `0x${string}`;
+const SAFE_FACTORY = '0xaacfeea03eb1561c4e67d661e40682bd20e3541b' as `0x${string}`;
 
 const CLOB_URL = 'https://clob.polymarket.com';
 
@@ -88,6 +88,15 @@ export function usePolymarketSession(): SessionState & {
       const stored = localStorage.getItem(SESSION_KEY);
       if (stored) {
         const session: PolymarketSession = JSON.parse(stored);
+        // Validate: if safeAddress was derived with old factory, clear and re-init
+        if (session.safeAddress && session.eoaAddress) {
+          const expected = deriveSafeAddress(session.eoaAddress);
+          if (expected.toLowerCase() !== session.safeAddress.toLowerCase()) {
+            console.log('[polymarket] Safe address mismatch (factory updated), clearing session');
+            localStorage.removeItem(SESSION_KEY);
+            return; // Will trigger auto-init with correct factory
+          }
+        }
         restoredRef.current = true;
         setState(s => ({
           ...s,
