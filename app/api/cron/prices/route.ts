@@ -73,7 +73,12 @@ export async function GET(req: NextRequest) {
         minimum_tick_size?: string;
         active?: boolean;
         closed?: boolean;
-      }> = ((gammaEvent as { markets?: unknown[] })?.markets || [] as unknown[]).filter((g: { active?: boolean; closed?: boolean }) => g.active && !g.closed);
+      }> = (((gammaEvent as Record<string, unknown>).markets || []) as Array<{ active?: boolean; closed?: boolean }>).filter(g => g.active && !g.closed) as Array<{
+        condition_id?: string; question?: string; description?: string;
+        tokens?: Array<{ token_id: string; outcome: string; price?: number }>;
+        volume?: number; end_date_iso?: string; neg_risk?: boolean;
+        minimum_tick_size?: string; active?: boolean; closed?: boolean;
+      }>;
 
       const existingTickers = new Set(event.markets.map(m => m.ticker));
 
