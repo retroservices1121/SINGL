@@ -109,8 +109,14 @@ export function usePolymarketSession(): SessionState & {
           if (expected.toLowerCase() !== session.safeAddress.toLowerCase()) {
             console.log('[polymarket] Safe address mismatch (factory updated), clearing session');
             localStorage.removeItem(SESSION_KEY);
-            return; // Will trigger auto-init with correct factory
+            return;
           }
+        }
+        // Validate: if API credentials are missing, clear and re-init
+        if (!session.apiKey || !session.apiSecret || !session.passphrase) {
+          console.log('[polymarket] Session missing API credentials, clearing session');
+          localStorage.removeItem(SESSION_KEY);
+          return;
         }
         restoredRef.current = true;
         setState(s => ({
@@ -168,30 +174,8 @@ export function usePolymarketSession(): SessionState & {
           creds = await clobClient.createApiKey();
           console.log('[polymarket] Created API key');
         } catch (err) {
-          console.warn('[polymarket] Direct API key creation failed, trying proxy...', err);
-          // If direct call fails (CORS), try creating via sign + proxy
-          // For now, create a session without API creds — trades will go through proxy
-          const session: PolymarketSession = {
-            eoaAddress,
-            safeAddress,
-            apiKey: '',
-            apiSecret: '',
-            passphrase: '',
-          };
-
-          localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-
-          setState({
-            safeAddress,
-            eoaAddress,
-            clobReady: true,
-            initializing: false,
-            error: null,
-            session,
-          });
-
-          console.log('[polymarket] Session initialized (no API key), Safe:', safeAddress);
-          return;
+          console.error('[polymarket] API key creation failed:', err);
+          throw new Error('Failed to create Polymarket API key. Please try again.');
         }
       }
 
