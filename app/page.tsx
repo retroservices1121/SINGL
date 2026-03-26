@@ -1,5 +1,6 @@
 import ActiveEventPage from './components/ActiveEventPage';
 import WalletButton from './components/WalletButton';
+import ScoreTicker from './components/ScoreTicker';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -8,6 +9,9 @@ export const dynamic = 'force-dynamic';
 export default function Home() {
   return (
     <div className="min-h-screen bg-[var(--surface)]">
+      {/* Live Score Ticker */}
+      <ScoreTicker />
+
       {/* Top Nav — glass blur, Clinical Kineticism style */}
       <nav className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-[var(--surface-container)]">
         <div className="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto">
