@@ -28,7 +28,7 @@ async function clobProxy(
   endpoint: string,
   method: string,
   data: unknown,
-  creds?: { apiKey: string; apiSecret: string; passphrase: string },
+  creds?: { apiKey: string; apiSecret: string; passphrase: string; address?: string },
 ) {
   const res = await fetch('/api/polymarket/clob', {
     method: 'POST',
@@ -40,6 +40,7 @@ async function clobProxy(
       apiKey: creds?.apiKey,
       apiSecret: creds?.apiSecret,
       passphrase: creds?.passphrase,
+      address: creds?.address,
     }),
   });
   const json = await res.json();
@@ -278,7 +279,7 @@ export function usePolymarketSession(): SessionState & {
       state.session.safeAddress,
     );
 
-    // Create the signed order locally
+    // Create the signed order locally (EIP-712 signing in wallet)
     const order = await clobClient.createMarketOrder({
       tokenID: params.tokenId,
       price: params.price,
@@ -286,12 +287,35 @@ export function usePolymarketSession(): SessionState & {
       side: params.side === 'BUY' ? Side.BUY : Side.SELL,
     });
 
+    // Transform order to JSON payload matching Polymarket's expected format
+    const orderPayload = {
+      deferExec: false,
+      order: {
+        salt: parseInt(order.salt, 10),
+        maker: order.maker,
+        signer: order.signer,
+        taker: order.taker,
+        tokenId: order.tokenId,
+        makerAmount: order.makerAmount,
+        takerAmount: order.takerAmount,
+        side: params.side,
+        expiration: order.expiration,
+        nonce: order.nonce,
+        feeRateBps: order.feeRateBps,
+        signatureType: Number(order.signatureType),
+        signature: order.signature,
+      },
+      owner: state.session.apiKey,
+      orderType: 'FOK', // Fill-or-Kill for market orders
+    };
+
     // Post order through server-side proxy (server builds L2 HMAC headers)
     try {
-      const response = await clobProxy('/order', 'POST', order, {
+      const response = await clobProxy('/order', 'POST', orderPayload, {
         apiKey: state.session.apiKey,
         apiSecret: state.session.apiSecret,
         passphrase: state.session.passphrase,
+        address: state.session.eoaAddress,
       });
       return { orderID: response.orderID || response.orderIds?.[0] || 'submitted' };
     } catch (err) {

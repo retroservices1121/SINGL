@@ -6,38 +6,45 @@ export const dynamic = 'force-dynamic';
 const CLOB_API = 'https://clob.polymarket.com';
 
 /**
- * Server-side proxy for Polymarket CLOB API calls.
- * Builds L2 HMAC auth headers server-side since:
- * 1. CLOB API only allows CORS from polymarket.com
- * 2. Browser can't use Node.js crypto for HMAC signing
+ * Builds L2 HMAC auth headers matching Polymarket's SDK format.
+ * Signature must be URL-safe base64: '+' → '-', '/' → '_'
  */
 function buildL2Headers(
   apiKey: string,
   apiSecret: string,
   passphrase: string,
+  address: string,
   method: string,
   path: string,
   body: string,
 ): Record<string, string> {
-  const timestamp = Math.floor(Date.now() / 1000).toString();
-  const message = timestamp + method.toUpperCase() + path + body;
+  const timestamp = Math.floor(Date.now() / 1000);
+  // Message format: timestamp (number) + METHOD + path + body
+  let message = `${timestamp}${method.toUpperCase()}${path}`;
+  if (body) {
+    message += body;
+  }
 
-  const hmac = crypto.createHmac('sha256', Buffer.from(apiSecret, 'base64'));
-  hmac.update(message);
-  const signature = hmac.digest('base64');
+  const base64Secret = Buffer.from(apiSecret, 'base64');
+  const hmac = crypto.createHmac('sha256', base64Secret);
+  const sig = hmac.update(message).digest('base64');
+
+  // URL-safe base64 (keep '=' padding)
+  const sigUrlSafe = sig.replace(/\+/g, '-').replace(/\//g, '_');
 
   return {
+    'POLY_ADDRESS': address,
+    'POLY_SIGNATURE': sigUrlSafe,
+    'POLY_TIMESTAMP': `${timestamp}`,
     'POLY_API_KEY': apiKey,
-    'POLY_TIMESTAMP': timestamp,
     'POLY_PASSPHRASE': passphrase,
-    'POLY_SIGNATURE': signature,
   };
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { endpoint, method, data, apiKey, apiSecret, passphrase } = body;
+    const { endpoint, method, data, apiKey, apiSecret, passphrase, address } = body;
 
     if (!endpoint) {
       return NextResponse.json({ error: 'endpoint required' }, { status: 400 });
@@ -52,10 +59,12 @@ export async function POST(req: NextRequest) {
     };
 
     // Build L2 HMAC auth headers if credentials provided
-    if (apiKey && apiSecret && passphrase) {
-      const authHeaders = buildL2Headers(apiKey, apiSecret, passphrase, httpMethod, endpoint, bodyStr);
+    if (apiKey && apiSecret && passphrase && address) {
+      const authHeaders = buildL2Headers(apiKey, apiSecret, passphrase, address, httpMethod, endpoint, bodyStr);
       Object.assign(fetchHeaders, authHeaders);
     }
+
+    console.log(`[clob proxy] ${httpMethod} ${endpoint} (body: ${bodyStr.length} bytes)`);
 
     const res = await fetch(url, {
       method: httpMethod,
@@ -63,12 +72,18 @@ export async function POST(req: NextRequest) {
       body: bodyStr || undefined,
     });
 
-    const responseData = await res.json().catch(() => ({}));
+    const responseText = await res.text();
+    let responseData;
+    try {
+      responseData = JSON.parse(responseText);
+    } catch {
+      responseData = { raw: responseText };
+    }
 
     if (!res.ok) {
       console.error('[clob proxy] Error:', res.status, responseData);
       return NextResponse.json(
-        { error: responseData.error || `CLOB API returned ${res.status}`, data: responseData },
+        { error: responseData.error || responseData.raw || `CLOB API returned ${res.status}`, data: responseData },
         { status: res.status }
       );
     }
