@@ -29,12 +29,39 @@ export async function GET(req: NextRequest) {
   let newMarketsAdded = 0;
   let tokenIdsBackfilled = 0;
   try {
-    const gammaRes = await fetch(
+    // Try by slug first, then search by title if slug doesn't match Polymarket's
+    let gammaEvent: Record<string, unknown> | null = null;
+
+    const slugRes = await fetch(
       `https://gamma-api.polymarket.com/events?slug=${encodeURIComponent(event.slug)}`
     );
-    if (gammaRes.ok) {
-      const gammaEvents = await gammaRes.json();
-      const gammaEvent = Array.isArray(gammaEvents) ? gammaEvents[0] : gammaEvents;
+    if (slugRes.ok) {
+      const slugData = await slugRes.json();
+      const found = Array.isArray(slugData) ? slugData[0] : slugData;
+      if (found?.markets?.length > 0) gammaEvent = found;
+    }
+
+    if (!gammaEvent) {
+      // Slug didn't match — search by event title
+      const searchRes = await fetch(
+        `https://gamma-api.polymarket.com/public-search?q=${encodeURIComponent(event.title)}&limit_per_type=5`
+      );
+      if (searchRes.ok) {
+        const searchData = await searchRes.json();
+        const bestMatch = (searchData.events || [])[0];
+        if (bestMatch?.slug) {
+          const matchRes = await fetch(
+            `https://gamma-api.polymarket.com/events?slug=${encodeURIComponent(bestMatch.slug)}`
+          );
+          if (matchRes.ok) {
+            const matchData = await matchRes.json();
+            gammaEvent = Array.isArray(matchData) ? matchData[0] : matchData;
+          }
+        }
+      }
+    }
+
+    if (gammaEvent) {
       const gammaMarkets: Array<{
         condition_id?: string;
         question?: string;
@@ -46,7 +73,7 @@ export async function GET(req: NextRequest) {
         minimum_tick_size?: string;
         active?: boolean;
         closed?: boolean;
-      }> = (gammaEvent?.markets || []).filter((g: { active?: boolean; closed?: boolean }) => g.active && !g.closed);
+      }> = ((gammaEvent as { markets?: unknown[] })?.markets || [] as unknown[]).filter((g: { active?: boolean; closed?: boolean }) => g.active && !g.closed);
 
       const existingTickers = new Set(event.markets.map(m => m.ticker));
 
