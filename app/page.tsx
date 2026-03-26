@@ -40,6 +40,7 @@ export default function Home() {
       <footer className="bg-[var(--surface-container-low)] px-4 py-8 flex flex-col items-center gap-2">
         <Image src="/singls-logo.png" alt="SINGL" width={120} height={38} className="h-8 w-auto opacity-60" />
         <p className="text-xs text-[var(--secondary)]">by Spredd Markets</p>
+        <a href="https://x.com/singlmarket" target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--secondary)] hover:text-[var(--primary)] transition-colors">Follow us on X @singlmarket</a>
       </footer>
 
       {/* Mobile Bottom Nav */}

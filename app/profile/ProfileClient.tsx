@@ -50,6 +50,10 @@ interface Position {
   closePrice: number | null;
   realizedPnl: number | null;
   createdAt: string;
+  negRisk?: boolean;
+  tickSize?: string;
+  currentYesPrice?: number | null;
+  currentNoPrice?: number | null;
 }
 
 export default function ProfileClient() {
@@ -230,13 +234,18 @@ export default function ProfileClient() {
     }
 
     try {
+      // Use current market price for sell, falling back to avgPrice
+      const sellPrice = pos.side === 'Yes'
+        ? (pos.currentYesPrice ?? pos.avgPrice)
+        : (pos.currentNoPrice ?? pos.avgPrice);
+
       const result = await placeMarketOrder({
         tokenId: sellTokenId,
         side: 'SELL',
         amount: pos.shares,
-        price: pos.avgPrice,
-        negRisk: false,
-        tickSize: '0.01',
+        price: sellPrice,
+        negRisk: pos.negRisk ?? false,
+        tickSize: pos.tickSize ?? '0.01',
       });
 
       await fetch('/api/positions', {

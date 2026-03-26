@@ -93,6 +93,7 @@ export default async function EventSlugPage({ params }: { params: Promise<{ slug
         <p className="text-xs text-[var(--text-dim)]">
           <span className="font-heading font-bold text-[var(--orange)]">SINGL</span> by Spredd Markets
         </p>
+        <a href="https://x.com/singlmarket" target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--text-dim)] hover:text-[var(--orange)] transition-colors mt-1 inline-block">Follow us on X @singlmarket</a>
       </footer>
     </div>
   );

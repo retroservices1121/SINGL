@@ -15,7 +15,25 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: 'desc' },
   });
 
-  return NextResponse.json({ positions });
+  // Enrich positions with market metadata (negRisk, tickSize) needed for sell orders
+  const tickers = [...new Set(positions.map(p => p.marketTicker))];
+  const markets = tickers.length > 0
+    ? await prisma.market.findMany({
+        where: { ticker: { in: tickers } },
+        select: { ticker: true, negRisk: true, tickSize: true, yesPrice: true, noPrice: true },
+      })
+    : [];
+  const marketMap = Object.fromEntries(markets.map(m => [m.ticker, m]));
+
+  const enriched = positions.map(p => ({
+    ...p,
+    negRisk: marketMap[p.marketTicker]?.negRisk ?? false,
+    tickSize: marketMap[p.marketTicker]?.tickSize ?? '0.01',
+    currentYesPrice: marketMap[p.marketTicker]?.yesPrice ?? null,
+    currentNoPrice: marketMap[p.marketTicker]?.noPrice ?? null,
+  }));
+
+  return NextResponse.json({ positions: enriched });
 }
 
 // POST: record a confirmed position
