@@ -133,10 +133,16 @@ export default function ProfileClient() {
     return () => clearInterval(interval);
   }, [fetchPositions]);
 
+  const [sellError, setSellError] = useState<string | null>(null);
+
   const handleSell = async (pos: Position) => {
-    if (!authenticated || !safeAddress || !clobReady) return;
+    if (!authenticated || !clobReady) {
+      setSellError('Trading session not ready. Please wait or reconnect.');
+      return;
+    }
 
     setSelling(pos.id);
+    setSellError(null);
     try {
       const result = await placeMarketOrder({
         tokenId: pos.marketTicker,
@@ -161,7 +167,7 @@ export default function ProfileClient() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Sell failed';
       if (!msg.includes('rejected')) {
-        alert(msg);
+        setSellError(msg);
       }
     }
     setSelling(null);
@@ -430,6 +436,20 @@ export default function ProfileClient() {
                   onChange={e => setFilter(e.target.value)}
                 />
               </div>
+            </div>
+
+            {sellError && (
+              <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-center justify-between">
+                <span>{sellError}</span>
+                <button onClick={() => setSellError(null)} className="text-red-400 hover:text-red-600 cursor-pointer ml-4">
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
+              </div>
+            )}
+
+            <div className="mb-4 px-4 py-3 bg-[var(--surface-container-low)] rounded-lg text-xs text-[var(--secondary)]">
+              <span className="material-symbols-outlined text-sm align-middle mr-1">info</span>
+              You can sell positions anytime before market expiration. After a market resolves, winning shares are automatically redeemable for USDC on Polymarket.
             </div>
 
             {filteredOpen.length > 0 ? (
