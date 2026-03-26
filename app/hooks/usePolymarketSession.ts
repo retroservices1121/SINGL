@@ -274,13 +274,13 @@ export function usePolymarketSession(): SessionState & {
     }
 
     // Compute size (shares) rounded to 2 decimals BEFORE signing
-    // This ensures makerAmount and takerAmount have valid precision
-    // For BUY: size = amount / price, rounded down to 2 decimals
-    // For SELL: size = amount (shares to sell), rounded down to 2 decimals
+    // Round UP to ensure makerAmount stays >= $1 minimum after SDK calculation
+    // For BUY: size = amount / price
+    // For SELL: size = amount (shares to sell)
     const rawSize = params.side === 'BUY'
       ? params.amount / roundedPrice
       : params.amount;
-    const roundedSize = Math.floor(rawSize * 100) / 100;
+    const roundedSize = Math.ceil(rawSize * 100) / 100;
 
     if (roundedSize <= 0) {
       throw new Error('Trade size too small.');
