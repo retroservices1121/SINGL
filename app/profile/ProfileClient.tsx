@@ -44,6 +44,7 @@ interface Position {
   costBasis: number;
   status: string;
   orderId: string | null;
+  tokenId: string | null;
   txSignature: string | null;
   closeTxSig: string | null;
   closePrice: number | null;
@@ -220,9 +221,17 @@ export default function ProfileClient() {
 
     setSelling(pos.id);
     setSellError(null);
+
+    const sellTokenId = pos.tokenId || pos.marketTicker;
+    if (!sellTokenId) {
+      setSellError('Token ID not available for this position. Cannot sell.');
+      setSelling(null);
+      return;
+    }
+
     try {
       const result = await placeMarketOrder({
-        tokenId: pos.marketTicker,
+        tokenId: sellTokenId,
         side: 'SELL',
         amount: pos.shares,
         price: pos.avgPrice,

@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 // POST: record a confirmed position
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { walletAddress, marketTicker, marketTitle, eventSlug, eventTitle, side, amount, price, orderId } = body;
+  const { walletAddress, marketTicker, marketTitle, eventSlug, eventTitle, side, amount, price, orderId, tokenId } = body;
 
   if (!walletAddress || !marketTicker || !side || !amount) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
         avgPrice: price || 0.5,
         costBasis: amount,
         orderId: orderId || null,
+        tokenId: tokenId || null,
       },
     });
 

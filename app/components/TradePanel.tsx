@@ -78,6 +78,7 @@ export default function TradePanel() {
           amount,
           price,
           orderId: result.orderID,
+          tokenId: tokenId,
         }),
       });
 

@@ -136,6 +136,7 @@ model Position {
   costBasis     Float
   status        String   @default("open")
   orderId       String?
+  tokenId       String?
   txSignature   String?
   closeTxSig    String?
   closePrice    Float?
