@@ -264,40 +264,39 @@ export function usePolymarketSession(): SessionState & {
       state.session.safeAddress,
     );
 
-    // Round price to 2 decimals and amount to whole number for Polymarket precision requirements
-    // makerAmount: max 4 decimal places, takerAmount: max 2 decimal places
+    // Round price to 2 decimals for Polymarket precision requirements
     const roundedPrice = Math.round(params.price * 100) / 100;
-    const roundedAmount = Math.floor(params.amount); // Whole USDC
-
     if (roundedPrice <= 0 || roundedPrice >= 1) {
       throw new Error(`Invalid price: ${roundedPrice}. Must be between 0.01 and 0.99.`);
     }
-    if (roundedAmount < 1) {
+    if (params.amount < 1) {
       throw new Error('Minimum trade amount is $1.');
     }
 
-    // Create the signed order locally (EIP-712 signing in wallet)
-    const order = await clobClient.createMarketOrder({
+    // Compute size (shares) rounded to 2 decimals BEFORE signing
+    // This ensures makerAmount and takerAmount have valid precision
+    // For BUY: size = amount / price, rounded down to 2 decimals
+    // For SELL: size = amount (shares to sell), rounded down to 2 decimals
+    const rawSize = params.side === 'BUY'
+      ? params.amount / roundedPrice
+      : params.amount;
+    const roundedSize = Math.floor(rawSize * 100) / 100;
+
+    if (roundedSize <= 0) {
+      throw new Error('Trade size too small.');
+    }
+
+    console.log('[polymarket] Creating order: price=', roundedPrice, 'size=', roundedSize, 'side=', params.side);
+
+    // Use createOrder with pre-rounded size so the SDK signs correct amounts
+    const order = await clobClient.createOrder({
       tokenID: params.tokenId,
       price: roundedPrice,
-      amount: roundedAmount,
+      size: roundedSize,
       side: params.side === 'BUY' ? Side.BUY : Side.SELL,
-    });
+    }, { tickSize: params.tickSize as '0.01' | '0.001' | '0.0001', negRisk: params.negRisk });
 
-    // Ensure amounts meet Polymarket's decimal precision requirements
-    // makerAmount: max 4 decimals (raw must be divisible by 100)
-    // takerAmount: max 2 decimals (raw must be divisible by 10000)
-    const fixedOrder = { ...order } as Record<string, unknown>;
-    if (order.makerAmount) {
-      const makerRaw = BigInt(order.makerAmount);
-      fixedOrder.makerAmount = (makerRaw - makerRaw % BigInt(100)).toString();
-    }
-    if (order.takerAmount) {
-      const takerRaw = BigInt(order.takerAmount);
-      fixedOrder.takerAmount = (takerRaw - takerRaw % BigInt(10000)).toString();
-    }
-
-    console.log('[polymarket] Order created, makerAmount:', fixedOrder.makerAmount, 'takerAmount:', fixedOrder.takerAmount);
+    console.log('[polymarket] Order signed, makerAmount:', order.makerAmount, 'takerAmount:', order.takerAmount);
 
     // Send the raw signed order to our server proxy.
     // The server uses ClobClient.postOrder() which handles:
@@ -305,7 +304,7 @@ export function usePolymarketSession(): SessionState & {
     // - L2 HMAC header signing
     // - Proper request format
     try {
-      const response = await clobProxy('/order', 'POST', fixedOrder, {
+      const response = await clobProxy('/order', 'POST', order, {
         apiKey: state.session.apiKey,
         apiSecret: state.session.apiSecret,
         passphrase: state.session.passphrase,
