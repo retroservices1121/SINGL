@@ -61,39 +61,34 @@ export default function LeaderboardClient() {
       </div>
 
       {/* Prize Pool Banner */}
-      <div className="mb-8 bg-[var(--on-surface)] rounded-xl p-6 relative overflow-hidden">
-        <div className="absolute -right-10 -top-10 w-40 h-40 bg-[var(--primary-container)]/20 rounded-full blur-3xl" />
-        <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-[var(--primary-container)]/10 rounded-full blur-2xl" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="material-symbols-outlined text-[var(--primary-container)]">emoji_events</span>
-            <h3 className="text-sm font-black font-heading uppercase tracking-widest text-white">
-              $250 USDC Prize Pool
-            </h3>
-            <span className="px-2 py-0.5 rounded-full bg-[var(--primary-container)] text-white text-[9px] font-bold uppercase tracking-widest">
-              Live
-            </span>
-          </div>
-          <p className="text-xs text-slate-400 mb-4">Top 3 traders with volume over $1,000 win USDC prizes.</p>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white/5 rounded-lg p-3 text-center border border-white/10">
-              <div className="text-[9px] font-bold text-amber-400 uppercase tracking-widest mb-1">1st Place</div>
-              <div className="font-mono text-2xl font-bold text-white">$125</div>
-              <div className="text-[9px] text-slate-500 mt-0.5">USDC</div>
-            </div>
-            <div className="bg-white/5 rounded-lg p-3 text-center border border-white/10">
-              <div className="text-[9px] font-bold text-slate-300 uppercase tracking-widest mb-1">2nd Place</div>
-              <div className="font-mono text-2xl font-bold text-white">$75</div>
-              <div className="text-[9px] text-slate-500 mt-0.5">USDC</div>
-            </div>
-            <div className="bg-white/5 rounded-lg p-3 text-center border border-white/10">
-              <div className="text-[9px] font-bold text-amber-700 uppercase tracking-widest mb-1">3rd Place</div>
-              <div className="font-mono text-2xl font-bold text-white">$50</div>
-              <div className="text-[9px] text-slate-500 mt-0.5">USDC</div>
-            </div>
-          </div>
-          <p className="text-[10px] text-slate-500 mt-3">Minimum $1,000 total volume required to qualify.</p>
+      <div className="mb-8 bg-[var(--surface-container-lowest)] rounded-xl p-6 shadow-ambient border border-[var(--primary-fixed)]">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="material-symbols-outlined text-[var(--primary-container)]">emoji_events</span>
+          <h3 className="text-sm font-black font-heading uppercase tracking-widest text-[var(--on-surface)]">
+            $250 USDC Prize Pool
+          </h3>
+          <span className="px-2 py-0.5 rounded-full bg-[var(--primary-container)] text-white text-[9px] font-bold uppercase tracking-widest">
+            Live
+          </span>
         </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-[var(--primary-fixed)] rounded-lg p-3 text-center">
+            <div className="text-[9px] font-bold text-[var(--primary-container)] uppercase tracking-widest mb-1">1st Place</div>
+            <div className="font-mono text-2xl font-bold text-[var(--on-surface)]">$125</div>
+            <div className="text-[9px] text-[var(--secondary)] mt-0.5">USDC</div>
+          </div>
+          <div className="bg-[var(--surface-container-low)] rounded-lg p-3 text-center">
+            <div className="text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-1">2nd Place</div>
+            <div className="font-mono text-2xl font-bold text-[var(--on-surface)]">$75</div>
+            <div className="text-[9px] text-[var(--secondary)] mt-0.5">USDC</div>
+          </div>
+          <div className="bg-[var(--surface-container-low)] rounded-lg p-3 text-center">
+            <div className="text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-1">3rd Place</div>
+            <div className="font-mono text-2xl font-bold text-[var(--on-surface)]">$50</div>
+            <div className="text-[9px] text-[var(--secondary)] mt-0.5">USDC</div>
+          </div>
+        </div>
+        <p className="text-[10px] text-[var(--secondary)] mt-3">Minimum $1,000 total volume required to qualify.</p>
       </div>
 
       {leaders.length === 0 ? (
