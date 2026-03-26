@@ -59,62 +59,57 @@ export default function ProfileClient() {
   const [loading, setLoading] = useState(true);
   const [selling, setSelling] = useState<string | null>(null);
   const [filter, setFilter] = useState('');
+  const [usdceBalance, setUsdceBalance] = useState<string | null>(null);
   const [usdcBalance, setUsdcBalance] = useState<string | null>(null);
 
   const walletAddr = eoaAddress || wallets[0]?.address || safeAddress;
 
-  // Fetch USDC balance for the trading wallet (Safe or EOA)
+  // Fetch USDC and USDC.e balances separately
   const balanceAddr = safeAddress || walletAddr;
   useEffect(() => {
     if (!balanceAddr) {
       setUsdcBalance(null);
+      setUsdceBalance(null);
       return;
     }
 
-    const fetchBalance = async () => {
+    const fetchTokenBalance = async (tokenAddr: string): Promise<number> => {
       try {
-        // USDC on Polygon: bridged + native
-        const usdcAddresses = [
-          '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-          '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
-        ];
-
-        let totalBalance = 0;
-        for (const usdcAddr of usdcAddresses) {
-          try {
-            const res = await fetch('https://polygon-bor-rpc.publicnode.com', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                jsonrpc: '2.0',
-                id: 1,
-                method: 'eth_call',
-                params: [
-                  {
-                    to: usdcAddr,
-                    data: `0x70a08231000000000000000000000000${balanceAddr.slice(2)}`,
-                  },
-                  'latest',
-                ],
-              }),
-            });
-            const data = await res.json();
-            if (data.result && data.result !== '0x' && data.result !== '0x0') {
-              const raw = BigInt(data.result);
-              totalBalance += Number(raw) / 1e6;
-            }
-          } catch {
-            // Skip this contract if it fails
-          }
+        const res = await fetch('https://polygon-bor-rpc.publicnode.com', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_call',
+            params: [
+              {
+                to: tokenAddr,
+                data: `0x70a08231000000000000000000000000${balanceAddr.slice(2)}`,
+              },
+              'latest',
+            ],
+          }),
+        });
+        const data = await res.json();
+        if (data.result && data.result !== '0x' && data.result !== '0x0') {
+          return Number(BigInt(data.result)) / 1e6;
         }
-        setUsdcBalance(totalBalance.toFixed(2));
-      } catch {
-        setUsdcBalance(null);
-      }
+      } catch { /* skip */ }
+      return 0;
     };
 
-    fetchBalance();
-    const interval = setInterval(fetchBalance, 30000);
+    const fetchBalances = async () => {
+      const [usdce, usdc] = await Promise.all([
+        fetchTokenBalance('0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'), // USDC.e (bridged)
+        fetchTokenBalance('0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'), // USDC (native)
+      ]);
+      setUsdceBalance(usdce.toFixed(2));
+      setUsdcBalance(usdc.toFixed(2));
+    };
+
+    fetchBalances();
+    const interval = setInterval(fetchBalances, 30000);
     return () => clearInterval(interval);
   }, [balanceAddr]);
 
@@ -273,21 +268,34 @@ export default function ProfileClient() {
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            {/* USDC Balance */}
+            {/* Token Balances */}
             {balanceAddr && (
               <div className="bg-[var(--on-surface)] p-5 rounded-xl text-white relative overflow-hidden">
                 <div className="absolute -right-6 -top-6 w-20 h-20 bg-[var(--primary-container)]/20 rounded-full blur-2xl" />
                 <div className="relative z-10">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">USDC Balance</span>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Wallet Balances</span>
                     <span className="text-[8px] font-bold text-slate-500 bg-white/10 px-1.5 py-0.5 rounded">Polygon</span>
                     {!safeAddress && (
                       <span className="text-[8px] font-bold text-amber-400 bg-white/10 px-1.5 py-0.5 rounded">EOA</span>
                     )}
                   </div>
-                  <span className="font-heading text-3xl font-bold">
-                    {usdcBalance !== null ? `$${usdcBalance}` : '...'}
-                  </span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">USDC.e</div>
+                      <span className="font-heading text-2xl font-bold">
+                        {usdceBalance !== null ? `$${usdceBalance}` : '...'}
+                      </span>
+                      <div className="text-[8px] text-slate-600 mt-0.5">Bridged</div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">USDC</div>
+                      <span className="font-heading text-2xl font-bold">
+                        {usdcBalance !== null ? `$${usdcBalance}` : '...'}
+                      </span>
+                      <div className="text-[8px] text-slate-600 mt-0.5">Native</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
