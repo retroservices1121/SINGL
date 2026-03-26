@@ -9,6 +9,7 @@ import TeamCard from './TeamCard';
 import BracketVisualizer from './BracketVisualizer';
 import UpsetAlertBanner from './UpsetAlertBanner';
 import OddsMovementTracker from './OddsMovementTracker';
+import LiveGames from './LiveGames';
 import NewsFeed from './NewsFeed';
 import XFeed from './XFeed';
 import VideoFeed from './VideoFeed';
@@ -162,6 +163,9 @@ export default function EventPage({ event }: EventPageProps) {
       </section>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Live / Upcoming Games */}
+        <LiveGames markets={parsedMarkets} />
+
         {/* Upset Alerts */}
         <UpsetAlertBanner markets={parsedMarkets} />
 
