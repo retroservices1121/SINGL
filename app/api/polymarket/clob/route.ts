@@ -1,56 +1,82 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
+import { ethers } from 'ethers';
+import { ClobClient } from '@polymarket/clob-client';
 
 export const dynamic = 'force-dynamic';
 
-const CLOB_API = 'https://clob.polymarket.com';
+const CLOB_URL = 'https://clob.polymarket.com';
 
 /**
- * Builds L2 HMAC auth headers matching Polymarket's SDK format.
- * Signature must be URL-safe base64: '+' → '-', '/' → '_'
+ * Server-side proxy for Polymarket CLOB order placement.
+ * Uses the actual ClobClient SDK to ensure HMAC signing matches exactly.
+ *
+ * The client creates and signs the order locally (EIP-712), then sends
+ * the signed order + API credentials here. We use ClobClient.postOrder()
+ * which handles L2 HMAC auth internally.
  */
-function buildL2Headers(
-  apiKey: string,
-  apiSecret: string,
-  passphrase: string,
-  address: string,
-  method: string,
-  path: string,
-  body: string,
-): Record<string, string> {
-  const timestamp = Math.floor(Date.now() / 1000);
-  // Message format: timestamp (number) + METHOD + path + body
-  let message = `${timestamp}${method.toUpperCase()}${path}`;
-  if (body) {
-    message += body;
-  }
-
-  const base64Secret = Buffer.from(apiSecret, 'base64');
-  const hmac = crypto.createHmac('sha256', base64Secret);
-  const sig = hmac.update(message).digest('base64');
-
-  // URL-safe base64 (keep '=' padding)
-  const sigUrlSafe = sig.replace(/\+/g, '-').replace(/\//g, '_');
-
-  return {
-    'POLY_ADDRESS': address,
-    'POLY_SIGNATURE': sigUrlSafe,
-    'POLY_TIMESTAMP': `${timestamp}`,
-    'POLY_API_KEY': apiKey,
-    'POLY_PASSPHRASE': passphrase,
-  };
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { endpoint, method, data, apiKey, apiSecret, passphrase, address } = body;
+    const { endpoint, method, data, apiKey, apiSecret, passphrase, address, safeAddress } = body;
 
     if (!endpoint) {
       return NextResponse.json({ error: 'endpoint required' }, { status: 400 });
     }
 
-    const url = `${CLOB_API}${endpoint}`;
+    // For order posting, use the ClobClient SDK directly
+    if (endpoint === '/order' && apiKey && apiSecret && passphrase) {
+      try {
+        // Create a minimal signer that just returns the address
+        // (we don't need to sign anything server-side, the order is already signed)
+        const wallet = new ethers.Wallet(
+          // Use a dummy private key — we only need the wallet for address resolution
+          // The actual signing already happened client-side
+          '0x0000000000000000000000000000000000000000000000000000000000000001'
+        );
+
+        // Override getAddress to return the actual user address
+        const fakeWallet = {
+          ...wallet,
+          getAddress: async () => address,
+          address: address,
+        };
+
+        const clobClient = new ClobClient(
+          CLOB_URL,
+          137,
+          fakeWallet as unknown as ethers.Wallet,
+          {
+            key: apiKey,
+            secret: apiSecret,
+            passphrase: passphrase,
+          },
+          2, // POLY_GNOSIS_SAFE
+          safeAddress || address,
+        );
+
+        // The data contains the already-signed order payload
+        // Use the internal post method with proper L2 headers
+        const orderData = data;
+
+        console.log('[clob proxy] Posting order via ClobClient SDK');
+        console.log('[clob proxy] Order payload keys:', Object.keys(orderData || {}));
+
+        // Post order — ClobClient handles L2 HMAC headers
+        const response = await clobClient.postOrder(orderData, undefined, false);
+
+        console.log('[clob proxy] Order response:', JSON.stringify(response));
+        return NextResponse.json(response);
+      } catch (sdkErr) {
+        const sdkMsg = sdkErr instanceof Error ? sdkErr.message : String(sdkErr);
+        console.error('[clob proxy] SDK postOrder error:', sdkMsg);
+
+        // If SDK approach fails, fall back to manual headers
+        console.log('[clob proxy] Falling back to manual HMAC...');
+      }
+    }
+
+    // Fallback: manual request with HMAC headers
+    const url = `${CLOB_URL}${endpoint}`;
     const httpMethod = (method || 'POST').toUpperCase();
     const bodyStr = data ? JSON.stringify(data) : '';
 
@@ -58,10 +84,22 @@ export async function POST(req: NextRequest) {
       'Content-Type': 'application/json',
     };
 
-    // Build L2 HMAC auth headers if credentials provided
     if (apiKey && apiSecret && passphrase && address) {
-      const authHeaders = buildL2Headers(apiKey, apiSecret, passphrase, address, httpMethod, endpoint, bodyStr);
-      Object.assign(fetchHeaders, authHeaders);
+      const crypto = await import('crypto');
+      const timestamp = Math.floor(Date.now() / 1000);
+      let message = `${timestamp}${httpMethod}${endpoint}`;
+      if (bodyStr) message += bodyStr;
+
+      const base64Secret = Buffer.from(apiSecret, 'base64');
+      const hmac = crypto.createHmac('sha256', base64Secret);
+      const sig = hmac.update(message).digest('base64');
+      const sigUrlSafe = sig.replace(/\+/g, '-').replace(/\//g, '_');
+
+      fetchHeaders['POLY_ADDRESS'] = address;
+      fetchHeaders['POLY_SIGNATURE'] = sigUrlSafe;
+      fetchHeaders['POLY_TIMESTAMP'] = `${timestamp}`;
+      fetchHeaders['POLY_API_KEY'] = apiKey;
+      fetchHeaders['POLY_PASSPHRASE'] = passphrase;
     }
 
     console.log(`[clob proxy] ${httpMethod} ${endpoint} (body: ${bodyStr.length} bytes)`);

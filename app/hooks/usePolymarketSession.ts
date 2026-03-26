@@ -28,7 +28,7 @@ async function clobProxy(
   endpoint: string,
   method: string,
   data: unknown,
-  creds?: { apiKey: string; apiSecret: string; passphrase: string; address?: string },
+  creds?: Record<string, string>,
 ) {
   const res = await fetch('/api/polymarket/clob', {
     method: 'POST',
@@ -41,6 +41,7 @@ async function clobProxy(
       apiSecret: creds?.apiSecret,
       passphrase: creds?.passphrase,
       address: creds?.address,
+      safeAddress: creds?.safeAddress,
     }),
   });
   const json = await res.json();
@@ -287,36 +288,21 @@ export function usePolymarketSession(): SessionState & {
       side: params.side === 'BUY' ? Side.BUY : Side.SELL,
     });
 
-    // Transform order to JSON payload matching Polymarket's expected format
-    const orderPayload = {
-      deferExec: false,
-      order: {
-        salt: parseInt(order.salt, 10),
-        maker: order.maker,
-        signer: order.signer,
-        taker: order.taker,
-        tokenId: order.tokenId,
-        makerAmount: order.makerAmount,
-        takerAmount: order.takerAmount,
-        side: params.side,
-        expiration: order.expiration,
-        nonce: order.nonce,
-        feeRateBps: order.feeRateBps,
-        signatureType: Number(order.signatureType),
-        signature: order.signature,
-      },
-      owner: state.session.apiKey,
-      orderType: 'FOK', // Fill-or-Kill for market orders
-    };
+    console.log('[polymarket] Order created locally, posting via proxy...');
 
-    // Post order through server-side proxy (server builds L2 HMAC headers)
+    // Send the raw signed order to our server proxy.
+    // The server uses ClobClient.postOrder() which handles:
+    // - orderToJson transformation
+    // - L2 HMAC header signing
+    // - Proper request format
     try {
-      const response = await clobProxy('/order', 'POST', orderPayload, {
+      const response = await clobProxy('/order', 'POST', order, {
         apiKey: state.session.apiKey,
         apiSecret: state.session.apiSecret,
         passphrase: state.session.passphrase,
         address: state.session.eoaAddress,
-      });
+        safeAddress: state.session.safeAddress,
+      } as Record<string, string>);
       return { orderID: response.orderID || response.orderIds?.[0] || 'submitted' };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
