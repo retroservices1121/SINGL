@@ -17,7 +17,7 @@ const CLOB_URL = 'https://clob.polymarket.com';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { endpoint, method, data, apiKey, apiSecret, passphrase, address, safeAddress } = body;
+    const { endpoint, method, data, apiKey, apiSecret, passphrase, address, safeAddress, orderType } = body;
 
     if (!endpoint) {
       return NextResponse.json({ error: 'endpoint required' }, { status: 400 });
@@ -62,7 +62,8 @@ export async function POST(req: NextRequest) {
         console.log('[clob proxy] Order payload keys:', Object.keys(orderData || {}));
 
         // Post order — ClobClient handles L2 HMAC headers
-        const response = await clobClient.postOrder(orderData, undefined, false);
+        // FOK = Fill or Kill (immediate), GTC = Good Till Cancelled (limit)
+        const response = await clobClient.postOrder(orderData, orderType || undefined, false);
 
         console.log('[clob proxy] Order response:', JSON.stringify(response));
         return NextResponse.json(response);

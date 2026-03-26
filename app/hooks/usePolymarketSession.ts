@@ -29,6 +29,7 @@ async function clobProxy(
   method: string,
   data: unknown,
   creds?: Record<string, string>,
+  orderType?: string,
 ) {
   const res = await fetch('/api/polymarket/clob', {
     method: 'POST',
@@ -42,6 +43,7 @@ async function clobProxy(
       passphrase: creds?.passphrase,
       address: creds?.address,
       safeAddress: creds?.safeAddress,
+      orderType,
     }),
   });
   const json = await res.json();
@@ -317,7 +319,7 @@ export function usePolymarketSession(): SessionState & {
         passphrase: state.session.passphrase,
         address: state.session.eoaAddress,
         safeAddress: state.session.safeAddress,
-      } as Record<string, string>);
+      } as Record<string, string>, 'FOK');
       return { orderID: response.orderID || response.orderIds?.[0] || 'submitted' };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);

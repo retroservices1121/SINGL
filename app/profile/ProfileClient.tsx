@@ -72,13 +72,9 @@ export default function ProfileClient() {
 
   // Fetch USDC and USDC.e balances separately
   const balanceAddr = safeAddress || walletAddr;
-  useEffect(() => {
-    if (!balanceAddr) {
-      setUsdcBalance(null);
-      setUsdceBalance(null);
-      setBalancesLoaded(false);
-      return;
-    }
+
+  const fetchBalances = useCallback(async () => {
+    if (!balanceAddr) return;
 
     const fetchTokenBalance = async (tokenAddr: string): Promise<number> => {
       try {
@@ -106,21 +102,26 @@ export default function ProfileClient() {
       return 0;
     };
 
-    const fetchBalances = async () => {
-      const [usdce, usdc] = await Promise.all([
-        fetchTokenBalance('0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'), // USDC.e (bridged)
-        fetchTokenBalance('0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'), // USDC (native)
-      ]);
-      // Set both at once to avoid partial render
-      setUsdceBalance(usdce.toFixed(2));
-      setUsdcBalance(usdc.toFixed(2));
-      setBalancesLoaded(true);
-    };
+    const [usdce, usdc] = await Promise.all([
+      fetchTokenBalance('0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'), // USDC.e (bridged)
+      fetchTokenBalance('0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'), // USDC (native)
+    ]);
+    setUsdceBalance(usdce.toFixed(2));
+    setUsdcBalance(usdc.toFixed(2));
+    setBalancesLoaded(true);
+  }, [balanceAddr]);
 
+  useEffect(() => {
+    if (!balanceAddr) {
+      setUsdcBalance(null);
+      setUsdceBalance(null);
+      setBalancesLoaded(false);
+      return;
+    }
     fetchBalances();
     const interval = setInterval(fetchBalances, 30000);
     return () => clearInterval(interval);
-  }, [balanceAddr]);
+  }, [balanceAddr, fetchBalances]);
 
   const fetchPositions = useCallback(async () => {
     if (!authenticated || !walletAddr) {
@@ -259,6 +260,9 @@ export default function ProfileClient() {
       });
 
       fetchPositions();
+      // Refresh balance after a short delay to allow on-chain settlement
+      setTimeout(fetchBalances, 3000);
+      setTimeout(fetchBalances, 10000);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Sell failed';
       if (!msg.includes('rejected')) {
