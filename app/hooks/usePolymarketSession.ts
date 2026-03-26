@@ -290,10 +290,25 @@ export function usePolymarketSession(): SessionState & {
       const response = await clobProxy('/order', 'POST', authHeaders, order);
       return { orderID: response.orderID || response.orderIds?.[0] || 'submitted' };
     } catch (err) {
-      // Fallback: try direct post (will fail on CORS but worth trying)
+      const msg = err instanceof Error ? err.message : String(err);
+
+      // Check for geoblock
+      if (msg.includes('region') || msg.includes('geoblock') || msg.includes('restricted')) {
+        throw new Error('Polymarket trading is restricted in your region. Please use a VPN to an eligible region, or trade directly on polymarket.com');
+      }
+
+      // Fallback: try direct post
       console.warn('[polymarket] Proxy order failed, trying direct...', err);
-      const response = await clobClient.postOrder(order);
-      return { orderID: response.orderID || response.orderIds?.[0] || 'unknown' };
+      try {
+        const response = await clobClient.postOrder(order);
+        return { orderID: response.orderID || response.orderIds?.[0] || 'unknown' };
+      } catch (directErr) {
+        const directMsg = directErr instanceof Error ? directErr.message : String(directErr);
+        if (directMsg.includes('Credentials') || directMsg.includes('CORS') || directMsg.includes('Network')) {
+          throw new Error('Unable to place trade. Polymarket blocks third-party trading from restricted regions. Try trading directly on polymarket.com');
+        }
+        throw directErr;
+      }
     }
   }, [state.session, wallets]);
 
