@@ -23,11 +23,24 @@ function deriveSafeAddress(eoaAddress: string): string {
 }
 
 // Proxy CLOB API calls through our server to avoid CORS
-async function clobProxy(endpoint: string, method: string, headers: Record<string, string>, data?: unknown) {
+// Server builds L2 HMAC auth headers using the provided credentials
+async function clobProxy(
+  endpoint: string,
+  method: string,
+  data: unknown,
+  creds?: { apiKey: string; apiSecret: string; passphrase: string },
+) {
   const res = await fetch('/api/polymarket/clob', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ endpoint, method, headers, data }),
+    body: JSON.stringify({
+      endpoint,
+      method,
+      data,
+      apiKey: creds?.apiKey,
+      apiSecret: creds?.apiSecret,
+      passphrase: creds?.passphrase,
+    }),
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || `CLOB proxy error ${res.status}`);
@@ -240,6 +253,10 @@ export function usePolymarketSession(): SessionState & {
       throw new Error('Session not initialized');
     }
 
+    if (!state.session.apiKey) {
+      throw new Error('API credentials not available. Please reconnect your wallet.');
+    }
+
     const wallet = wallets[0];
     const rawProvider = await wallet.getEthereumProvider();
     const provider = new ethers.providers.Web3Provider(rawProvider as ethers.providers.ExternalProvider);
@@ -247,16 +264,16 @@ export function usePolymarketSession(): SessionState & {
 
     const { ClobClient } = await import('@polymarket/clob-client');
 
-    // Create order signature locally (this doesn't need CORS)
+    // Create order signature locally (EIP-712 signing happens in browser)
     const clobClient = new ClobClient(
       CLOB_URL,
       137,
       signer as unknown as ethers.Wallet,
-      state.session.apiKey ? {
+      {
         key: state.session.apiKey,
         secret: state.session.apiSecret,
         passphrase: state.session.passphrase,
-      } : undefined,
+      },
       2, // SignatureType.POLY_GNOSIS_SAFE
       state.session.safeAddress,
     );
@@ -269,55 +286,22 @@ export function usePolymarketSession(): SessionState & {
       side: params.side === 'BUY' ? Side.BUY : Side.SELL,
     });
 
-    // Post the order through our server-side proxy to avoid CORS
-    const authHeaders: Record<string, string> = {};
-    if (state.session.apiKey) {
-      // Build HMAC auth headers for the CLOB API
-      const timestamp = Math.floor(Date.now() / 1000).toString();
-      const { createHmac } = await import('crypto');
-      const message = timestamp + 'POST' + '/order' + JSON.stringify(order);
-
-      // Use the API secret to sign
-      let signature = '';
-      try {
-        const hmac = createHmac('sha256', Buffer.from(state.session.apiSecret, 'base64'));
-        hmac.update(message);
-        signature = hmac.digest('base64');
-      } catch {
-        // crypto might not be available in browser, skip auth headers
-      }
-
-      if (signature) {
-        authHeaders['POLY_API_KEY'] = state.session.apiKey;
-        authHeaders['POLY_TIMESTAMP'] = timestamp;
-        authHeaders['POLY_PASSPHRASE'] = state.session.passphrase;
-        authHeaders['POLY_SIGNATURE'] = signature;
-      }
-    }
-
+    // Post order through server-side proxy (server builds L2 HMAC headers)
     try {
-      const response = await clobProxy('/order', 'POST', authHeaders, order);
+      const response = await clobProxy('/order', 'POST', order, {
+        apiKey: state.session.apiKey,
+        apiSecret: state.session.apiSecret,
+        passphrase: state.session.passphrase,
+      });
       return { orderID: response.orderID || response.orderIds?.[0] || 'submitted' };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
 
-      // Check for geoblock
       if (msg.includes('region') || msg.includes('geoblock') || msg.includes('restricted')) {
-        throw new Error('Polymarket trading is restricted in your region. Please use a VPN to an eligible region, or trade directly on polymarket.com');
+        throw new Error('Polymarket trading is restricted in your server region. Contact support.');
       }
 
-      // Fallback: try direct post
-      console.warn('[polymarket] Proxy order failed, trying direct...', err);
-      try {
-        const response = await clobClient.postOrder(order);
-        return { orderID: response.orderID || response.orderIds?.[0] || 'unknown' };
-      } catch (directErr) {
-        const directMsg = directErr instanceof Error ? directErr.message : String(directErr);
-        if (directMsg.includes('Credentials') || directMsg.includes('CORS') || directMsg.includes('Network')) {
-          throw new Error('Unable to place trade. Polymarket blocks third-party trading from restricted regions. Try trading directly on polymarket.com');
-        }
-        throw directErr;
-      }
+      throw new Error(`Trade failed: ${msg}`);
     }
   }, [state.session, wallets]);
 
