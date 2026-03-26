@@ -20,18 +20,26 @@ export async function GET(req: NextRequest) {
   const markets = tickers.length > 0
     ? await prisma.market.findMany({
         where: { ticker: { in: tickers } },
-        select: { ticker: true, negRisk: true, tickSize: true, yesPrice: true, noPrice: true },
+        select: { ticker: true, negRisk: true, tickSize: true, yesPrice: true, noPrice: true, yesTokenId: true, noTokenId: true },
       })
     : [];
   const marketMap = Object.fromEntries(markets.map(m => [m.ticker, m]));
 
-  const enriched = positions.map(p => ({
-    ...p,
-    negRisk: marketMap[p.marketTicker]?.negRisk ?? false,
-    tickSize: marketMap[p.marketTicker]?.tickSize ?? '0.01',
-    currentYesPrice: marketMap[p.marketTicker]?.yesPrice ?? null,
-    currentNoPrice: marketMap[p.marketTicker]?.noPrice ?? null,
-  }));
+  const enriched = positions.map(p => {
+    const market = marketMap[p.marketTicker];
+    // Resolve the correct CLOB token ID: use stored tokenId, or look up from market based on side
+    const resolvedTokenId = p.tokenId
+      || (p.side?.toLowerCase() === 'yes' ? market?.yesTokenId : market?.noTokenId)
+      || null;
+    return {
+      ...p,
+      tokenId: resolvedTokenId,
+      negRisk: market?.negRisk ?? false,
+      tickSize: market?.tickSize ?? '0.01',
+      currentYesPrice: market?.yesPrice ?? null,
+      currentNoPrice: market?.noPrice ?? null,
+    };
+  });
 
   return NextResponse.json({ positions: enriched });
 }

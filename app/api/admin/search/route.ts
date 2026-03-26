@@ -76,12 +76,17 @@ export async function GET(req: NextRequest) {
           const noToken = m.tokens?.find(t => t.outcome === 'No');
           return {
             ticker: m.condition_id,
+            conditionId: m.condition_id,
             title: m.question,
             yesPrice: yesToken?.price ?? 0.5,
             noPrice: noToken?.price ?? 0.5,
             volume: m.volume,
             rulesPrimary: m.description,
             closeTime: m.end_date_iso,
+            yesTokenId: yesToken?.token_id || '',
+            noTokenId: noToken?.token_id || '',
+            negRisk: m.neg_risk ?? false,
+            tickSize: m.minimum_tick_size || '0.01',
           };
         }),
       };

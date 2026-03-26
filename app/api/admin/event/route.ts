@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
   interface RawMarket {
     ticker?: string;
     condition_id?: string;
+    conditionId?: string;
     title: string;
     yesPrice?: number;
     noPrice?: number;
@@ -104,6 +105,10 @@ export async function POST(req: NextRequest) {
     rulesPrimary?: string;
     closeTime?: number | string;
     expirationTime?: number | string;
+    yesTokenId?: string;
+    noTokenId?: string;
+    negRisk?: boolean;
+    tickSize?: string;
   }
 
   const marketList: RawMarket[] = Array.isArray(rawMarkets) ? rawMarkets : [];
@@ -155,6 +160,11 @@ export async function POST(req: NextRequest) {
               expirationTime,
               change24h: null,
               category: null,
+              conditionId: m.conditionId || m.condition_id || ticker,
+              yesTokenId: m.yesTokenId || null,
+              noTokenId: m.noTokenId || null,
+              negRisk: m.negRisk ?? false,
+              tickSize: m.tickSize || '0.01',
             },
           });
         })
