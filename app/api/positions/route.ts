@@ -16,17 +16,15 @@ export async function GET(req: NextRequest) {
   });
 
   // Enrich positions with market metadata (negRisk, tickSize) needed for sell orders
-  const tickers = [...new Set(positions.map(p => p.marketTicker))];
-  const markets = tickers.length > 0
-    ? await prisma.market.findMany({
-        where: { ticker: { in: tickers } },
-        select: { ticker: true, negRisk: true, tickSize: true, yesPrice: true, noPrice: true, yesTokenId: true, noTokenId: true },
-      })
-    : [];
-  const marketMap = Object.fromEntries(markets.map(m => [m.ticker, m]));
+  // Position tickers may be truncated conditionIds, so fetch all event markets and match by prefix
+  const allMarkets = await prisma.market.findMany({
+    select: { ticker: true, negRisk: true, tickSize: true, yesPrice: true, noPrice: true, yesTokenId: true, noTokenId: true },
+  });
 
   const enriched = positions.map(p => {
-    const market = marketMap[p.marketTicker];
+    // Match by exact ticker first, then by prefix (position ticker may be truncated)
+    const market = allMarkets.find(m => m.ticker === p.marketTicker)
+      || allMarkets.find(m => m.ticker.startsWith(p.marketTicker) || p.marketTicker.startsWith(m.ticker));
     // Resolve the correct CLOB token ID: use stored tokenId, or look up from market based on side
     const resolvedTokenId = p.tokenId
       || (p.side?.toLowerCase() === 'yes' ? market?.yesTokenId : market?.noTokenId)
