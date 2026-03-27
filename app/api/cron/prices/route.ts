@@ -123,7 +123,7 @@ export async function GET(req: NextRequest) {
         const noPrice = noIdx >= 0 ? parseFloat(outcomePrices[noIdx] || '0') : 0;
 
         const negRisk = (gm.negRisk ?? gm.neg_risk ?? false) as boolean;
-        const tickSize = ((gm.orderPriceMinTickSize || gm.minimum_tick_size || '0.01') as string);
+        const tickSize = String(gm.orderPriceMinTickSize || gm.minimum_tick_size || '0.01');
         if (existingTickers.has(conditionId)) {
           // Update existing market with missing token IDs
           const existing = event.markets.find(m => m.ticker === conditionId);
@@ -153,7 +153,7 @@ export async function GET(req: NextRequest) {
               title: (gm.question as string) || conditionId,
               yesPrice: Math.round(yesPrice * 100) / 100,
               noPrice: Math.round(noPrice * 100) / 100,
-              volume: (gm.volume as number) ?? null,
+              volume: gm.volume != null ? parseFloat(String(gm.volume)) || null : null,
               rulesPrimary: (gm.description as string) ?? null,
               closeTime: endDate ? new Date(endDate) : null,
               expirationTime: endDate ? new Date(endDate) : null,
