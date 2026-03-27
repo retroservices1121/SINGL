@@ -62,72 +62,85 @@ export async function GET(req: NextRequest) {
     }
 
     if (gammaEvent) {
-      const gammaMarkets: Array<{
-        condition_id?: string;
-        question?: string;
-        description?: string;
-        tokens?: Array<{ token_id: string; outcome: string; price?: number }>;
-        volume?: number;
-        end_date_iso?: string;
-        neg_risk?: boolean;
-        minimum_tick_size?: string;
-        active?: boolean;
-        closed?: boolean;
-      }> = (((gammaEvent as Record<string, unknown>).markets || []) as Array<{ active?: boolean; closed?: boolean }>).filter(g => g.active && !g.closed) as Array<{
-        condition_id?: string; question?: string; description?: string;
-        tokens?: Array<{ token_id: string; outcome: string; price?: number }>;
-        volume?: number; end_date_iso?: string; neg_risk?: boolean;
-        minimum_tick_size?: string; active?: boolean; closed?: boolean;
-      }>;
+      // Gamma API uses camelCase fields: conditionId, clobTokenIds, negRisk, orderPriceMinTickSize
+      // NOT condition_id, tokens, neg_risk, minimum_tick_size
+      const rawMarkets = ((gammaEvent as Record<string, unknown>).markets || []) as Array<Record<string, unknown>>;
+      const gammaMarkets = rawMarkets.filter(g => g.active && !g.closed);
 
       const existingTickers = new Set(event.markets.map(m => m.ticker));
 
       for (const gm of gammaMarkets) {
-        if (!gm.condition_id || !gm.tokens) continue;
+        const conditionId = (gm.conditionId || gm.condition_id) as string | undefined;
+        if (!conditionId) continue;
 
-        const yesToken = gm.tokens.find(t => t.outcome === 'Yes');
-        const noToken = gm.tokens.find(t => t.outcome === 'No');
-        if (!yesToken && !noToken) continue;
+        // Parse token IDs from clobTokenIds JSON string or tokens array
+        let yesTokenId = '';
+        let noTokenId = '';
+        const outcomes = typeof gm.outcomes === 'string' ? JSON.parse(gm.outcomes) : (gm.outcomes || []);
+        const clobTokenIds = typeof gm.clobTokenIds === 'string' ? JSON.parse(gm.clobTokenIds) : (gm.clobTokenIds || []);
 
-        if (existingTickers.has(gm.condition_id)) {
+        if (clobTokenIds.length >= 2 && outcomes.length >= 2) {
+          const yesIdx = outcomes.indexOf('Yes');
+          const noIdx = outcomes.indexOf('No');
+          if (yesIdx >= 0) yesTokenId = clobTokenIds[yesIdx] || '';
+          if (noIdx >= 0) noTokenId = clobTokenIds[noIdx] || '';
+        } else if (gm.tokens && Array.isArray(gm.tokens)) {
+          // Fallback: old format with tokens array
+          const yesToken = (gm.tokens as Array<{ outcome: string; token_id: string }>).find(t => t.outcome === 'Yes');
+          const noToken = (gm.tokens as Array<{ outcome: string; token_id: string }>).find(t => t.outcome === 'No');
+          yesTokenId = yesToken?.token_id || '';
+          noTokenId = noToken?.token_id || '';
+        }
+
+        if (!yesTokenId && !noTokenId) continue;
+
+        // Parse prices
+        const outcomePrices = typeof gm.outcomePrices === 'string' ? JSON.parse(gm.outcomePrices) : (gm.outcomePrices || []);
+        const yesIdx = outcomes.indexOf('Yes');
+        const noIdx = outcomes.indexOf('No');
+        const yesPrice = yesIdx >= 0 ? parseFloat(outcomePrices[yesIdx] || '0') : 0;
+        const noPrice = noIdx >= 0 ? parseFloat(outcomePrices[noIdx] || '0') : 0;
+
+        const negRisk = (gm.negRisk ?? gm.neg_risk ?? false) as boolean;
+        const tickSize = ((gm.orderPriceMinTickSize || gm.minimum_tick_size || '0.01') as string);
+        if (existingTickers.has(conditionId)) {
           // Update existing market with missing token IDs
-          const existing = event.markets.find(m => m.ticker === gm.condition_id);
+          const existing = event.markets.find(m => m.ticker === conditionId);
           if (existing && (!existing.yesTokenId || !existing.noTokenId)) {
             await prisma.market.update({
               where: { id: existing.id },
               data: {
-                yesTokenId: yesToken?.token_id || null,
-                noTokenId: noToken?.token_id || null,
-                conditionId: gm.condition_id,
-                negRisk: gm.neg_risk ?? existing.negRisk,
-                tickSize: gm.minimum_tick_size || existing.tickSize,
+                yesTokenId: yesTokenId || null,
+                noTokenId: noTokenId || null,
+                conditionId,
+                negRisk,
+                tickSize,
               },
             });
-            existing.yesTokenId = yesToken?.token_id || null;
-            existing.noTokenId = noToken?.token_id || null;
+            existing.yesTokenId = yesTokenId || null;
+            existing.noTokenId = noTokenId || null;
             tokenIdsBackfilled++;
             console.log(`[prices] Backfilled token IDs for ${existing.title}`);
           }
         } else {
           // Import new market
-          const yesPrice = yesToken?.price ?? 0.5;
-          const noPrice = noToken?.price ?? 0.5;
+          const endDate = gm.endDate as string | undefined;
           const newMarket = await prisma.market.create({
             data: {
               eventId: event.id,
-              ticker: gm.condition_id,
-              title: gm.question || gm.condition_id,
+              ticker: conditionId,
+              title: (gm.question as string) || conditionId,
               yesPrice: Math.round(yesPrice * 100) / 100,
               noPrice: Math.round(noPrice * 100) / 100,
-              volume: gm.volume ?? null,
-              rulesPrimary: gm.description ?? null,
-              closeTime: gm.end_date_iso ? new Date(gm.end_date_iso) : null,
-              expirationTime: gm.end_date_iso ? new Date(gm.end_date_iso) : null,
-              conditionId: gm.condition_id,
-              yesTokenId: yesToken?.token_id || null,
-              noTokenId: noToken?.token_id || null,
-              negRisk: gm.neg_risk ?? false,
-              tickSize: gm.minimum_tick_size || '0.01',
+              volume: (gm.volume as number) ?? null,
+              rulesPrimary: (gm.description as string) ?? null,
+              closeTime: endDate ? new Date(endDate) : null,
+              expirationTime: endDate ? new Date(endDate) : null,
+              conditionId,
+              yesTokenId: yesTokenId || null,
+              noTokenId: noTokenId || null,
+              negRisk,
+              tickSize,
             },
           });
           event.markets.push(newMarket as typeof event.markets[0]);
