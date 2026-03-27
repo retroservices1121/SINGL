@@ -205,33 +205,12 @@ function RegionBracket({
     gamesByRound.set(g.round, arr);
   }
 
-  // Sort rounds
-  const rounds = Array.from(gamesByRound.entries()).sort((a, b) => a[0] - b[0]);
-
-  // For display, show the last 3-4 rounds that have games
-  // Typically: R64(8) -> R32(4) -> S16(2) -> E8(1)
-  // But we may also have First Four games (round 1)
-  const displayRounds = rounds.filter(([rn]) => rn >= 2); // Skip First Four in main display
-  const firstFourGames = gamesByRound.get(1) || [];
-
-  // Find the Elite Eight winner (the team advancing from this region)
+  // Only show Sweet 16 (round 4) and Elite Eight (round 5)
+  const s16Games = gamesByRound.get(4) || [];
   const e8Games = gamesByRound.get(5) || [];
   const regionWinner = e8Games.length > 0 && e8Games[0].gameState === 'F'
     ? e8Games[0].teams.find(t => t.isWinner)
     : null;
-
-  // Determine which rounds to show based on tournament progress
-  // Show most recent active rounds + one future round
-  // For compact display: show latest 2-3 rounds
-  const latestFinished = Math.max(...region.games.filter(g => g.gameState === 'F').map(g => g.round), 0);
-
-  // Show: the round in progress or most recently completed, plus the next round
-  // Always show at least Sweet 16 and Elite Eight if they exist
-  let startRound = Math.max(latestFinished, 2);
-  // Show 2-3 rounds at a time
-  const visibleRounds = displayRounds.filter(([rn]) => rn >= startRound - 1 && rn <= startRound + 1);
-  // If nothing visible, show whatever we have
-  const showRounds = visibleRounds.length > 0 ? visibleRounds : displayRounds.slice(-3);
 
   return (
     <div className="space-y-3">
@@ -253,34 +232,15 @@ function RegionBracket({
         )}
       </div>
 
-      {/* First Four callout if present */}
-      {firstFourGames.length > 0 && (
-        <div className="flex gap-2 mb-1">
-          {firstFourGames.map(g => (
-            <div key={g.id} className="flex-1">
-              <div className="text-[8px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-1">First Four</div>
-              <GameCard game={g} profiles={profiles} compact />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Rounds */}
-      <div className="flex gap-3 overflow-x-auto pb-2">
-        {showRounds.map(([roundNum, games]) => (
-          <div key={roundNum} className="flex-1 min-w-[140px]">
-            <RoundColumn
-              roundName={games[0]?.roundName || `Round ${roundNum}`}
-              games={games}
-              profiles={profiles}
-              compact={roundNum <= 3}
-            />
+      {/* Sweet 16 + Elite Eight */}
+      <div className="flex gap-3">
+        {s16Games.length > 0 && (
+          <div className="flex-1">
+            <RoundColumn roundName="Sweet 16" games={s16Games} profiles={profiles} />
           </div>
-        ))}
-
-        {/* Connector to region winner */}
-        {e8Games.length > 0 && showRounds.every(([rn]) => rn < 5) && (
-          <div className="flex-1 min-w-[140px]">
+        )}
+        {e8Games.length > 0 && (
+          <div className="flex-1">
             <RoundColumn roundName="Elite Eight" games={e8Games} profiles={profiles} />
           </div>
         )}
