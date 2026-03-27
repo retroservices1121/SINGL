@@ -321,10 +321,15 @@ export default function ProfileClient() {
   const closedPositions = positions.filter(p => p.status !== 'open');
 
   const totalCost = openPositions.reduce((sum, p) => sum + p.costBasis, 0);
-  const totalPotentialPayout = openPositions.reduce((sum, p) => sum + p.shares, 0);
-  const totalUnrealizedPnl = totalPotentialPayout - totalCost;
+  const totalCurrentValue = openPositions.reduce((sum, p) => {
+    const livePrice = p.side?.toLowerCase() === 'yes'
+      ? (p.currentYesPrice ?? p.avgPrice)
+      : (p.currentNoPrice ?? p.avgPrice);
+    return sum + p.shares * livePrice;
+  }, 0);
+  const totalUnrealizedPnl = totalCurrentValue - totalCost;
   const totalRealizedPnl = closedPositions.reduce((sum, p) => sum + (p.realizedPnl || 0), 0);
-  const totalBalance = totalCost + totalUnrealizedPnl + totalRealizedPnl;
+  const totalBalance = totalCurrentValue + totalRealizedPnl;
   const winCount = closedPositions.filter(p => (p.realizedPnl || 0) > 0).length;
   const winRate = closedPositions.length > 0 ? (winCount / closedPositions.length) * 100 : 0;
 
@@ -586,7 +591,10 @@ export default function ProfileClient() {
                   </thead>
                   <tbody>
                     {filteredOpen.map(pos => {
-                      const currentValue = pos.shares * pos.avgPrice;
+                      const livePrice = pos.side?.toLowerCase() === 'yes'
+                        ? (pos.currentYesPrice ?? pos.avgPrice)
+                        : (pos.currentNoPrice ?? pos.avgPrice);
+                      const currentValue = pos.shares * livePrice;
                       const pnlPercent = pos.costBasis > 0 ? ((currentValue - pos.costBasis) / pos.costBasis) * 100 : 0;
                       const potPayout = pos.shares;
 
