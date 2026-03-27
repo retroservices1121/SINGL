@@ -146,3 +146,14 @@ model Position {
 
   @@index([walletAddress, status])
 }
+
+model SynthesisAccount {
+  id            String   @id @default(cuid())
+  privyUserId   String   @unique
+  accountId     String   @unique
+  apiKey        String
+  walletId      String?
+  walletAddress String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
