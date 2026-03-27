@@ -90,9 +90,9 @@ export default function TeamStatsPanel({ teamName, championshipOdds, championshi
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center" onClick={onClose}>
       <div
-        className="bg-[var(--surface-container-lowest)] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-[slide-up_0.25s_ease-out]"
+        className="bg-[var(--surface-container-lowest)] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto shadow-2xl animate-[slide-up_0.25s_ease-out] pb-20 sm:pb-0"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
