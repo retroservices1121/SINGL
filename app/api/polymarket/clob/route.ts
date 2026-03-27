@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
     const res = await fetch(url, {
       method: httpMethod,
       headers: fetchHeaders,
-      body: bodyStr || undefined,
+      ...(httpMethod !== 'GET' && bodyStr ? { body: bodyStr } : {}),
     });
 
     const responseText = await res.text();

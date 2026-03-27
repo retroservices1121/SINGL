@@ -273,8 +273,22 @@ export function usePolymarketSession(): SessionState & {
     (clobClient as any).negRisk[params.tokenId] = params.negRisk;
     (clobClient as any).feeRates[params.tokenId] = 0;
 
-    // Round price to 2 decimals for Polymarket precision requirements
-    const roundedPrice = Math.round(params.price * 100) / 100;
+    // Fetch live price from CLOB via our proxy (direct CLOB calls fail due to CORS)
+    let roundedPrice = Math.round(params.price * 100) / 100;
+    try {
+      const priceRes = await clobProxy(
+        `/price?token_id=${params.tokenId}&side=${params.side.toLowerCase()}`,
+        'GET',
+        null,
+      );
+      const livePrice = parseFloat(priceRes.price);
+      if (livePrice > 0 && livePrice < 1) {
+        roundedPrice = Math.round(livePrice * 100) / 100;
+        console.log('[polymarket] Live CLOB price:', roundedPrice, '(displayed:', params.price, ')');
+      }
+    } catch {
+      console.log('[polymarket] Price fetch failed, using displayed price:', roundedPrice);
+    }
     if (roundedPrice <= 0 || roundedPrice >= 1) {
       throw new Error(`Invalid price: ${roundedPrice}. Must be between 0.01 and 0.99.`);
     }
@@ -319,7 +333,7 @@ export function usePolymarketSession(): SessionState & {
         passphrase: state.session.passphrase,
         address: state.session.eoaAddress,
         safeAddress: state.session.safeAddress,
-      } as Record<string, string>, 'GTC');
+      } as Record<string, string>, 'FOK');
       return { orderID: response.orderID || response.orderIds?.[0] || 'submitted' };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
