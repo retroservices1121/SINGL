@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
-import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
+// import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
+import { useSynthesisTrading } from '@/app/hooks/useSynthesisTrading';
 import { formatVolume, formatUSD } from '@/app/lib/utils';
 import Spinner from '@/app/components/ui/Spinner';
 import Link from 'next/link';
@@ -21,7 +22,7 @@ export default function LeaderboardClient() {
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const { authenticated } = usePrivy();
-  const { safeAddress } = usePolymarketSession();
+  const { walletAddress } = useSynthesisTrading();
 
   useEffect(() => {
     fetch('/api/leaderboard')
@@ -44,8 +45,8 @@ export default function LeaderboardClient() {
   const totalVolume = leaders.reduce((sum, l) => sum + l.totalVolume, 0);
   const visible = showAll ? leaders : leaders.slice(0, 7);
   const top3 = leaders.slice(0, 3);
-  const userEntry = safeAddress
-    ? leaders.find(l => l.walletAddress.toLowerCase() === safeAddress.toLowerCase())
+  const userEntry = walletAddress
+    ? leaders.find(l => l.walletAddress.toLowerCase() === walletAddress.toLowerCase())
     : null;
 
   return (
@@ -209,7 +210,7 @@ export default function LeaderboardClient() {
       )}
 
       {/* Your Rank Sticky Bar */}
-      {authenticated && safeAddress && (
+      {authenticated && walletAddress && (
         <div className="fixed bottom-0 left-0 right-0 z-[100] glass-card border-t border-[var(--primary-container)]/20 hidden md:block">
           <div className="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-6">
@@ -220,7 +221,7 @@ export default function LeaderboardClient() {
                     <span className="material-symbols-outlined text-sm">person</span>
                   </div>
                   <span className="font-heading font-bold text-lg">
-                    {safeAddress.slice(0, 6)}...{safeAddress.slice(-4)}
+                    {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
                   </span>
                 </div>
               </div>

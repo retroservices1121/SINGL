@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
-import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
+// import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
+import { useSynthesisTrading } from '@/app/hooks/useSynthesisTrading';
 import { useTradeStore } from '@/app/store/tradeStore';
 import { useEventStore } from '@/app/store/eventStore';
 import { formatUSD, formatPercent } from '@/app/lib/utils';
@@ -14,7 +15,7 @@ export default function TradePanel() {
   const { isOpen, market, side, amount, submitting, confirmed, orderId, closeTrade, setAmount, setSubmitting, setConfirmed } = useTradeStore();
   const currentEvent = useEventStore(s => s.currentEvent);
   const { login, authenticated } = usePrivy();
-  const { safeAddress, clobReady, initializing, error: sessionError, initSession, placeMarketOrder } = usePolymarketSession();
+  const { ready, walletAddress, initializing, error: sessionError, placeOrder } = useSynthesisTrading();
   const [localError, setLocalError] = useState<string | null>(null);
   const [minOrderSize, setMinOrderSize] = useState<number>(1);
 
@@ -46,14 +47,8 @@ export default function TradePanel() {
       return;
     }
 
-    if (!clobReady || !safeAddress) {
-      // Try to initialize session
-      setLocalError('Trading session not ready. Initializing...');
-      try {
-        await initSession();
-      } catch {
-        setLocalError('Failed to initialize trading session. Please try again.');
-      }
+    if (!ready || !walletAddress) {
+      setLocalError('Trading session not ready. Please wait for initialization to complete.');
       return;
     }
 
@@ -69,20 +64,19 @@ export default function TradePanel() {
 
     setSubmitting(true);
     try {
-      const result = await placeMarketOrder({
+      const result = await placeOrder({
         tokenId,
         side: 'BUY',
+        type: 'MARKET',
         amount,
-        price,
-        negRisk: market.negRisk,
-        tickSize: market.tickSize,
+        units: 'USDC',
       });
 
       await fetch('/api/positions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          walletAddress: safeAddress,
+          walletAddress: walletAddress,
           marketTicker: market.ticker,
           marketTitle: market.title,
           eventSlug: currentEvent?.slug || '',
@@ -90,12 +84,12 @@ export default function TradePanel() {
           side,
           amount,
           price,
-          orderId: result.orderID,
+          orderId: result.order_id,
           tokenId: tokenId,
         }),
       });
 
-      setConfirmed(result.orderID);
+      setConfirmed(result.order_id);
     } catch (err) {
       console.error('[trade] Client error:', err);
       const msg = err instanceof Error ? err.message : 'Trade failed';
@@ -144,8 +138,9 @@ export default function TradePanel() {
   } else if (initializing) {
     buttonLabel = 'Initializing Session...';
     buttonDisabled = true;
-  } else if (!clobReady) {
-    buttonLabel = 'Initialize Trading Session';
+  } else if (!ready) {
+    buttonLabel = 'Waiting for Trading Session...';
+    buttonDisabled = true;
   } else {
     buttonLabel = `Confirm ${side.toUpperCase()} - ${formatUSD(amount)}`;
   }
@@ -170,16 +165,16 @@ export default function TradePanel() {
           <p className="text-xs text-[var(--secondary)] leading-snug">{market.title}</p>
 
           {/* Session status */}
-          {authenticated && !clobReady && !initializing && (
+          {authenticated && !ready && !initializing && (
             <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
               <span className="material-symbols-outlined text-sm">warning</span>
-              <span>Trading session not initialized. Click the button below to set up.</span>
+              <span>Trading session not ready. Please wait for auto-provisioning.</span>
             </div>
           )}
           {authenticated && initializing && (
             <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
               <Spinner size="sm" />
-              <span>Setting up Polymarket trading session...</span>
+              <span>Setting up trading session...</span>
             </div>
           )}
           {sessionError && (
@@ -268,11 +263,11 @@ export default function TradePanel() {
             {submitting ? <><Spinner size="sm" /> Processing...</> : buttonLabel}
           </button>
 
-          {/* Safe wallet info */}
-          {authenticated && safeAddress && (
+          {/* Trading wallet info */}
+          {authenticated && walletAddress && (
             <div className="text-center">
               <span className="text-[9px] text-[var(--secondary)]">
-                Trading via Safe: <span className="font-mono">{safeAddress.slice(0, 6)}...{safeAddress.slice(-4)}</span>
+                Trading via Synthesis: <span className="font-mono">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
               </span>
             </div>
           )}

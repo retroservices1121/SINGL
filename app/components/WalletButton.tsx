@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
-import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
+// import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
+import { useSynthesisTrading } from '@/app/hooks/useSynthesisTrading';
 
 export default function WalletButton() {
   const [mounted, setMounted] = useState(false);
@@ -22,7 +23,7 @@ export default function WalletButton() {
 
 function WalletButtonInner() {
   const { login, logout, authenticated, user } = usePrivy();
-  const { safeAddress, initializing } = usePolymarketSession();
+  const { walletAddress, initializing } = useSynthesisTrading();
 
   if (!authenticated) {
     return (
@@ -35,8 +36,8 @@ function WalletButtonInner() {
     );
   }
 
-  const displayAddress = safeAddress
-    ? `${safeAddress.slice(0, 6)}...${safeAddress.slice(-4)}`
+  const displayAddress = walletAddress
+    ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
     : user?.email?.address || 'Connected';
 
   return (

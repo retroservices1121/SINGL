@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
+// import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
+import { useSynthesisTrading } from '@/app/hooks/useSynthesisTrading';
 import { formatUSD, formatPercent } from '@/app/lib/utils';
 import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
@@ -59,7 +60,7 @@ interface Position {
 export default function ProfileClient() {
   const { login, authenticated, user } = usePrivy();
   const { wallets } = useWallets();
-  const { safeAddress, eoaAddress, clobReady, initializing, error: sessionError, initSession, placeMarketOrder } = usePolymarketSession();
+  const { ready, walletAddress, initializing, error: sessionError, placeOrder } = useSynthesisTrading();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [selling, setSelling] = useState<string | null>(null);
@@ -68,10 +69,11 @@ export default function ProfileClient() {
   const [usdcBalance, setUsdcBalance] = useState<string | null>(null);
   const [balancesLoaded, setBalancesLoaded] = useState(false);
 
-  const walletAddr = eoaAddress || wallets[0]?.address || safeAddress;
+  const eoaAddress = wallets[0]?.address || null;
+  const walletAddr = walletAddress || eoaAddress;
 
   // Fetch USDC and USDC.e balances separately
-  const balanceAddr = safeAddress || walletAddr;
+  const balanceAddr = walletAddress || walletAddr;
 
   const fetchBalances = useCallback(async () => {
     if (!balanceAddr) return;
@@ -129,10 +131,10 @@ export default function ProfileClient() {
       return;
     }
 
-    // Fetch positions by both EOA and Safe addresses (trade may be stored under either)
+    // Fetch positions by both Synthesis and EOA addresses (trade may be stored under either)
     const addresses = new Set<string>();
     if (walletAddr) addresses.add(walletAddr);
-    if (safeAddress) addresses.add(safeAddress);
+    if (walletAddress) addresses.add(walletAddress);
     if (eoaAddress) addresses.add(eoaAddress);
 
     try {
@@ -157,7 +159,7 @@ export default function ProfileClient() {
       // ignore
     }
     setLoading(false);
-  }, [authenticated, walletAddr, safeAddress, eoaAddress]);
+  }, [authenticated, walletAddr, walletAddress, eoaAddress]);
 
   useEffect(() => {
     fetchPositions();
@@ -169,7 +171,7 @@ export default function ProfileClient() {
   const [redeeming, setRedeeming] = useState<string | null>(null);
 
   const handleRedeem = async (pos: Position) => {
-    if (!authenticated || !safeAddress) {
+    if (!authenticated || !walletAddress) {
       setSellError('Wallet not connected.');
       return;
     }
@@ -177,22 +179,12 @@ export default function ProfileClient() {
     setRedeeming(pos.id);
     setSellError(null);
     try {
-      const session = JSON.parse(localStorage.getItem('polymarket_session') || '{}');
-      if (!session.apiKey) {
-        setSellError('Trading session not initialized. Please go to Markets and reconnect.');
-        setRedeeming(null);
-        return;
-      }
-
       const res = await fetch('/api/polymarket/redeem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           conditionId: pos.marketTicker,
-          apiKey: session.apiKey,
-          apiSecret: session.apiSecret,
-          passphrase: session.passphrase,
-          address: session.eoaAddress,
+          walletAddress: walletAddress,
         }),
       });
 
@@ -219,8 +211,8 @@ export default function ProfileClient() {
   };
 
   const handleSell = async (pos: Position) => {
-    if (!authenticated || !clobReady) {
-      setSellError('Trading session not ready. Please wait or reconnect.');
+    if (!authenticated || !ready) {
+      setSellError('Trading session not ready. Please wait for initialization.');
       return;
     }
 
@@ -231,10 +223,8 @@ export default function ProfileClient() {
       // Resolve the correct CLOB token ID
       // pos.tokenId might be null for old positions — look it up from the API
       let sellTokenId = pos.tokenId;
-      let negRisk = pos.negRisk ?? false;
-      let tickSize = pos.tickSize ?? '0.01';
 
-      // Always resolve from API to get correct tokenId, negRisk, tickSize, and minOrderSize
+      // Always resolve from API to get correct tokenId and check minOrderSize
       const resolveRes = await fetch(
         `/api/resolve-token?conditionId=${encodeURIComponent(pos.marketTicker)}&side=${pos.side?.toLowerCase() || 'yes'}`
       );
@@ -242,8 +232,6 @@ export default function ProfileClient() {
         const resolved = await resolveRes.json();
         if (resolved.tokenId) {
           sellTokenId = resolved.tokenId;
-          negRisk = resolved.negRisk ?? negRisk;
-          tickSize = resolved.tickSize ?? tickSize;
 
           // Check minimum order size
           const minSize = resolved.minOrderSize || 1;
@@ -261,18 +249,17 @@ export default function ProfileClient() {
         return;
       }
 
-      // Use current market price
+      // Use current market price for position recording
       const sellPrice = pos.side === 'Yes'
         ? (pos.currentYesPrice ?? pos.avgPrice)
         : (pos.currentNoPrice ?? pos.avgPrice);
 
-      const result = await placeMarketOrder({
+      const result = await placeOrder({
         tokenId: sellTokenId,
         side: 'SELL',
+        type: 'MARKET',
         amount: pos.shares,
-        price: sellPrice,
-        negRisk,
-        tickSize,
+        units: 'SHARES',
       });
 
       await fetch('/api/positions', {
@@ -280,7 +267,7 @@ export default function ProfileClient() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           positionId: pos.id,
-          closeTxSig: result.orderID,
+          closeTxSig: result.order_id,
           closePrice: sellPrice,
         }),
       });
@@ -355,7 +342,7 @@ export default function ProfileClient() {
             </h1>
             <div className="space-y-1.5">
               {(() => {
-                const primaryWallet = eoaAddress || wallets[0]?.address || null;
+                const primaryWallet = eoaAddress || null;
                 const email = user?.email?.address;
                 return (
                   <>
@@ -368,23 +355,18 @@ export default function ProfileClient() {
                     {primaryWallet && (
                       <CopyableAddress label="EOA Wallet" address={primaryWallet} />
                     )}
-                    {safeAddress && (
-                      <CopyableAddress label="Safe (Trading)" address={safeAddress} />
+                    {walletAddress && (
+                      <CopyableAddress label="Synthesis (Trading)" address={walletAddress} />
                     )}
-                    {!safeAddress && !initializing && authenticated && (
+                    {!walletAddress && !initializing && authenticated && (
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">Safe Wallet</span>
-                        <button
-                          onClick={() => initSession()}
-                          className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary-fixed)] px-2 py-0.5 rounded hover:bg-[var(--primary-fixed-dim)] transition-colors cursor-pointer"
-                        >
-                          Initialize Trading
-                        </button>
+                        <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">Trading Wallet</span>
+                        <span className="text-[10px] font-bold text-amber-600">Waiting for provisioning...</span>
                       </div>
                     )}
-                    {!safeAddress && initializing && (
+                    {!walletAddress && initializing && (
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">Safe Wallet</span>
+                        <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">Trading Wallet</span>
                         <span className="text-xs text-[var(--secondary)] flex items-center gap-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary-container)] animate-pulse" />
                           Initializing...
@@ -396,7 +378,7 @@ export default function ProfileClient() {
                         Session error: {sessionError}
                       </div>
                     )}
-                    {!primaryWallet && !safeAddress && !email && (
+                    {!primaryWallet && !walletAddress && !email && (
                       <p className="text-[var(--secondary)] font-medium tracking-wide">Connected</p>
                     )}
                   </>
@@ -413,7 +395,7 @@ export default function ProfileClient() {
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Wallet Balances</span>
                     <span className="text-[8px] font-bold text-slate-500 bg-white/10 px-1.5 py-0.5 rounded">Polygon</span>
-                    {!safeAddress && (
+                    {!walletAddress && (
                       <span className="text-[8px] font-bold text-amber-400 bg-white/10 px-1.5 py-0.5 rounded">EOA</span>
                     )}
                   </div>
@@ -649,7 +631,7 @@ export default function ProfileClient() {
                               </span>
                               <button
                                 onClick={() => handleSell(pos)}
-                                disabled={selling === pos.id || !clobReady}
+                                disabled={selling === pos.id || !ready}
                                 className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-[var(--no-bg)] text-[var(--no)] rounded-full hover:bg-[var(--no)] hover:text-white transition-colors cursor-pointer disabled:opacity-50"
                               >
                                 {selling === pos.id ? 'Selling...' : 'Sell'}
