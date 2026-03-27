@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
 import { useTradeStore } from '@/app/store/tradeStore';
@@ -16,6 +16,19 @@ export default function TradePanel() {
   const { login, authenticated } = usePrivy();
   const { safeAddress, clobReady, initializing, error: sessionError, initSession, placeMarketOrder } = usePolymarketSession();
   const [localError, setLocalError] = useState<string | null>(null);
+  const [minOrderSize, setMinOrderSize] = useState<number>(1);
+
+  // Fetch min order size from CLOB when market changes
+  useEffect(() => {
+    if (!market) return;
+    const tokenId = side === 'yes' ? market.yesTokenId : market.noTokenId;
+    if (!tokenId) return;
+    setMinOrderSize(1); // reset
+    fetch(`/api/resolve-token?conditionId=${encodeURIComponent(market.ticker)}&side=${side}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.minOrderSize) setMinOrderSize(d.minOrderSize); })
+      .catch(() => {});
+  }, [market, side]);
 
   if (!isOpen || !market) return null;
 
@@ -225,6 +238,14 @@ export default function TradePanel() {
               <span className="text-[var(--secondary)]">Potential Profit</span>
               <span className="font-mono font-bold text-[var(--yes)]">+{formatUSD(profit)}</span>
             </div>
+            {minOrderSize > 1 && shares < minOrderSize && (
+              <div className="flex items-center gap-1.5 pt-2 border-t border-[var(--surface-container)]">
+                <span className="material-symbols-outlined text-sm text-amber-500">info</span>
+                <span className="text-[10px] text-amber-600">
+                  Min {minOrderSize} shares to sell before expiration. Buy at least {formatUSD(minOrderSize * price)} to sell later.
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Error */}

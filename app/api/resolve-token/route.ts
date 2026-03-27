@@ -3,9 +3,27 @@ import { prisma } from '@/app/lib/db';
 
 export const dynamic = 'force-dynamic';
 
+const CLOB_URL = 'https://clob.polymarket.com';
+
+async function fetchClobMeta(tokenId: string): Promise<{ neg_risk: boolean; tick_size: string; min_order_size: number } | null> {
+  try {
+    const res = await fetch(`${CLOB_URL}/book?token_id=${tokenId}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return {
+      neg_risk: data.neg_risk ?? false,
+      tick_size: data.tick_size ?? '0.01',
+      min_order_size: parseFloat(data.min_order_size) || 1,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Resolves a conditionId + side to the correct CLOB token ID.
  * First checks the DB, then falls back to the Gamma API.
+ * Also fetches min_order_size, negRisk, tickSize from CLOB order book.
  */
 export async function GET(req: NextRequest) {
   const conditionId = req.nextUrl.searchParams.get('conditionId');
@@ -41,10 +59,13 @@ export async function GET(req: NextRequest) {
   }
 
   if (market?.yesTokenId) {
+    const tokenId = side === 'yes' ? market.yesTokenId : market.noTokenId;
+    const clobMeta = tokenId ? await fetchClobMeta(tokenId) : null;
     return NextResponse.json({
-      tokenId: side === 'yes' ? market.yesTokenId : market.noTokenId,
-      negRisk: market.negRisk,
-      tickSize: market.tickSize,
+      tokenId,
+      negRisk: clobMeta?.neg_risk ?? market.negRisk,
+      tickSize: clobMeta?.tick_size ?? market.tickSize,
+      minOrderSize: clobMeta?.min_order_size ?? 1,
     });
   }
 
@@ -65,10 +86,13 @@ export async function GET(req: NextRequest) {
         const yesTokenId = yesIdx >= 0 ? clobTokenIds[yesIdx] : '';
         const noTokenId = noIdx >= 0 ? clobTokenIds[noIdx] : '';
 
+        const resolvedTokenId = side === 'yes' ? yesTokenId : noTokenId;
+        const clobMeta = resolvedTokenId ? await fetchClobMeta(resolvedTokenId) : null;
         return NextResponse.json({
-          tokenId: side === 'yes' ? yesTokenId : noTokenId,
-          negRisk: gm.negRisk ?? false,
-          tickSize: String(gm.orderPriceMinTickSize || gm.minimum_tick_size || '0.01'),
+          tokenId: resolvedTokenId,
+          negRisk: clobMeta?.neg_risk ?? gm.negRisk ?? false,
+          tickSize: clobMeta?.tick_size ?? String(gm.orderPriceMinTickSize || gm.minimum_tick_size || '0.01'),
+          minOrderSize: clobMeta?.min_order_size ?? 1,
         });
       }
     }

@@ -234,17 +234,23 @@ export default function ProfileClient() {
       let negRisk = pos.negRisk ?? false;
       let tickSize = pos.tickSize ?? '0.01';
 
-      if (!sellTokenId || sellTokenId.startsWith('0x')) {
-        // tokenId is missing or is a conditionId (hex) — resolve from Gamma API
-        const resolveRes = await fetch(
-          `/api/resolve-token?conditionId=${encodeURIComponent(pos.marketTicker)}&side=${pos.side?.toLowerCase() || 'yes'}`
-        );
-        if (resolveRes.ok) {
-          const resolved = await resolveRes.json();
-          if (resolved.tokenId) {
-            sellTokenId = resolved.tokenId;
-            negRisk = resolved.negRisk ?? negRisk;
-            tickSize = resolved.tickSize ?? tickSize;
+      // Always resolve from API to get correct tokenId, negRisk, tickSize, and minOrderSize
+      const resolveRes = await fetch(
+        `/api/resolve-token?conditionId=${encodeURIComponent(pos.marketTicker)}&side=${pos.side?.toLowerCase() || 'yes'}`
+      );
+      if (resolveRes.ok) {
+        const resolved = await resolveRes.json();
+        if (resolved.tokenId) {
+          sellTokenId = resolved.tokenId;
+          negRisk = resolved.negRisk ?? negRisk;
+          tickSize = resolved.tickSize ?? tickSize;
+
+          // Check minimum order size
+          const minSize = resolved.minOrderSize || 1;
+          if (pos.shares < minSize) {
+            setSellError(`Minimum sell size for this market is ${minSize} shares. You have ${pos.shares.toFixed(2)}.`);
+            setSelling(null);
+            return;
           }
         }
       }
@@ -327,6 +333,7 @@ export default function ProfileClient() {
       : (p.currentNoPrice ?? p.avgPrice);
     return sum + p.shares * livePrice;
   }, 0);
+  const totalPotentialPayout = openPositions.reduce((sum, p) => sum + p.shares, 0);
   const totalUnrealizedPnl = totalCurrentValue - totalCost;
   const totalRealizedPnl = closedPositions.reduce((sum, p) => sum + (p.realizedPnl || 0), 0);
   const totalBalance = totalCurrentValue + totalRealizedPnl;
