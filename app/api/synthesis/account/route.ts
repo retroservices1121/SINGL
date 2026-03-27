@@ -82,9 +82,15 @@ export async function POST(req: NextRequest) {
       console.error('[synthesis] Wallet creation failed (will retry later):', walletErr);
     }
 
-    // Step 4: Store in DB
-    await prisma.synthesisAccount.create({
-      data: {
+    // Step 4: Store in DB (use upsert to handle race conditions)
+    const record = await prisma.synthesisAccount.upsert({
+      where: { privyUserId: privy_user_id },
+      update: {
+        // If a race condition created a record, update it with wallet info
+        walletId: walletId || undefined,
+        walletAddress: walletAddress || undefined,
+      },
+      create: {
         privyUserId: privy_user_id,
         accountId,
         apiKey: secretKey,
@@ -94,10 +100,10 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({
-      account_id: accountId,
-      wallet_id: walletId,
-      wallet_address: walletAddress,
-      ready: !!walletId,
+      account_id: record.accountId,
+      wallet_id: record.walletId,
+      wallet_address: record.walletAddress,
+      ready: !!record.walletId,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Failed to create Synthesis account';

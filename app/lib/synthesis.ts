@@ -105,25 +105,45 @@ interface SynthesisWallet {
 }
 
 /**
- * Get wallets for this account. Auto-creates first wallet if none exist.
+ * Get wallets for this account. Creates one if none exist.
  */
 export async function getSynthesisWallet(
   accountApiKey: string,
 ): Promise<SynthesisWallet> {
-  const res = await accountFetch(accountApiKey, '/api/v1/wallet', {
-    method: 'GET',
+  // Try to get existing wallets first
+  const getRes = await accountFetch(accountApiKey, '/api/v1/wallet');
+  const getText = await getRes.text();
+
+  let wallets: SynthesisWallet[] = [];
+  try {
+    const json = JSON.parse(getText);
+    if (json.success && Array.isArray(json.response) && json.response.length > 0) {
+      wallets = json.response;
+    }
+  } catch {
+    // GET returned non-JSON (404 page) — wallet doesn't exist yet
+  }
+
+  if (wallets.length > 0) return wallets[0];
+
+  // Create a new wallet
+  const createRes = await accountFetch(accountApiKey, '/api/v1/wallet', {
+    method: 'POST',
+    body: JSON.stringify({}),
   });
-
-  const json = await res.json();
-  if (!res.ok || !json.success) {
-    throw new Error(`Synthesis get wallet failed: ${JSON.stringify(json)}`);
+  const createText = await createRes.text();
+  try {
+    const json = JSON.parse(createText);
+    if (!json.success) {
+      throw new Error(`Synthesis create wallet failed: ${createText}`);
+    }
+    return json.response as SynthesisWallet;
+  } catch (e) {
+    if (e instanceof SyntaxError) {
+      throw new Error(`Synthesis wallet returned non-JSON: ${createText.slice(0, 100)}`);
+    }
+    throw e;
   }
-
-  const wallets = json.response as SynthesisWallet[];
-  if (!wallets || wallets.length === 0) {
-    throw new Error('Synthesis returned no wallets');
-  }
-  return wallets[0];
 }
 
 // ---------------------------------------------------------------------------
