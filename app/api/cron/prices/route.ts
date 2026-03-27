@@ -28,38 +28,59 @@ export async function GET(req: NextRequest) {
   // Sync markets from Polymarket Gamma API: backfill token IDs + import missing markets
   let newMarketsAdded = 0;
   let tokenIdsBackfilled = 0;
+  let syncDebug = '';
   try {
-    // Try by slug first, then search by title if slug doesn't match Polymarket's
     let gammaEvent: Record<string, unknown> | null = null;
 
+    // 1. Try exact slug
+    syncDebug += `slug=${event.slug},title=${event.title}; `;
     const slugRes = await fetch(
       `https://gamma-api.polymarket.com/events?slug=${encodeURIComponent(event.slug)}`
     );
     if (slugRes.ok) {
       const slugData = await slugRes.json();
       const found = Array.isArray(slugData) ? slugData[0] : slugData;
+      syncDebug += `slugLookup=${(found?.markets as unknown[])?.length ?? 'null'}; `;
       if (found?.markets?.length > 0) gammaEvent = found;
     }
 
+    // 2. Try search by title
     if (!gammaEvent) {
-      // Slug didn't match — search by event title
       const searchRes = await fetch(
         `https://gamma-api.polymarket.com/public-search?q=${encodeURIComponent(event.title)}&limit_per_type=5`
       );
       if (searchRes.ok) {
         const searchData = await searchRes.json();
         const bestMatch = (searchData.events || [])[0];
+        syncDebug += `searchMatch=${bestMatch?.slug ?? 'none'}; `;
         if (bestMatch?.slug) {
           const matchRes = await fetch(
             `https://gamma-api.polymarket.com/events?slug=${encodeURIComponent(bestMatch.slug)}`
           );
           if (matchRes.ok) {
             const matchData = await matchRes.json();
-            gammaEvent = Array.isArray(matchData) ? matchData[0] : matchData;
+            const found = Array.isArray(matchData) ? matchData[0] : matchData;
+            syncDebug += `matchMarkets=${(found?.markets as unknown[])?.length ?? 'null'}; `;
+            if (found?.markets?.length > 0) gammaEvent = found;
           }
         }
       }
     }
+
+    // 3. Last resort: try known NCAA tournament slug directly
+    if (!gammaEvent) {
+      const ncaaRes = await fetch(
+        'https://gamma-api.polymarket.com/events?slug=2026-ncaa-tournament-winner'
+      );
+      if (ncaaRes.ok) {
+        const ncaaData = await ncaaRes.json();
+        const found = Array.isArray(ncaaData) ? ncaaData[0] : ncaaData;
+        syncDebug += `hardcoded=${(found?.markets as unknown[])?.length ?? 'null'}; `;
+        if (found?.markets?.length > 0) gammaEvent = found;
+      }
+    }
+
+    syncDebug += `gammaEvent=${gammaEvent ? 'found' : 'null'}; `;
 
     if (gammaEvent) {
       // Gamma API uses camelCase fields: conditionId, clobTokenIds, negRisk, orderPriceMinTickSize
@@ -202,5 +223,6 @@ export async function GET(req: NextRequest) {
     totalMarkets: event.markets.length,
     newMarketsAdded,
     tokenIdsBackfilled,
+    syncDebug,
   });
 }
