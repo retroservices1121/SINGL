@@ -161,33 +161,6 @@ function GameCard({
   );
 }
 
-// ── Round Column Component ─────────────────────────────────────────────────
-
-function RoundColumn({
-  roundName,
-  games,
-  profiles,
-  compact,
-}: {
-  roundName: string;
-  games: BracketGame[];
-  profiles: TeamProfile[];
-  compact?: boolean;
-}) {
-  return (
-    <div className="flex flex-col gap-4 min-w-[160px]">
-      <div className="text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest text-center mb-1">
-        {roundName}
-      </div>
-      <div className="flex flex-col justify-around gap-4 h-full">
-        {games.map(game => (
-          <GameCard key={game.id} game={game} profiles={profiles} compact={compact} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ── Region Bracket Component ───────────────────────────────────────────────
 
 function RegionBracket({
@@ -232,18 +205,41 @@ function RegionBracket({
         )}
       </div>
 
-      {/* Sweet 16 + Elite Eight */}
-      <div className="flex gap-3">
-        {s16Games.length > 0 && (
-          <div className="flex-1">
-            <RoundColumn roundName="Sweet 16" games={s16Games} profiles={profiles} />
-          </div>
-        )}
-        {e8Games.length > 0 && (
-          <div className="flex-1">
-            <RoundColumn roundName="Elite Eight" games={e8Games} profiles={profiles} />
-          </div>
-        )}
+      {/* Bracket layout: S16 → connector → E8 → projected winner */}
+      <div className="flex items-center gap-3">
+        {/* Sweet 16 matchups */}
+        <div className="flex flex-col gap-4 w-[45%] shrink-0">
+          {s16Games.map(game => (
+            <GameCard key={game.id} game={game} profiles={profiles} />
+          ))}
+        </div>
+
+        {/* Connector lines */}
+        <div className="flex flex-col items-center justify-center w-4 shrink-0 relative">
+          <svg viewBox="0 0 16 100" className="w-4 h-full" preserveAspectRatio="none">
+            <path d="M0,25 L8,25 L8,75 L0,75" fill="none" stroke="var(--surface-container-highest)" strokeWidth="1.5" />
+            <path d="M8,50 L16,50" fill="none" stroke="var(--surface-container-highest)" strokeWidth="1.5" />
+          </svg>
+        </div>
+
+        {/* Elite 8 */}
+        <div className="flex flex-col justify-center w-[45%] shrink-0">
+          {e8Games.map(game => (
+            <GameCard key={game.id} game={game} profiles={profiles} compact />
+          ))}
+          {/* Projected region winner */}
+          {regionWinner && (
+            <div className="mt-2 flex items-center gap-1.5 px-2 py-1 bg-[var(--primary-fixed)] rounded text-[10px]">
+              <span className="material-symbols-outlined text-[12px] text-[var(--primary)]">arrow_forward</span>
+              <span className="font-bold text-[var(--primary)] uppercase tracking-wider">{regionWinner.nameShort}</span>
+              {(() => {
+                const profile = findMarketForTeam(regionWinner.nameShort, profiles);
+                const odds = profile?.championshipOdds ? Math.round(profile.championshipOdds * 100) : null;
+                return odds ? <span className="font-mono text-[var(--primary)] ml-auto">{odds}%</span> : null;
+              })()}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
