@@ -66,13 +66,6 @@ export async function POST(req: NextRequest) {
         const response = await clobClient.postOrder(orderData, orderType || undefined, false);
 
         console.log('[clob proxy] Order response:', JSON.stringify(response));
-
-        // Check if FOK order was actually filled
-        if (orderType === 'FOK' && response && !response.orderID && !response.orderIds?.length) {
-          console.error('[clob proxy] FOK order likely not filled:', response);
-          return NextResponse.json({ error: 'Order not filled — no matching orders at this price', details: response }, { status: 422 });
-        }
-
         return NextResponse.json(response);
       } catch (sdkErr) {
         const sdkMsg = sdkErr instanceof Error ? sdkErr.message : String(sdkErr);

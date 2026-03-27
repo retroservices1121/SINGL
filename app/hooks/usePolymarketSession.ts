@@ -273,11 +273,8 @@ export function usePolymarketSession(): SessionState & {
     (clobClient as any).negRisk[params.tokenId] = params.negRisk;
     (clobClient as any).feeRates[params.tokenId] = 0;
 
-    // Add slippage to cross the spread for FOK market orders
-    // BUY: pay slightly more to match existing asks
-    // SELL: accept slightly less to match existing bids
-    const slippage = params.side === 'BUY' ? 0.03 : -0.03;
-    const roundedPrice = Math.min(0.99, Math.max(0.01, Math.round((params.price + slippage) * 100) / 100));
+    // Round price to 2 decimals for Polymarket precision requirements
+    const roundedPrice = Math.round(params.price * 100) / 100;
     if (roundedPrice <= 0 || roundedPrice >= 1) {
       throw new Error(`Invalid price: ${roundedPrice}. Must be between 0.01 and 0.99.`);
     }
@@ -322,7 +319,7 @@ export function usePolymarketSession(): SessionState & {
         passphrase: state.session.passphrase,
         address: state.session.eoaAddress,
         safeAddress: state.session.safeAddress,
-      } as Record<string, string>, 'FOK');
+      } as Record<string, string>, 'GTC');
       return { orderID: response.orderID || response.orderIds?.[0] || 'submitted' };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
