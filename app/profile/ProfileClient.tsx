@@ -227,15 +227,35 @@ export default function ProfileClient() {
     setSelling(pos.id);
     setSellError(null);
 
-    const sellTokenId = pos.tokenId || pos.marketTicker;
-    if (!sellTokenId) {
-      setSellError('Token ID not available for this position. Cannot sell.');
-      setSelling(null);
-      return;
-    }
-
     try {
-      // Use current market price — slippage is handled in the hook
+      // Resolve the correct CLOB token ID
+      // pos.tokenId might be null for old positions — look it up from the API
+      let sellTokenId = pos.tokenId;
+      let negRisk = pos.negRisk ?? false;
+      let tickSize = pos.tickSize ?? '0.01';
+
+      if (!sellTokenId || sellTokenId.startsWith('0x')) {
+        // tokenId is missing or is a conditionId (hex) — resolve from Gamma API
+        const resolveRes = await fetch(
+          `/api/resolve-token?conditionId=${encodeURIComponent(pos.marketTicker)}&side=${pos.side?.toLowerCase() || 'yes'}`
+        );
+        if (resolveRes.ok) {
+          const resolved = await resolveRes.json();
+          if (resolved.tokenId) {
+            sellTokenId = resolved.tokenId;
+            negRisk = resolved.negRisk ?? negRisk;
+            tickSize = resolved.tickSize ?? tickSize;
+          }
+        }
+      }
+
+      if (!sellTokenId || sellTokenId.startsWith('0x')) {
+        setSellError('Could not resolve CLOB token ID for this position.');
+        setSelling(null);
+        return;
+      }
+
+      // Use current market price
       const sellPrice = pos.side === 'Yes'
         ? (pos.currentYesPrice ?? pos.avgPrice)
         : (pos.currentNoPrice ?? pos.avgPrice);
@@ -245,8 +265,8 @@ export default function ProfileClient() {
         side: 'SELL',
         amount: pos.shares,
         price: sellPrice,
-        negRisk: pos.negRisk ?? false,
-        tickSize: pos.tickSize ?? '0.01',
+        negRisk,
+        tickSize,
       });
 
       await fetch('/api/positions', {
