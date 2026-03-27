@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
 import type { EventData } from '@/app/types';
 import { useEventStore } from '@/app/store/eventStore';
 import { parseMarkets, buildTeamProfiles } from '@/app/lib/ncaa';
+import type { TeamProfile } from '@/app/lib/ncaa';
 import MarketCard from './MarketCard';
 import TeamCard from './TeamCard';
+import TeamStatsPanel from './TeamStatsPanel';
 import BracketVisualizer from './BracketVisualizer';
 import UpsetAlertBanner from './UpsetAlertBanner';
 import OddsMovementTracker from './OddsMovementTracker';
@@ -89,6 +91,7 @@ export default function EventPage({ event }: EventPageProps) {
   const setCurrentEvent = useEventStore(s => s.setCurrentEvent);
   const [view, setView] = useState<ViewMode>('teams');
   const [showAll, setShowAll] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
 
   useEffect(() => {
     setCurrentEvent(event);
@@ -191,7 +194,7 @@ export default function EventPage({ event }: EventPageProps) {
             {teamProfiles.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {teamProfiles.map((team, i) => (
-                  <TeamCard key={team.name} team={team} index={i} />
+                  <TeamCard key={team.name} team={team} index={i} onSelect={setSelectedTeam} />
                 ))}
               </div>
             ) : (
@@ -254,6 +257,14 @@ export default function EventPage({ event }: EventPageProps) {
         </section>
       </div>
 
+      {selectedTeam && (
+        <TeamStatsPanel
+          teamName={selectedTeam.name}
+          championshipOdds={selectedTeam.championshipOdds}
+          championshipMarket={selectedTeam.championshipMarket}
+          onClose={() => setSelectedTeam(null)}
+        />
+      )}
       <MarketDetailOverlay />
       <TradePanel />
     </div>

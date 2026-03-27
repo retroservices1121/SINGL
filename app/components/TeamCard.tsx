@@ -9,6 +9,7 @@ import Sparkline from './Sparkline';
 interface TeamCardProps {
   team: TeamProfile;
   index: number;
+  onSelect?: (team: TeamProfile) => void;
 }
 
 const ROUND_LABELS: Record<string, string> = {
@@ -89,7 +90,7 @@ function OddsDelta({ market }: { market: { change24h?: number | null } }) {
   );
 }
 
-export default function TeamCard({ team, index }: TeamCardProps) {
+export default function TeamCard({ team, index, onSelect }: TeamCardProps) {
   const openTrade = useTradeStore(s => s.openTrade);
   const champOdds = team.championshipOdds ? Math.round(team.championshipOdds * 100) : null;
   const roundOdds = team.currentRoundOdds ? Math.round(team.currentRoundOdds * 100) : null;
@@ -111,8 +112,9 @@ export default function TeamCard({ team, index }: TeamCardProps) {
 
   return (
     <div
-      className="bg-[var(--surface-container-lowest)] rounded-xl shadow-ambient hover:scale-[1.02] transition-all duration-300 flex flex-col overflow-hidden"
+      className="bg-[var(--surface-container-lowest)] rounded-xl shadow-ambient hover:scale-[1.02] transition-all duration-300 flex flex-col overflow-hidden cursor-pointer"
       style={{ animationDelay: `${index * 30}ms` }}
+      onClick={() => onSelect?.(team)}
     >
       {/* Top accent bar */}
       <div className="h-1 w-full" style={{
@@ -214,13 +216,13 @@ export default function TeamCard({ team, index }: TeamCardProps) {
         {team.championshipMarket && (
           <div className="flex gap-2 mt-auto">
             <button
-              onClick={() => openTrade(team.championshipMarket!, 'yes')}
+              onClick={(e) => { e.stopPropagation(); openTrade(team.championshipMarket!, 'yes'); }}
               className="flex-1 py-2.5 text-xs font-bold rounded-md bg-[var(--yes-bg)] text-[var(--yes)] hover:bg-[var(--yes)] hover:text-white transition-colors cursor-pointer"
             >
               Buy Yes {champOdds}c
             </button>
             <button
-              onClick={() => openTrade(team.championshipMarket!, 'no')}
+              onClick={(e) => { e.stopPropagation(); openTrade(team.championshipMarket!, 'no'); }}
               className="flex-1 py-2.5 text-xs font-bold rounded-md bg-[var(--no-bg)] text-[var(--no)] hover:bg-[var(--no)] hover:text-white transition-colors cursor-pointer"
             >
               Buy No
