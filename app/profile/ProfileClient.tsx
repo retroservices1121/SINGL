@@ -235,12 +235,10 @@ export default function ProfileClient() {
     }
 
     try {
-      // Use current market price minus slippage to ensure FOK fill
-      // Selling at mid-price won't fill — need to cross the spread
-      const midPrice = pos.side === 'Yes'
+      // Use current market price — slippage is handled in the hook
+      const sellPrice = pos.side === 'Yes'
         ? (pos.currentYesPrice ?? pos.avgPrice)
         : (pos.currentNoPrice ?? pos.avgPrice);
-      const sellPrice = Math.max(0.01, midPrice - 0.03); // 3 cent slippage tolerance
 
       const result = await placeMarketOrder({
         tokenId: sellTokenId,

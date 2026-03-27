@@ -273,8 +273,11 @@ export function usePolymarketSession(): SessionState & {
     (clobClient as any).negRisk[params.tokenId] = params.negRisk;
     (clobClient as any).feeRates[params.tokenId] = 0;
 
-    // Round price to 2 decimals for Polymarket precision requirements
-    const roundedPrice = Math.round(params.price * 100) / 100;
+    // Add slippage to cross the spread for FOK market orders
+    // BUY: pay slightly more to match existing asks
+    // SELL: accept slightly less to match existing bids
+    const slippage = params.side === 'BUY' ? 0.03 : -0.03;
+    const roundedPrice = Math.min(0.99, Math.max(0.01, Math.round((params.price + slippage) * 100) / 100));
     if (roundedPrice <= 0 || roundedPrice >= 1) {
       throw new Error(`Invalid price: ${roundedPrice}. Must be between 0.01 and 0.99.`);
     }
