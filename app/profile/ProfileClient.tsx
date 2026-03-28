@@ -4,9 +4,104 @@ import { useEffect, useState, useCallback } from 'react';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 // import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
 import { useSynthesisTrading } from '@/app/hooks/useSynthesisTrading';
-import { formatUSD, formatPercent } from '@/app/lib/utils';
+import { formatUSD, formatPercent, formatVolume } from '@/app/lib/utils';
 import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
+
+const SITE_URL = 'https://singl.market';
+
+function SharePositionButton({ pos, pnlPct, currentValue }: { pos: Position; pnlPct: number; currentValue: number }) {
+  const [showMenu, setShowMenu] = useState(false);
+
+  const pnl = currentValue - pos.costBasis;
+  const isWin = pnl >= 0;
+  const entryPrice = Math.round(pos.avgPrice * 100);
+  const livePrice = pos.side?.toLowerCase() === 'yes'
+    ? Math.round((pos.currentYesPrice ?? pos.avgPrice) * 100)
+    : Math.round((pos.currentNoPrice ?? pos.avgPrice) * 100);
+
+  const ogUrl = `${SITE_URL}/api/og/position?` + new URLSearchParams({
+    market: pos.marketTitle,
+    event: pos.eventTitle,
+    side: pos.side,
+    entry: String(entryPrice),
+    current: String(livePrice),
+    pnl: `${isWin ? '+' : ''}${formatUSD(pnl)}`,
+    pnlPct: `${isWin ? '+' : ''}${pnlPct.toFixed(1)}`,
+    stake: formatUSD(pos.costBasis),
+    payout: formatUSD(pos.shares),
+  }).toString();
+
+  const tweetText = `${isWin ? '📈' : '📉'} ${pos.side.toUpperCase()} on "${pos.marketTitle}"\n\n${isWin ? '+' : ''}${pnlPct.toFixed(1)}% | ${entryPrice}¢ → ${livePrice}¢\n\nTrade on @singlmarket`;
+  const shareUrl = `${SITE_URL}/event/${pos.eventSlug}`;
+
+  const shareOnX = () => {
+    window.open(
+      `https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(shareUrl)}`,
+      '_blank'
+    );
+    setShowMenu(false);
+  };
+
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(`${tweetText}\n${shareUrl}`);
+    setShowMenu(false);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setShowMenu(!showMenu)}
+        className="p-1.5 text-[var(--secondary)] hover:text-[var(--primary-container)] transition-colors cursor-pointer"
+        title="Share position"
+      >
+        <span className="material-symbols-outlined text-sm">share</span>
+      </button>
+      {showMenu && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+          <div className="absolute right-0 top-8 z-50 bg-[var(--surface-container-lowest)] shadow-lg rounded-lg border border-[var(--surface-container-highest)] py-1 min-w-[140px]">
+            <button onClick={shareOnX} className="flex items-center gap-2 w-full px-4 py-2 text-xs font-bold hover:bg-[var(--surface-container-high)] transition-colors cursor-pointer">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+              Share on X
+            </button>
+            <button onClick={copyLink} className="flex items-center gap-2 w-full px-4 py-2 text-xs font-bold hover:bg-[var(--surface-container-high)] transition-colors cursor-pointer">
+              <span className="material-symbols-outlined text-sm">content_copy</span>
+              Copy text
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function SharePortfolioButton({ totalValue, totalPnl, pnlPct, winRate, positionCount, volume, bars }: {
+  totalValue: string; totalPnl: string; pnlPct: string; winRate: string; positionCount: number; volume: string; bars: number[];
+}) {
+  const isPositive = !totalPnl.startsWith('-');
+
+  const tweetText = `My SINGL portfolio:\n\n${totalValue} | ${isPositive ? '+' : ''}${pnlPct}%\n${winRate}% win rate across ${positionCount} positions\n\nTrade on @singlmarket`;
+  const shareUrl = SITE_URL;
+
+  const shareOnX = () => {
+    window.open(
+      `https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(shareUrl)}`,
+      '_blank'
+    );
+  };
+
+  return (
+    <button
+      onClick={shareOnX}
+      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[var(--on-surface)] text-white rounded-md hover:opacity-90 transition-all cursor-pointer"
+      title="Share portfolio on X"
+    >
+      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+      Share
+    </button>
+  );
+}
 
 function CopyableAddress({ label, address }: { label: string; address: string }) {
   const [copied, setCopied] = useState(false);
@@ -468,36 +563,79 @@ export default function ProfileClient() {
         </div>
       ) : (
         <div className="grid grid-cols-12 gap-6">
-          {/* Performance Chart placeholder */}
+          {/* Performance Velocity */}
           <div className="col-span-12 lg:col-span-8 bg-[var(--surface-container-lowest)] p-8 rounded-xl relative overflow-hidden shadow-ambient">
             <div className="flex justify-between items-start mb-8">
               <div>
                 <h3 className="font-heading text-xl font-bold uppercase tracking-tight text-[var(--on-surface)]">Performance Velocity</h3>
-                <p className="text-[var(--secondary)] text-xs">Dynamic PnL aggregation across all positions</p>
+                <p className="text-[var(--secondary)] text-xs">P&L per position — sorted by return</p>
               </div>
+              <SharePortfolioButton
+                totalValue={formatUSD(totalBalance)}
+                totalPnl={`${totalUnrealizedPnl + totalRealizedPnl >= 0 ? '+' : ''}${formatUSD(totalUnrealizedPnl + totalRealizedPnl)}`}
+                pnlPct={totalCost > 0 ? ((totalUnrealizedPnl + totalRealizedPnl) / totalCost * 100).toFixed(1) : '0'}
+                winRate={winRate.toFixed(1)}
+                positionCount={positions.length}
+                volume={formatVolume(positions.reduce((s, p) => s + p.costBasis, 0))}
+                bars={positions.map(p => {
+                  const lp = p.side?.toLowerCase() === 'yes' ? (p.currentYesPrice ?? p.avgPrice) : (p.currentNoPrice ?? p.avgPrice);
+                  return p.costBasis > 0 ? (p.shares * lp - p.costBasis) / p.costBasis : 0;
+                })}
+              />
             </div>
-            <div className="h-48 w-full flex items-end gap-1">
-              {/* Simple bar chart from position data */}
-              {openPositions.slice(0, 12).map((pos, i) => {
-                const pnlRatio = pos.costBasis > 0 ? (pos.shares - pos.costBasis) / pos.costBasis : 0;
-                const height = Math.max(10, Math.min(100, 50 + pnlRatio * 200));
-                return (
-                  <div key={pos.id} className="flex-1 flex flex-col items-center gap-1">
-                    <div
-                      className={`w-full rounded-t ${pnlRatio >= 0 ? 'bg-[var(--primary-container)]/20' : 'bg-[var(--error)]/20'}`}
-                      style={{ height: `${height}%` }}
-                    >
-                      <div
-                        className={`w-full rounded-t ${pnlRatio >= 0 ? 'bg-[var(--primary-container)]' : 'bg-[var(--error)]'}`}
-                        style={{ height: `${Math.abs(pnlRatio) * 100}%`, minHeight: '4px' }}
-                      />
+
+            {/* Velocity bar chart — all positions sorted by return % */}
+            <div className="h-52 w-full flex items-end gap-[3px] relative">
+              {/* Zero line */}
+              <div className="absolute left-0 right-0 bottom-[50%] border-b border-dashed border-[var(--surface-container-highest)]" />
+              {(() => {
+                const allBars = positions.map(p => {
+                  const lp = p.side?.toLowerCase() === 'yes' ? (p.currentYesPrice ?? p.avgPrice) : (p.currentNoPrice ?? p.avgPrice);
+                  const cv = p.shares * lp;
+                  const pnlRatio = p.costBasis > 0 ? (cv - p.costBasis) / p.costBasis : (p.realizedPnl && p.costBasis > 0 ? p.realizedPnl / p.costBasis : 0);
+                  return { id: p.id, ratio: pnlRatio, title: p.marketTitle, side: p.side, status: p.status };
+                }).sort((a, b) => b.ratio - a.ratio);
+
+                if (allBars.length === 0) {
+                  return <div className="w-full text-center text-[var(--secondary)] text-sm py-12">No positions to chart</div>;
+                }
+
+                const maxAbs = Math.max(0.01, ...allBars.map(b => Math.abs(b.ratio)));
+
+                return allBars.slice(0, 20).map(bar => {
+                  const normalizedHeight = (Math.abs(bar.ratio) / maxAbs) * 45;
+                  const isUp = bar.ratio >= 0;
+                  return (
+                    <div key={bar.id} className="flex-1 flex flex-col items-center relative group" style={{ height: '100%' }}>
+                      {/* Tooltip */}
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[var(--on-surface)] text-white text-[9px] px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        {bar.title} ({bar.side}) {bar.ratio >= 0 ? '+' : ''}{(bar.ratio * 100).toFixed(1)}%
+                      </div>
+                      {/* Bar */}
+                      <div className="w-full flex flex-col justify-end" style={{ height: '50%' }}>
+                        {isUp && (
+                          <div
+                            className="w-full rounded-t bg-[var(--primary-container)] transition-all duration-300"
+                            style={{ height: `${normalizedHeight}%`, minHeight: bar.ratio > 0 ? '4px' : '0', opacity: bar.status === 'closed' ? 0.4 : 0.9 }}
+                          />
+                        )}
+                      </div>
+                      <div className="w-full flex flex-col justify-start" style={{ height: '50%' }}>
+                        {!isUp && (
+                          <div
+                            className="w-full rounded-b bg-[var(--error)] transition-all duration-300"
+                            style={{ height: `${normalizedHeight}%`, minHeight: bar.ratio < 0 ? '4px' : '0', opacity: bar.status === 'closed' ? 0.4 : 0.9 }}
+                          />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-              {openPositions.length === 0 && (
-                <div className="w-full text-center text-[var(--secondary)] text-sm py-12">No active positions to chart</div>
-              )}
+                  );
+                });
+              })()}
+            </div>
+            <div className="flex justify-between mt-2 text-[9px] text-[var(--secondary)] font-bold uppercase tracking-widest">
+              <span>Best</span>
+              <span>Worst</span>
             </div>
           </div>
 
@@ -645,6 +783,7 @@ export default function ProfileClient() {
                           </td>
                           <td className="px-6 py-5 rounded-r-xl text-right">
                             <div className="flex items-center justify-end gap-2">
+                              <SharePositionButton pos={pos} pnlPct={pnlPercent} currentValue={currentValue} />
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 text-orange-700 text-[10px] font-bold uppercase tracking-wider">
                                 <span className="w-1.5 h-1.5 bg-[var(--primary-container)] rounded-full animate-pulse" />
                                 In Play
@@ -707,6 +846,11 @@ export default function ProfileClient() {
                         </td>
                         <td className="px-6 py-4 rounded-r-xl text-right">
                           <div className="flex items-center justify-end gap-2">
+                            {(pos.realizedPnl || 0) > 0 && (() => {
+                              const closedPnlPct = pos.costBasis > 0 ? ((pos.realizedPnl || 0) / pos.costBasis) * 100 : 0;
+                              const closedValue = pos.costBasis + (pos.realizedPnl || 0);
+                              return <SharePositionButton pos={pos} pnlPct={closedPnlPct} currentValue={closedValue} />;
+                            })()}
                             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
                               <span className="w-1.5 h-1.5 bg-slate-400 rounded-full" />
                               Closed
