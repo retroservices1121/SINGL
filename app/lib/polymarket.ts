@@ -181,6 +181,33 @@ export async function getNCAAMarkets(): Promise<{ markets: MarketData[]; totalVo
     'NCAA Tournament Winner',
   ];
 
+  // Individual game event slugs on Polymarket (these don't show up in text
+  // searches because their titles are team names, not "NCAA"/"March Madness").
+  const gameSlugs = [
+    // Elite 8 — Saturday 3/28
+    'cbb-ill-iowa-2026-03-28',    // (3) Illinois vs (9) Iowa — South
+    'cbb-pur-arz-2026-03-28',     // (2) Purdue vs (1) Arizona — West
+    // Elite 8 — Sunday 3/29
+    'cbb-uconn-duke-2026-03-29',  // (2) UConn vs (1) Duke — East
+    'cbb-tenn-mich-2026-03-29',   // (6) Tennessee vs (1) Michigan — Midwest
+  ];
+
+  // 1. Fetch game matchup markets by slug (live from Gamma API)
+  for (const slug of gameSlugs) {
+    try {
+      const { markets } = await getEventBySlug(slug);
+      for (const m of markets) {
+        if (!seen.has(m.conditionId)) {
+          seen.add(m.conditionId);
+          allMarkets.push(m);
+        }
+      }
+    } catch (err) {
+      console.error(`NCAA game slug fetch error for "${slug}":`, err);
+    }
+  }
+
+  // 2. Fetch broader tournament markets via text search
   for (const query of searchQueries) {
     try {
       const res = await fetch(

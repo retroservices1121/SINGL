@@ -174,6 +174,120 @@ export async function GET(req: NextRequest) {
     console.error('[prices] Market sync error:', err);
   }
 
+  // --- Game matchup market sync via Synthesis search + Gamma ---
+  let gameImported = 0;
+  try {
+    const synthRes = await fetch(
+      'https://synthesis.trade/api/v1/markets/search/march%20madness?venue=polymarket&limit=20'
+    );
+    if (synthRes.ok) {
+      const synthData = await synthRes.json();
+      const items = Array.isArray(synthData) ? synthData : (synthData.items || synthData.data || []);
+
+      // Collect unique CBB event slugs from Synthesis results
+      const cbbSlugs = new Set<string>();
+      for (const item of items) {
+        const slug = item?.event?.slug || item?.slug || '';
+        if (typeof slug === 'string' && slug.startsWith('cbb-') && slug.includes('2026')) {
+          cbbSlugs.add(slug);
+        }
+      }
+
+      console.log(`[prices] Found ${cbbSlugs.size} CBB game event slugs from Synthesis`);
+
+      // Refresh existing tickers from DB (includes any just-added tournament markets)
+      const freshMarkets = await prisma.market.findMany({
+        where: { eventId: event.id },
+        select: { ticker: true },
+      });
+      const existingTickersGame = new Set(freshMarkets.map(m => m.ticker));
+
+      for (const slug of cbbSlugs) {
+        try {
+          const gammaRes = await fetch(
+            `https://gamma-api.polymarket.com/events?slug=${encodeURIComponent(slug)}`
+          );
+          if (!gammaRes.ok) continue;
+
+          const gammaData = await gammaRes.json();
+          const gammaEvt = Array.isArray(gammaData) ? gammaData[0] : gammaData;
+          if (!gammaEvt?.markets?.length) continue;
+
+          const rawGameMarkets = (gammaEvt.markets || []) as Array<Record<string, unknown>>;
+          const activeGameMarkets = rawGameMarkets.filter(g => g.active && !g.closed);
+
+          for (const gm of activeGameMarkets) {
+            const conditionId = (gm.conditionId || gm.condition_id) as string | undefined;
+            if (!conditionId) continue;
+            if (existingTickersGame.has(conditionId)) continue;
+
+            // Parse token IDs
+            let yesTokenId = '';
+            let noTokenId = '';
+            const outcomes = typeof gm.outcomes === 'string' ? JSON.parse(gm.outcomes) : (gm.outcomes || []);
+            const clobTokenIds = typeof gm.clobTokenIds === 'string' ? JSON.parse(gm.clobTokenIds) : (gm.clobTokenIds || []);
+
+            if (clobTokenIds.length >= 2 && outcomes.length >= 2) {
+              const yesIdx = outcomes.indexOf('Yes');
+              const noIdx = outcomes.indexOf('No');
+              if (yesIdx >= 0) yesTokenId = clobTokenIds[yesIdx] || '';
+              if (noIdx >= 0) noTokenId = clobTokenIds[noIdx] || '';
+            } else if (gm.tokens && Array.isArray(gm.tokens)) {
+              const yesToken = (gm.tokens as Array<{ outcome: string; token_id: string }>).find(t => t.outcome === 'Yes');
+              const noToken = (gm.tokens as Array<{ outcome: string; token_id: string }>).find(t => t.outcome === 'No');
+              yesTokenId = yesToken?.token_id || '';
+              noTokenId = noToken?.token_id || '';
+            }
+
+            if (!yesTokenId && !noTokenId) continue;
+
+            // Parse prices
+            const outcomePrices = typeof gm.outcomePrices === 'string' ? JSON.parse(gm.outcomePrices) : (gm.outcomePrices || []);
+            const yesIdx = outcomes.indexOf('Yes');
+            const noIdx = outcomes.indexOf('No');
+            const yesPrice = yesIdx >= 0 ? parseFloat(outcomePrices[yesIdx] || '0') : 0;
+            const noPrice = noIdx >= 0 ? parseFloat(outcomePrices[noIdx] || '0') : 0;
+
+            const negRisk = (gm.negRisk ?? gm.neg_risk ?? false) as boolean;
+            const tickSize = String(gm.orderPriceMinTickSize || gm.minimum_tick_size || '0.01');
+            const endDate = gm.endDate as string | undefined;
+
+            const newMarket = await prisma.market.create({
+              data: {
+                eventId: event.id,
+                ticker: conditionId,
+                title: (gm.question as string) || conditionId,
+                yesPrice: Math.round(yesPrice * 100) / 100,
+                noPrice: Math.round(noPrice * 100) / 100,
+                volume: gm.volume != null ? parseFloat(String(gm.volume)) || null : null,
+                rulesPrimary: (gm.description as string) ?? null,
+                closeTime: endDate ? new Date(endDate) : null,
+                expirationTime: endDate ? new Date(endDate) : null,
+                conditionId,
+                yesTokenId: yesTokenId || null,
+                noTokenId: noTokenId || null,
+                negRisk,
+                tickSize,
+              },
+            });
+            event.markets.push(newMarket as typeof event.markets[0]);
+            existingTickersGame.add(conditionId);
+            gameImported++;
+
+            // Derive a friendly label from the question
+            const question = (gm.question as string) || '';
+            const label = question.length > 60 ? question.substring(0, 57) + '...' : question;
+            console.log(`[prices] Imported game market: ${label}`);
+          }
+        } catch (slugErr) {
+          console.error(`[prices] Error importing game slug ${slug}:`, slugErr);
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[prices] Game matchup sync error:', err);
+  }
+
   // Fetch live prices from Polymarket CLOB for each market
   let updated = 0;
   let snapshotCount = 0;
@@ -222,6 +336,7 @@ export async function GET(req: NextRequest) {
     updatedMarkets: updated,
     totalMarkets: event.markets.length,
     newMarketsAdded,
+    gameImported,
     tokenIdsBackfilled,
     syncDebug,
   });
