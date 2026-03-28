@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { MarketData } from '@/app/types';
 import { useTradeStore } from '@/app/store/tradeStore';
 import { formatVolume } from '@/app/lib/utils';
@@ -14,17 +15,17 @@ interface MarketCardProps {
 export default function MarketCard({ market, index }: MarketCardProps) {
   const openTrade = useTradeStore(s => s.openTrade);
   const openDetail = useTradeStore(s => s.openDetail);
+  const [copied, setCopied] = useState(false);
   const yesCents = Math.round(market.yesPrice * 100);
   const noCents = Math.round(market.noPrice * 100) || (100 - yesCents);
 
-  const shareOnX = (e: React.MouseEvent) => {
+  const copyShareText = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const url = `${SITE_URL}/market/${market.conditionId}`;
-    const text = `${market.title}\n\nYes ${yesCents}\u00a2 / No ${noCents}\u00a2\n\nTrade on SINGL by @singlmarket`;
-    window.open(
-      `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
-      '_blank'
-    );
+    const text = `${market.title}\n\nYes ${yesCents}\u00a2 / No ${noCents}\u00a2\n\nTrade on SINGL by @singlmarket\n${url}`;
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -39,11 +40,15 @@ export default function MarketCard({ market, index }: MarketCardProps) {
           {market.title}
         </h4>
         <button
-          onClick={shareOnX}
+          onClick={copyShareText}
           className="shrink-0 p-1.5 rounded-md text-[var(--secondary)] hover:text-[var(--on-surface)] hover:bg-[var(--surface-container-high)] transition-colors cursor-pointer"
-          title="Share on X"
+          title={copied ? 'Copied!' : 'Copy share text'}
         >
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+          {copied ? (
+            <svg className="w-3.5 h-3.5 text-[var(--yes)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+          ) : (
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+          )}
         </button>
       </div>
 
