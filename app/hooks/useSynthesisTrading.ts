@@ -92,7 +92,7 @@ export function useSynthesisTrading() {
           initializing: false,
           error: err instanceof Error ? err.message : 'Failed to initialize trading',
         }));
-        initRef.current = false; // Allow retry
+        // Don't reset initRef — prevent retry spam. User can reload to retry.
       });
   }, [authenticated, privyReady, privyUserId]);
 
