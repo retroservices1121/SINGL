@@ -4,10 +4,11 @@ export const dynamic = 'force-dynamic';
 
 const CLOB_API = 'https://clob.polymarket.com';
 
-function parseJsonArray(val: string | string[] | undefined): string[] {
-  if (!val) return [];
-  if (Array.isArray(val)) return val;
-  try { return JSON.parse(val); } catch { return []; }
+interface ClobToken {
+  token_id: string;
+  outcome: string;
+  price: number;
+  winner: boolean;
 }
 
 export async function GET(
@@ -23,24 +24,21 @@ export async function GET(
     }
 
     const data = await res.json();
+    const tokens: ClobToken[] = data.tokens || [];
 
-    const outcomes = parseJsonArray(data.outcomes);
-    const prices = parseJsonArray(data.outcomePrices);
-    const tokenIds = parseJsonArray(data.clobTokenIds);
+    // CLOB API returns a tokens array with outcome/price/token_id per outcome
+    // Outcomes can be: Yes/No, team names, Over/Under, etc.
+    const token1 = tokens[0];
+    const token2 = tokens[1];
 
-    let yesIdx = outcomes.indexOf('Yes');
-    let noIdx = outcomes.indexOf('No');
-
-    // Game matchup markets use team names, not Yes/No
-    if (yesIdx === -1 && noIdx === -1 && outcomes.length === 2) {
-      yesIdx = 0;
-      noIdx = 1;
+    if (!token1) {
+      return NextResponse.json({ error: 'No token data' }, { status: 404 });
     }
 
-    const yesPrice = yesIdx >= 0 ? parseFloat(prices[yesIdx] || '0.5') : 0.5;
-    const noPrice = noIdx >= 0 ? parseFloat(prices[noIdx] || '0.5') : 0.5;
+    const yesPrice = token1?.price ?? 0.5;
+    const noPrice = token2?.price ?? (1 - yesPrice);
 
-    const isStandardYesNo = outcomes.includes('Yes') && outcomes.includes('No');
+    const isStandardYesNo = token1?.outcome === 'Yes' || token2?.outcome === 'No';
 
     const market = {
       id: data.condition_id || conditionId,
@@ -49,19 +47,19 @@ export async function GET(
       title: data.question || conditionId,
       yesPrice: Math.round(yesPrice * 100) / 100,
       noPrice: Math.round(noPrice * 100) / 100,
-      volume: data.volume ? parseFloat(data.volume) : null,
+      volume: null,
       change24h: null,
       category: null,
       rulesPrimary: data.description || null,
       closeTime: data.end_date_iso || null,
       expirationTime: data.end_date_iso || null,
       conditionId: data.condition_id || conditionId,
-      yesTokenId: yesIdx >= 0 ? tokenIds[yesIdx] || '' : '',
-      noTokenId: noIdx >= 0 ? tokenIds[noIdx] || '' : '',
+      yesTokenId: token1?.token_id || '',
+      noTokenId: token2?.token_id || '',
       negRisk: data.neg_risk ?? false,
-      tickSize: data.minimum_tick_size || '0.01',
-      outcomeName: !isStandardYesNo && outcomes.length >= 1 ? outcomes[0] : null,
-      outcome2Name: !isStandardYesNo && outcomes.length >= 2 ? outcomes[1] : null,
+      tickSize: String(data.minimum_tick_size || '0.01'),
+      outcomeName: !isStandardYesNo ? (token1?.outcome || null) : null,
+      outcome2Name: !isStandardYesNo ? (token2?.outcome || null) : null,
     };
 
     return NextResponse.json({ market });

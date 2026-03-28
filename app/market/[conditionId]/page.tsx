@@ -6,50 +6,45 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://singl.market';
 const GAMMA_API = 'https://gamma-api.polymarket.com';
 const CLOB_API = 'https://clob.polymarket.com';
 
-function parseJsonArray(val: string | string[] | undefined): string[] {
-  if (!val) return [];
-  if (Array.isArray(val)) return val;
-  try { return JSON.parse(val); } catch { return []; }
+interface ClobToken {
+  token_id: string;
+  outcome: string;
+  price: number;
+  winner: boolean;
 }
 
 async function fetchMarketData(conditionId: string) {
   try {
-    // Fetch market from CLOB API by condition ID
     const res = await fetch(`${CLOB_API}/markets/${conditionId}`, { next: { revalidate: 30 } });
     if (!res.ok) return null;
     const data = await res.json();
 
-    const outcomes = parseJsonArray(data.outcomes);
-    const prices = parseJsonArray(data.outcomePrices);
-    const tokenIds = parseJsonArray(data.clobTokenIds);
+    const tokens: ClobToken[] = data.tokens || [];
+    const token1 = tokens[0];
+    const token2 = tokens[1];
 
-    let yesIdx = outcomes.indexOf('Yes');
-    let noIdx = outcomes.indexOf('No');
+    if (!token1) return null;
 
-    // Game matchup markets use team names, not Yes/No
-    if (yesIdx === -1 && noIdx === -1 && outcomes.length === 2) {
-      yesIdx = 0;
-      noIdx = 1;
-    }
-
-    const isStandardYesNo = outcomes.includes('Yes') && outcomes.includes('No');
+    const yesPrice = token1?.price ?? 0.5;
+    const noPrice = token2?.price ?? (1 - yesPrice);
+    const isStandardYesNo = token1?.outcome === 'Yes' || token2?.outcome === 'No';
 
     return {
       conditionId: data.condition_id || conditionId,
       title: data.question || data.market_slug || conditionId,
       description: data.description || '',
-      yesPrice: yesIdx >= 0 ? Math.round(parseFloat(prices[yesIdx] || '0.5') * 100) : 50,
-      noPrice: noIdx >= 0 ? Math.round(parseFloat(prices[noIdx] || '0.5') * 100) : 50,
-      yesTokenId: yesIdx >= 0 ? tokenIds[yesIdx] || '' : '',
-      noTokenId: noIdx >= 0 ? tokenIds[noIdx] || '' : '',
-      volume: data.volume ? parseFloat(data.volume) : null,
+      yesPrice: Math.round(yesPrice * 100),
+      noPrice: Math.round(noPrice * 100),
+      yesTokenId: token1?.token_id || '',
+      noTokenId: token2?.token_id || '',
+      volume: null as number | null,
       negRisk: data.neg_risk ?? false,
       tickSize: data.minimum_tick_size || '0.01',
       endDate: data.end_date_iso || null,
       active: data.active ?? true,
       closed: data.closed ?? false,
-      outcomeName: !isStandardYesNo && outcomes.length >= 1 ? outcomes[0] : null,
-      outcome2Name: !isStandardYesNo && outcomes.length >= 2 ? outcomes[1] : null,
+      outcomeName: !isStandardYesNo ? (token1?.outcome || null) : null,
+      outcome2Name: !isStandardYesNo ? (token2?.outcome || null) : null,
     };
   } catch {
     return null;
@@ -74,7 +69,7 @@ export async function generateMetadata(
   const yesLabel = market?.outcomeName || 'Yes';
   const noLabel = market?.outcome2Name || 'No';
   const description = market
-    ? `${yesLabel} ${market.yesPrice}\u00a2 / ${noLabel} ${market.noPrice}\u00a2 — Trade on SINGL`
+    ? `${yesLabel} ${market.yesPrice}¢ / ${noLabel} ${market.noPrice}¢ — Trade on SINGL`
     : 'Trade prediction markets on SINGL';
 
   const ogParams = new URLSearchParams({

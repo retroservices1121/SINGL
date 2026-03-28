@@ -114,9 +114,9 @@ export default function MarketPageClient({ conditionId }: MarketPageClientProps)
         {/* Price + volume row */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <span className="text-lg font-bold text-[var(--yes)]">{yesLabel} {yesCents}\u00a2</span>
+            <span className="text-lg font-bold text-[var(--yes)]">{yesLabel} {yesCents}¢</span>
             <span className="text-[var(--surface-container-highest)]">|</span>
-            <span className="text-lg font-bold text-[var(--no)]">{noLabel} {noCents}\u00a2</span>
+            <span className="text-lg font-bold text-[var(--no)]">{noLabel} {noCents}¢</span>
           </div>
           {market.volume != null && market.volume > 0 && (
             <span className="text-sm text-[var(--secondary)]">
@@ -131,13 +131,13 @@ export default function MarketPageClient({ conditionId }: MarketPageClientProps)
             onClick={() => openTrade(market, 'yes')}
             className="flex-1 py-3.5 text-sm font-bold rounded-xl bg-[var(--yes)] text-white hover:opacity-90 transition-all cursor-pointer"
           >
-            Buy {yesLabel} {yesCents}\u00a2
+            Buy {yesLabel} {yesCents}¢
           </button>
           <button
             onClick={() => openTrade(market, 'no')}
             className="flex-1 py-3.5 text-sm font-bold rounded-xl bg-[var(--no)] text-white hover:opacity-90 transition-all cursor-pointer"
           >
-            Buy {noLabel} {noCents}\u00a2
+            Buy {noLabel} {noCents}¢
           </button>
         </div>
 
