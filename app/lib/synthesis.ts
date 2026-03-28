@@ -3,7 +3,10 @@
  * All calls to Synthesis happen here — never from the browser.
  */
 
-const SYNTHESIS_BASE = 'https://api.synthesis.trade';
+// Project-level endpoints (account creation, API keys) use api.synthesis.trade
+// Account-level endpoints (wallet, orders, positions) use synthesis.trade
+const SYNTHESIS_PROJECT_BASE = 'https://api.synthesis.trade';
+const SYNTHESIS_ACCOUNT_BASE = 'https://synthesis.trade';
 
 function getProjectApiKey(): string {
   const key = process.env.SYNTHESIS_API_KEY;
@@ -16,7 +19,7 @@ function getProjectApiKey(): string {
 // ---------------------------------------------------------------------------
 
 async function projectFetch(path: string, options: RequestInit = {}): Promise<Response> {
-  const url = `${SYNTHESIS_BASE}${path}`;
+  const url = `${SYNTHESIS_PROJECT_BASE}${path}`;
   const res = await fetch(url, {
     ...options,
     headers: {
@@ -29,7 +32,7 @@ async function projectFetch(path: string, options: RequestInit = {}): Promise<Re
 }
 
 async function accountFetch(apiKey: string, path: string, options: RequestInit = {}): Promise<Response> {
-  const url = `${SYNTHESIS_BASE}${path}`;
+  const url = `${SYNTHESIS_ACCOUNT_BASE}${path}`;
   const res = await fetch(url, {
     ...options,
     headers: {
