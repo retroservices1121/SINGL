@@ -21,14 +21,14 @@ export async function GET(req: NextRequest) {
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
             background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
             padding: '60px 80px',
             fontFamily: 'sans-serif',
           }}
         >
-          {/* Top: Branding */}
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          {/* Branding */}
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '32px' }}>
             <div
               style={{
                 fontSize: '28px',
@@ -44,80 +44,77 @@ export async function GET(req: NextRequest) {
             </div>
           </div>
 
-          {/* Middle: Market title */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          {/* Market title */}
+          <div
+            style={{
+              fontSize: title.length > 60 ? '36px' : title.length > 40 ? '44px' : '52px',
+              fontWeight: 700,
+              color: '#ffffff',
+              lineHeight: 1.15,
+              marginBottom: '32px',
+            }}
+          >
+            {title}
+          </div>
+
+          {/* Odds bar */}
+          <div
+            style={{
+              display: 'flex',
+              width: '100%',
+              height: '48px',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              marginBottom: '16px',
+            }}
+          >
             <div
               style={{
-                fontSize: title.length > 60 ? '36px' : title.length > 40 ? '44px' : '52px',
-                fontWeight: 700,
+                width: `${yesPrice}%`,
+                background: '#22c55e',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '20px',
+                fontWeight: 800,
                 color: '#ffffff',
-                lineHeight: 1.15,
               }}
             >
-              {title}
+              {yesPrice > 10 ? `${yesLabel} ${yesPrice}\u00a2` : ''}
             </div>
-
-            {/* Odds bar */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  width: '100%',
-                  height: '48px',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    width: `${yesPrice}%`,
-                    background: '#22c55e',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '22px',
-                    fontWeight: 800,
-                    color: '#ffffff',
-                  }}
-                >
-                  {yesPrice > 10 ? `${yesLabel} ${yesPrice}\u00a2` : ''}
-                </div>
-                <div
-                  style={{
-                    width: `${noPrice}%`,
-                    background: '#ef4444',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '22px',
-                    fontWeight: 800,
-                    color: '#ffffff',
-                  }}
-                >
-                  {noPrice > 10 ? `${noLabel} ${noPrice}\u00a2` : ''}
-                </div>
-              </div>
-
-              {/* Price labels below bar */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', gap: '24px' }}>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#22c55e' }}>
-                    {yesLabel} {yesPrice}\u00a2
-                  </div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#ef4444' }}>
-                    {noLabel} {noPrice}\u00a2
-                  </div>
-                </div>
-                {volume && (
-                  <div style={{ fontSize: '16px', color: '#94a3b8' }}>
-                    Vol: {volume}
-                  </div>
-                )}
-              </div>
+            <div
+              style={{
+                width: `${noPrice}%`,
+                background: '#ef4444',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '20px',
+                fontWeight: 800,
+                color: '#ffffff',
+              }}
+            >
+              {noPrice > 10 ? `${noLabel} ${noPrice}\u00a2` : ''}
             </div>
           </div>
 
-          {/* Bottom: CTA */}
+          {/* Price labels */}
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '40px' }}>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: '#22c55e' }}>
+              {yesLabel} {yesPrice}\u00a2
+            </div>
+            <div style={{ fontSize: '20px', color: '#475569', marginLeft: '16px', marginRight: '16px' }}>|</div>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: '#ef4444' }}>
+              {noLabel} {noPrice}\u00a2
+            </div>
+            {volume && (
+              <div style={{ fontSize: '16px', color: '#94a3b8', marginLeft: 'auto' }}>
+                Vol: {volume}
+              </div>
+            )}
+          </div>
+
+          {/* CTA bar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div
               style={{
