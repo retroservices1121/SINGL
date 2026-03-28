@@ -272,7 +272,7 @@ export default function TradePanel() {
           {authenticated && walletAddress && (
             <div className="text-center">
               <span className="text-[9px] text-[var(--secondary)]">
-                Trading via Synthesis: <span className="font-mono">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
+                Trading via Safe: <span className="font-mono">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
               </span>
             </div>
           )}

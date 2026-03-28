@@ -376,7 +376,7 @@ export default function ProfileClient() {
                       <CopyableAddress label="EOA Wallet" address={primaryWallet} />
                     )}
                     {walletAddress && (
-                      <CopyableAddress label="Synthesis (Trading)" address={walletAddress} />
+                      <CopyableAddress label="Safe (Trading)" address={walletAddress} />
                     )}
                     {!walletAddress && !initializing && authenticated && (
                       <div className="flex items-center gap-2 mt-1">
