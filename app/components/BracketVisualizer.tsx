@@ -58,6 +58,50 @@ function findMarketForTeam(teamShort: string, profiles: TeamProfile[]): TeamProf
 
 // ── Game Card Component ────────────────────────────────────────────────────
 
+/**
+ * Find the matchup market for a specific game between two teams.
+ * Matchup markets have marketType === 'matchup' and contain both team names.
+ * YES price = probability that the first listed team wins.
+ */
+function findMatchupMarket(
+  teamShort: string,
+  otherTeamShort: string | undefined,
+  profiles: TeamProfile[],
+): { odds: number; market: import('@/app/lib/ncaa').ParsedMarket } | null {
+  if (!otherTeamShort) return null;
+
+  const profile = findMarketForTeam(teamShort, profiles);
+  if (!profile) return null;
+
+  // Search this team's markets for a matchup involving the other team
+  for (const m of profile.markets) {
+    if (m.marketType !== 'matchup') continue;
+    const titleLower = m.title.toLowerCase();
+    const otherLower = otherTeamShort.toLowerCase();
+
+    // Check if the matchup title contains the other team
+    const otherProfile = findMarketForTeam(otherTeamShort, profiles);
+    const otherName = otherProfile?.name?.toLowerCase() || otherLower;
+
+    if (titleLower.includes(otherLower) || titleLower.includes(otherName)) {
+      // YES price = first team listed wins. Figure out if "our" team is first or second.
+      const teamLower = (profile.name || teamShort).toLowerCase();
+      const teamPos = titleLower.indexOf(teamLower);
+      const otherPos = titleLower.indexOf(otherName) !== -1
+        ? titleLower.indexOf(otherName)
+        : titleLower.indexOf(otherLower);
+
+      // If our team appears first in the title, YES = our team wins
+      // If our team appears second, NO = our team wins → odds = noPrice
+      const isFirstTeam = teamPos < otherPos;
+      const odds = isFirstTeam ? m.yesPrice : m.noPrice;
+      return { odds, market: m };
+    }
+  }
+
+  return null;
+}
+
 function GameCard({
   game,
   profiles,
@@ -88,7 +132,23 @@ function GameCard({
     const isWinner = team.isWinner;
     const isLoser = game.gameState === 'F' && !team.isWinner && otherTeam?.isWinner;
     const isLive = game.gameState === 'I';
-    const odds = profile?.championshipOdds ? Math.round(profile.championshipOdds * 100) : null;
+
+    // For pending games, prefer game-level matchup odds over championship odds
+    let odds: number | null = null;
+    let tradeMarket = profile?.championshipMarket || null;
+
+    if (game.gameState === 'P' && otherTeam && otherTeam.nameShort !== 'TBD') {
+      const matchup = findMatchupMarket(team.nameShort, otherTeam.nameShort, profiles);
+      if (matchup) {
+        odds = Math.round(matchup.odds * 100);
+        tradeMarket = matchup.market;
+      }
+    }
+
+    // Fall back to championship odds if no matchup market found
+    if (odds === null && profile?.championshipOdds) {
+      odds = Math.round(profile.championshipOdds * 100);
+    }
 
     return (
       <div
@@ -100,8 +160,8 @@ function GameCard({
             : isLoser
             ? 'bg-[var(--surface-container-high)] opacity-60'
             : 'bg-[var(--surface-container-low)]'
-        } ${profile?.championshipMarket ? 'cursor-pointer hover:bg-[var(--surface-container)]' : ''}`}
-        onClick={() => profile?.championshipMarket && openTrade(profile.championshipMarket, 'yes')}
+        } ${tradeMarket ? 'cursor-pointer hover:bg-[var(--surface-container)]' : ''}`}
+        onClick={() => tradeMarket && openTrade(tradeMarket, 'yes')}
       >
         <div className="flex items-center gap-2 min-w-0">
           {team.seed > 0 && (
@@ -143,7 +203,7 @@ function GameCard({
               {odds > 0 ? `${odds}%` : '<1%'}
             </span>
           )}
-          {profile?.championshipMarket && (
+          {tradeMarket && (
             <span className="material-symbols-outlined text-[10px] text-[var(--secondary)] opacity-0 group-hover:opacity-100 transition-opacity">
               arrow_forward
             </span>
