@@ -45,13 +45,14 @@ export async function GET(req: NextRequest) {
 // POST: record a confirmed position
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { walletAddress, marketTicker, marketTitle, eventSlug, eventTitle, side, amount, price, orderId, tokenId } = body;
+  const { walletAddress, marketTicker, marketTitle, eventSlug, eventTitle, side, amount, price, orderId, tokenId, shares: providedShares } = body;
 
   if (!walletAddress || !marketTicker || !side || !amount) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
-  const shares = amount / (price || 0.5);
+  // Use shares from Synthesis response if provided, otherwise calculate
+  const shares = providedShares || (amount / (price || 0.5));
 
   try {
     const position = await prisma.position.create({

@@ -254,11 +254,14 @@ export default function ProfileClient() {
         ? (pos.currentYesPrice ?? pos.avgPrice)
         : (pos.currentNoPrice ?? pos.avgPrice);
 
+      // Round down shares to avoid selling more than we have
+      const sellShares = Math.floor(pos.shares * 1000) / 1000;
+
       const result = await placeOrder({
         tokenId: sellTokenId,
         side: 'SELL',
         type: 'MARKET',
-        amount: pos.shares,
+        amount: sellShares,
         units: 'SHARES',
       });
 

@@ -72,6 +72,10 @@ export default function TradePanel() {
         units: 'USDC',
       });
 
+      // Use actual shares/price from Synthesis response (more accurate than our calculation)
+      const actualShares = parseFloat(String(result.shares || '')) || (amount / price);
+      const actualPrice = parseFloat(String(result.price || '')) || price;
+
       await fetch('/api/positions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -83,7 +87,8 @@ export default function TradePanel() {
           eventTitle: currentEvent?.title || '',
           side,
           amount,
-          price,
+          price: actualPrice,
+          shares: actualShares,
           orderId: result.order_id,
           tokenId: tokenId,
         }),
