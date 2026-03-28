@@ -200,6 +200,14 @@ export default function MarketDetailOverlay() {
   const yesCents = Math.round(market.yesPrice * 100);
   const noCents = Math.round(market.noPrice * 100) || (100 - yesCents);
 
+  // Use team names for game matchups
+  const yesLabel = market.outcomeName
+    ? market.outcomeName.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts)$/i, '').trim()
+    : 'Yes';
+  const noLabel = market.outcome2Name
+    ? market.outcome2Name.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts)$/i, '').trim()
+    : 'No';
+
   const handleTrade = (side: 'yes' | 'no') => {
     closeDetail();
     openTrade(market, side);
@@ -235,11 +243,11 @@ export default function MarketDetailOverlay() {
         <div className="px-6 py-4">
           <div className="flex items-center gap-6 mb-4">
             <div>
-              <div className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-0.5">Yes</div>
+              <div className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-0.5">{yesLabel}</div>
               <div className="font-mono text-3xl font-black text-[var(--yes)]">{yesCents}c</div>
             </div>
             <div>
-              <div className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-0.5">No</div>
+              <div className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-0.5">{noLabel}</div>
               <div className="font-mono text-3xl font-black text-[var(--no)]">{noCents}c</div>
             </div>
             {market.change24h !== null && market.change24h !== undefined && Math.abs(market.change24h) >= 0.5 && (
@@ -263,11 +271,11 @@ export default function MarketDetailOverlay() {
 
           {/* Odds bar */}
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-bold text-[var(--yes)]">YES {yesCents}%</span>
+            <span className="text-[10px] font-bold text-[var(--yes)]">{yesLabel} {yesCents}%</span>
             <div className="flex-1 h-2.5 rounded-full overflow-hidden bg-[var(--surface-container-high)]">
               <div className="h-full bg-[var(--yes)] rounded-full transition-all" style={{ width: `${yesCents}%` }} />
             </div>
-            <span className="text-[10px] font-bold text-[var(--no)]">{noCents}% NO</span>
+            <span className="text-[10px] font-bold text-[var(--no)]">{noCents}% {noLabel}</span>
           </div>
         </div>
 
@@ -309,13 +317,13 @@ export default function MarketDetailOverlay() {
               onClick={() => handleTrade('yes')}
               className="flex-1 py-3.5 text-sm font-black uppercase tracking-widest rounded-lg bg-[var(--yes)] text-white hover:brightness-110 transition-all cursor-pointer shadow-lg shadow-[var(--yes)]/20"
             >
-              Buy Yes {yesCents}c
+              Buy {yesLabel} {yesCents}c
             </button>
             <button
               onClick={() => handleTrade('no')}
               className="flex-1 py-3.5 text-sm font-black uppercase tracking-widest rounded-lg bg-[var(--no)] text-white hover:brightness-110 transition-all cursor-pointer shadow-lg shadow-[var(--no)]/20"
             >
-              Buy No {noCents}c
+              Buy {noLabel} {noCents}c
             </button>
           </div>
         </div>

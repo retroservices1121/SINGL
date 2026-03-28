@@ -33,6 +33,15 @@ export default function TradePanel() {
 
   if (!isOpen || !market) return null;
 
+  // Use team names for game matchups
+  const sideLabel = side === 'yes'
+    ? (market.outcomeName
+        ? market.outcomeName.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts)$/i, '').trim()
+        : 'YES')
+    : (market.outcome2Name
+        ? market.outcome2Name.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts)$/i, '').trim()
+        : 'NO');
+
   const price = side === 'yes' ? market.yesPrice : (market.noPrice || (1 - market.yesPrice));
   const tokenId = side === 'yes' ? market.yesTokenId : market.noTokenId;
   const shares = price > 0 ? amount / price : 0;
@@ -115,7 +124,7 @@ export default function TradePanel() {
           <div className="text-5xl mb-3">{side === 'yes' ? '🎯' : '🛡️'}</div>
           <h3 className="font-heading text-xl font-black uppercase mb-1">Trade Submitted</h3>
           <p className="text-sm text-[var(--secondary)] mb-4">
-            {formatUSD(amount)} on {side.toUpperCase()} for &ldquo;{market.title}&rdquo;
+            {formatUSD(amount)} on {sideLabel} for &ldquo;{market.title}&rdquo;
           </p>
           {orderId && (
             <p className="text-[10px] text-[var(--secondary)] font-mono">
@@ -147,7 +156,7 @@ export default function TradePanel() {
     buttonLabel = 'Waiting for Trading Session...';
     buttonDisabled = true;
   } else {
-    buttonLabel = `Confirm ${side.toUpperCase()} - ${formatUSD(amount)}`;
+    buttonLabel = `Confirm ${sideLabel} - ${formatUSD(amount)}`;
   }
 
   return (
@@ -160,7 +169,7 @@ export default function TradePanel() {
         <div className="p-5 border-b border-[var(--surface-container)]">
           <div className="flex items-center justify-between">
             <h3 className="font-heading text-lg font-black uppercase">
-              Buy <span className={side === 'yes' ? 'text-[var(--yes)]' : 'text-[var(--no)]'}>{side.toUpperCase()}</span>
+              Buy <span className={side === 'yes' ? 'text-[var(--yes)]' : 'text-[var(--no)]'}>{sideLabel}</span>
             </h3>
             <button onClick={closeTrade} className="text-[var(--secondary)] hover:text-[var(--on-surface)] text-xl cursor-pointer">&times;</button>
           </div>
