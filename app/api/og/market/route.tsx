@@ -13,6 +13,8 @@ export async function GET(req: NextRequest) {
     const yesLabel = searchParams.get('yesLabel') || 'YES';
     const noLabel = searchParams.get('noLabel') || 'NO';
 
+    const volText = volume ? `  |  Vol: ${volume}` : '';
+
     return new ImageResponse(
       (
         <div
@@ -27,8 +29,13 @@ export async function GET(req: NextRequest) {
             fontFamily: 'sans-serif',
           }}
         >
-          {/* Branding */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '32px' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              marginBottom: '32px',
+            }}
+          >
             <div
               style={{
                 fontSize: '28px',
@@ -44,7 +51,6 @@ export async function GET(req: NextRequest) {
             </div>
           </div>
 
-          {/* Market title */}
           <div
             style={{
               fontSize: title.length > 60 ? '36px' : title.length > 40 ? '44px' : '52px',
@@ -52,12 +58,12 @@ export async function GET(req: NextRequest) {
               color: '#ffffff',
               lineHeight: 1.15,
               marginBottom: '32px',
+              display: 'flex',
             }}
           >
             {title}
           </div>
 
-          {/* Odds bar */}
           <div
             style={{
               display: 'flex',
@@ -80,7 +86,7 @@ export async function GET(req: NextRequest) {
                 color: '#ffffff',
               }}
             >
-              {yesPrice > 10 ? `${yesLabel} ${yesPrice}\u00a2` : ''}
+              {yesPrice > 10 ? `${yesLabel} ${yesPrice}%` : ''}
             </div>
             <div
               style={{
@@ -94,30 +100,33 @@ export async function GET(req: NextRequest) {
                 color: '#ffffff',
               }}
             >
-              {noPrice > 10 ? `${noLabel} ${noPrice}\u00a2` : ''}
+              {noPrice > 10 ? `${noLabel} ${noPrice}%` : ''}
             </div>
           </div>
 
-          {/* Price labels */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '40px' }}>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: '#22c55e' }}>
-              {yesLabel} {yesPrice}\u00a2
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              marginBottom: '40px',
+              fontSize: '18px',
+            }}
+          >
+            <div style={{ display: 'flex', fontWeight: 700, color: '#22c55e' }}>
+              {yesLabel} {yesPrice}%
             </div>
-            <div style={{ fontSize: '20px', color: '#475569', marginLeft: '16px', marginRight: '16px' }}>|</div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: '#ef4444' }}>
-              {noLabel} {noPrice}\u00a2
+            <div style={{ display: 'flex', color: '#475569', marginLeft: '16px', marginRight: '16px' }}>
+              |
             </div>
-            {volume && (
-              <div style={{ fontSize: '16px', color: '#94a3b8', marginLeft: 'auto' }}>
-                Vol: {volume}
-              </div>
-            )}
+            <div style={{ display: 'flex', fontWeight: 700, color: '#ef4444' }}>
+              {noLabel} {noPrice}%{volText}
+            </div>
           </div>
 
-          {/* CTA bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <div
               style={{
+                display: 'flex',
                 background: '#f97316',
                 color: '#ffffff',
                 fontSize: '18px',
@@ -128,7 +137,7 @@ export async function GET(req: NextRequest) {
             >
               Trade Now
             </div>
-            <div style={{ fontSize: '16px', color: '#64748b' }}>
+            <div style={{ display: 'flex', fontSize: '16px', color: '#64748b', marginLeft: '16px' }}>
               singl.market
             </div>
           </div>
