@@ -254,8 +254,25 @@ export default function ProfileClient() {
         ? (pos.currentYesPrice ?? pos.avgPrice)
         : (pos.currentNoPrice ?? pos.avgPrice);
 
-      // Round down shares to avoid selling more than we have
-      const sellShares = Math.floor(pos.shares * 1000) / 1000;
+      // Query actual shares from Synthesis instead of trusting our DB
+      let sellShares = Math.floor(pos.shares * 1000) / 1000;
+      try {
+        const privyUserId = user?.id;
+        if (privyUserId) {
+          const synthPosRes = await fetch(`/api/synthesis/positions?privy_user_id=${encodeURIComponent(privyUserId)}`);
+          if (synthPosRes.ok) {
+            const synthData = await synthPosRes.json();
+            const synthPos = (synthData.positions || []).find(
+              (p: { position?: { token_id?: string } }) => p.position?.token_id === sellTokenId
+            );
+            if (synthPos?.position?.shares) {
+              sellShares = Math.floor(parseFloat(synthPos.position.shares) * 1000) / 1000;
+            }
+          }
+        }
+      } catch {
+        // Fall back to DB shares
+      }
 
       const result = await placeOrder({
         tokenId: sellTokenId,
