@@ -130,7 +130,7 @@ export async function GET(req: NextRequest) {
               Trade Now
             </div>
             <div style={{ fontSize: '16px', color: '#64748b' }}>
-              singl.spredd.markets
+              singl.market
             </div>
           </div>
         </div>

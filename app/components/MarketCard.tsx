@@ -5,7 +5,7 @@ import type { MarketData } from '@/app/types';
 import { useTradeStore } from '@/app/store/tradeStore';
 import { formatVolume } from '@/app/lib/utils';
 
-const SITE_URL = 'https://singl.spredd.markets';
+const SITE_URL = 'https://singl.market';
 
 interface MarketCardProps {
   market: MarketData;
@@ -22,7 +22,7 @@ export default function MarketCard({ market, index }: MarketCardProps) {
   const copyShareText = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const url = `${SITE_URL}/market/${market.conditionId}`;
-    const text = `${market.title}\n\nYes ${yesCents}\u00a2 / No ${noCents}\u00a2\n\nTrade on SINGL by @singlmarket\n${url}`;
+    const text = `${market.title}\n\nYes ${yesCents}\u00a2 / No ${noCents}\u00a2\n\nTrade on SINGL\n${url}`;
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

@@ -6,7 +6,7 @@ import { useTradeStore } from '@/app/store/tradeStore';
 import { formatVolume } from '@/app/lib/utils';
 import TradePanel from '@/app/components/TradePanel';
 
-const SITE_URL = 'https://singl.spredd.markets';
+const SITE_URL = 'https://singl.market';
 
 interface MarketPageClientProps {
   conditionId: string;
@@ -45,7 +45,7 @@ export default function MarketPageClient({ conditionId }: MarketPageClientProps)
     if (!market) return;
     const yesCents = Math.round(market.yesPrice * 100);
     const noCents = Math.round(market.noPrice * 100) || (100 - yesCents);
-    const text = `${market.title}\n\nYes ${yesCents}\u00a2 / No ${noCents}\u00a2\n\nTrade the outcome on SINGL by @singlmarket`;
+    const text = `${market.title}\n\nYes ${yesCents}\u00a2 / No ${noCents}\u00a2\n\nTrade on SINGL`;
     window.open(
       `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
       '_blank'

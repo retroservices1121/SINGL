@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { prisma } from '@/app/lib/db';
 import EventPageClient from './EventPageClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://singl.spredd.markets';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://singl.market';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title,
       description,
       images: [ogImageUrl],
-      site: '@spreddterminal',
+      site: '@singlmarket',
     },
   };
 }

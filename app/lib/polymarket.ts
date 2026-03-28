@@ -73,8 +73,16 @@ function mapGammaMarket(m: GammaMarket, eventVolume?: number | string): MarketDa
     yesTokenId = yesToken?.token_id ?? '';
     noTokenId = noToken?.token_id ?? '';
   } else if (outcomes.length >= 2 && prices.length >= 2) {
-    const yesIdx = outcomes.indexOf('Yes');
-    const noIdx = outcomes.indexOf('No');
+    let yesIdx = outcomes.indexOf('Yes');
+    let noIdx = outcomes.indexOf('No');
+
+    // Game matchup markets use team names as outcomes (e.g., ["Illinois", "Iowa"])
+    // Treat the first outcome as "Yes" and second as "No"
+    if (yesIdx === -1 && noIdx === -1 && outcomes.length === 2) {
+      yesIdx = 0;
+      noIdx = 1;
+    }
+
     if (yesIdx === -1 && noIdx === -1) return null;
     yesPrice = yesIdx >= 0 ? parseNum(prices[yesIdx]) : 0;
     noPrice = noIdx >= 0 ? parseNum(prices[noIdx]) : 0;

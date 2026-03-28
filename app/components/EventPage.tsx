@@ -24,7 +24,7 @@ interface EventPageProps {
   event: EventData;
 }
 
-const SITE_URL = 'https://singl.spredd.markets';
+const SITE_URL = 'https://singl.market';
 
 type ViewMode = 'teams' | 'markets' | 'bracket';
 
@@ -39,7 +39,7 @@ function ShareButton({ slug, title }: { slug: string; title: string }) {
   };
 
   const shareOnX = () => {
-    const text = `${title}\n\nTrade the outcome on SINGL by @spreddterminal`;
+    const text = `${title}\n\nTrade on SINGL`;
     window.open(
       `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
       '_blank'

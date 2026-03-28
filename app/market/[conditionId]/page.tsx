@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import MarketPageClient from './MarketPageClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://singl.spredd.markets';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://singl.market';
 const GAMMA_API = 'https://gamma-api.polymarket.com';
 const CLOB_API = 'https://clob.polymarket.com';
 
