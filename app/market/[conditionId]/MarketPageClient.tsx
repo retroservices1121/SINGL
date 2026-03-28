@@ -78,6 +78,14 @@ export default function MarketPageClient({ conditionId }: MarketPageClientProps)
   const yesCents = Math.round(market.yesPrice * 100);
   const noCents = Math.round(market.noPrice * 100) || (100 - yesCents);
 
+  // Use team names for game matchups, fall back to Yes/No
+  const yesLabel = market.outcomeName
+    ? market.outcomeName.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts)$/i, '').trim()
+    : 'Yes';
+  const noLabel = market.outcome2Name
+    ? market.outcome2Name.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts)$/i, '').trim()
+    : 'No';
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       {/* Market card */}
@@ -93,22 +101,22 @@ export default function MarketPageClient({ conditionId }: MarketPageClientProps)
             className="h-full bg-[var(--yes)] flex items-center justify-center text-white font-bold text-sm transition-all"
             style={{ width: `${yesCents}%` }}
           >
-            {yesCents > 10 && `YES ${yesCents}\u00a2`}
+            {yesCents > 10 && `${yesLabel} ${yesCents}\u00a2`}
           </div>
           <div
             className="h-full bg-[var(--no)] flex items-center justify-center text-white font-bold text-sm transition-all"
             style={{ width: `${noCents}%` }}
           >
-            {noCents > 10 && `NO ${noCents}\u00a2`}
+            {noCents > 10 && `${noLabel} ${noCents}\u00a2`}
           </div>
         </div>
 
         {/* Price + volume row */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <span className="text-lg font-bold text-[var(--yes)]">Yes {yesCents}\u00a2</span>
+            <span className="text-lg font-bold text-[var(--yes)]">{yesLabel} {yesCents}\u00a2</span>
             <span className="text-[var(--surface-container-highest)]">|</span>
-            <span className="text-lg font-bold text-[var(--no)]">No {noCents}\u00a2</span>
+            <span className="text-lg font-bold text-[var(--no)]">{noLabel} {noCents}\u00a2</span>
           </div>
           {market.volume != null && market.volume > 0 && (
             <span className="text-sm text-[var(--secondary)]">
@@ -123,13 +131,13 @@ export default function MarketPageClient({ conditionId }: MarketPageClientProps)
             onClick={() => openTrade(market, 'yes')}
             className="flex-1 py-3.5 text-sm font-bold rounded-xl bg-[var(--yes)] text-white hover:opacity-90 transition-all cursor-pointer"
           >
-            Buy Yes {yesCents}\u00a2
+            Buy {yesLabel} {yesCents}\u00a2
           </button>
           <button
             onClick={() => openTrade(market, 'no')}
             className="flex-1 py-3.5 text-sm font-bold rounded-xl bg-[var(--no)] text-white hover:opacity-90 transition-all cursor-pointer"
           >
-            Buy No {noCents}\u00a2
+            Buy {noLabel} {noCents}\u00a2
           </button>
         </div>
 

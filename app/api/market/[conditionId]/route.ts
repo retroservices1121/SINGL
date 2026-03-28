@@ -28,11 +28,19 @@ export async function GET(
     const prices = parseJsonArray(data.outcomePrices);
     const tokenIds = parseJsonArray(data.clobTokenIds);
 
-    const yesIdx = outcomes.indexOf('Yes');
-    const noIdx = outcomes.indexOf('No');
+    let yesIdx = outcomes.indexOf('Yes');
+    let noIdx = outcomes.indexOf('No');
+
+    // Game matchup markets use team names, not Yes/No
+    if (yesIdx === -1 && noIdx === -1 && outcomes.length === 2) {
+      yesIdx = 0;
+      noIdx = 1;
+    }
 
     const yesPrice = yesIdx >= 0 ? parseFloat(prices[yesIdx] || '0.5') : 0.5;
     const noPrice = noIdx >= 0 ? parseFloat(prices[noIdx] || '0.5') : 0.5;
+
+    const isStandardYesNo = outcomes.includes('Yes') && outcomes.includes('No');
 
     const market = {
       id: data.condition_id || conditionId,
@@ -52,6 +60,8 @@ export async function GET(
       noTokenId: noIdx >= 0 ? tokenIds[noIdx] || '' : '',
       negRisk: data.neg_risk ?? false,
       tickSize: data.minimum_tick_size || '0.01',
+      outcomeName: !isStandardYesNo && outcomes.length >= 1 ? outcomes[0] : null,
+      outcome2Name: !isStandardYesNo && outcomes.length >= 2 ? outcomes[1] : null,
     };
 
     return NextResponse.json({ market });

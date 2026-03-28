@@ -23,8 +23,16 @@ async function fetchMarketData(conditionId: string) {
     const prices = parseJsonArray(data.outcomePrices);
     const tokenIds = parseJsonArray(data.clobTokenIds);
 
-    const yesIdx = outcomes.indexOf('Yes');
-    const noIdx = outcomes.indexOf('No');
+    let yesIdx = outcomes.indexOf('Yes');
+    let noIdx = outcomes.indexOf('No');
+
+    // Game matchup markets use team names, not Yes/No
+    if (yesIdx === -1 && noIdx === -1 && outcomes.length === 2) {
+      yesIdx = 0;
+      noIdx = 1;
+    }
+
+    const isStandardYesNo = outcomes.includes('Yes') && outcomes.includes('No');
 
     return {
       conditionId: data.condition_id || conditionId,
@@ -40,6 +48,8 @@ async function fetchMarketData(conditionId: string) {
       endDate: data.end_date_iso || null,
       active: data.active ?? true,
       closed: data.closed ?? false,
+      outcomeName: !isStandardYesNo && outcomes.length >= 1 ? outcomes[0] : null,
+      outcome2Name: !isStandardYesNo && outcomes.length >= 2 ? outcomes[1] : null,
     };
   } catch {
     return null;
@@ -61,15 +71,19 @@ export async function generateMetadata(
   const market = await fetchMarketData(conditionId);
 
   const title = market ? `${market.title} — SINGL` : 'Market — SINGL';
+  const yesLabel = market?.outcomeName || 'Yes';
+  const noLabel = market?.outcome2Name || 'No';
   const description = market
-    ? `Yes ${market.yesPrice}\u00a2 / No ${market.noPrice}\u00a2 — Trade this market on SINGL by Spredd Markets`
-    : 'Trade prediction markets on SINGL by Spredd Markets';
+    ? `${yesLabel} ${market.yesPrice}\u00a2 / ${noLabel} ${market.noPrice}\u00a2 — Trade on SINGL`
+    : 'Trade prediction markets on SINGL';
 
   const ogParams = new URLSearchParams({
     title: market?.title || conditionId,
     yes: String(market?.yesPrice ?? 50),
     no: String(market?.noPrice ?? 50),
     ...(market?.volume ? { vol: formatVolumeShort(market.volume) } : {}),
+    ...(market?.outcomeName ? { yesLabel: market.outcomeName } : {}),
+    ...(market?.outcome2Name ? { noLabel: market.outcome2Name } : {}),
   });
   const ogImageUrl = `${SITE_URL}/api/og/market?${ogParams}`;
   const marketUrl = `${SITE_URL}/market/${conditionId}`;

@@ -12,17 +12,26 @@ interface MarketCardProps {
   index: number;
 }
 
+// Shorten team names for buttons: "Illinois Fighting Illini" → "Illinois"
+function shortName(name: string | null | undefined): string | null {
+  if (!name) return null;
+  // Drop common suffixes like "Fighting Illini", "Wolverines", "Boilermakers", etc.
+  return name.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts)$/i, '').trim();
+}
+
 export default function MarketCard({ market, index }: MarketCardProps) {
   const openTrade = useTradeStore(s => s.openTrade);
   const openDetail = useTradeStore(s => s.openDetail);
   const [copied, setCopied] = useState(false);
   const yesCents = Math.round(market.yesPrice * 100);
   const noCents = Math.round(market.noPrice * 100) || (100 - yesCents);
+  const yesLabel = shortName(market.outcomeName) || 'Yes';
+  const noLabel = shortName(market.outcome2Name) || 'No';
 
   const copyShareText = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const url = `${SITE_URL}/market/${market.conditionId}`;
-    const text = `${market.title}\n\nYes ${yesCents}\u00a2 / No ${noCents}\u00a2\n\nTrade on SINGL\n${url}`;
+    const text = `${market.title}\n\n${yesLabel} ${yesCents}\u00a2 / ${noLabel} ${noCents}\u00a2\n\nTrade on SINGL\n${url}`;
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -63,9 +72,9 @@ export default function MarketCard({ market, index }: MarketCardProps) {
       {/* Prices */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-[var(--yes)]">Yes {yesCents}c</span>
+          <span className="text-xs font-bold text-[var(--yes)]">{yesLabel} {yesCents}c</span>
           <span className="text-[var(--surface-container-highest)]">|</span>
-          <span className="text-xs font-bold text-[var(--no)]">No {noCents}c</span>
+          <span className="text-xs font-bold text-[var(--no)]">{noLabel} {noCents}c</span>
         </div>
         {market.volume != null && market.volume > 0 && (
           <span className="text-[10px] text-[var(--secondary)]">
@@ -78,15 +87,15 @@ export default function MarketCard({ market, index }: MarketCardProps) {
       <div className="flex gap-2">
         <button
           onClick={(e) => { e.stopPropagation(); openTrade(market, 'yes'); }}
-          className="flex-1 py-2 text-xs font-bold rounded-md bg-[var(--yes-bg)] text-[var(--yes)] hover:bg-[var(--yes)] hover:text-white transition-colors cursor-pointer"
+          className="flex-1 py-2 text-xs font-bold rounded-md bg-[var(--yes-bg)] text-[var(--yes)] hover:bg-[var(--yes)] hover:text-white transition-colors cursor-pointer truncate"
         >
-          Buy Yes
+          Buy {yesLabel}
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); openTrade(market, 'no'); }}
-          className="flex-1 py-2 text-xs font-bold rounded-md bg-[var(--no-bg)] text-[var(--no)] hover:bg-[var(--no)] hover:text-white transition-colors cursor-pointer"
+          className="flex-1 py-2 text-xs font-bold rounded-md bg-[var(--no-bg)] text-[var(--no)] hover:bg-[var(--no)] hover:text-white transition-colors cursor-pointer truncate"
         >
-          Buy No
+          Buy {noLabel}
         </button>
       </div>
     </div>

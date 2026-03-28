@@ -96,6 +96,11 @@ function mapGammaMarket(m: GammaMarket, eventVolume?: number | string): MarketDa
   const conditionId = m.conditionId || m.condition_id || m.id || '';
   const vol = parseNum(m.volume) || parseNum(eventVolume);
 
+  // For game matchups, pass through the actual outcome names (team names)
+  const isStandardYesNo = outcomes.includes('Yes') && outcomes.includes('No');
+  const outcomeName = !isStandardYesNo && outcomes.length >= 1 ? outcomes[0] : null;
+  const outcome2Name = !isStandardYesNo && outcomes.length >= 2 ? outcomes[1] : null;
+
   return {
     id: conditionId,
     eventId: '',
@@ -114,6 +119,8 @@ function mapGammaMarket(m: GammaMarket, eventVolume?: number | string): MarketDa
     noTokenId,
     negRisk: m.negRisk ?? m.neg_risk ?? false,
     tickSize: String(m.orderPriceMinTickSize || m.minimum_tick_size || '0.01'),
+    outcomeName,
+    outcome2Name,
   };
 }
 

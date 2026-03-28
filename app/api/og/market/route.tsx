@@ -10,6 +10,8 @@ export async function GET(req: NextRequest) {
     const yesPrice = parseInt(searchParams.get('yes') || '50', 10);
     const noPrice = parseInt(searchParams.get('no') || '50', 10);
     const volume = searchParams.get('vol') || '';
+    const yesLabel = searchParams.get('yesLabel') || 'YES';
+    const noLabel = searchParams.get('noLabel') || 'NO';
 
     return new ImageResponse(
       (
@@ -78,7 +80,7 @@ export async function GET(req: NextRequest) {
                     color: '#ffffff',
                   }}
                 >
-                  {yesPrice > 10 ? `YES ${yesPrice}\u00a2` : ''}
+                  {yesPrice > 10 ? `${yesLabel} ${yesPrice}\u00a2` : ''}
                 </div>
                 <div
                   style={{
@@ -92,7 +94,7 @@ export async function GET(req: NextRequest) {
                     color: '#ffffff',
                   }}
                 >
-                  {noPrice > 10 ? `NO ${noPrice}\u00a2` : ''}
+                  {noPrice > 10 ? `${noLabel} ${noPrice}\u00a2` : ''}
                 </div>
               </div>
 
@@ -100,10 +102,10 @@ export async function GET(req: NextRequest) {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', gap: '24px' }}>
                   <div style={{ fontSize: '20px', fontWeight: 700, color: '#22c55e' }}>
-                    Yes {yesPrice}\u00a2
+                    {yesLabel} {yesPrice}\u00a2
                   </div>
                   <div style={{ fontSize: '20px', fontWeight: 700, color: '#ef4444' }}>
-                    No {noPrice}\u00a2
+                    {noLabel} {noPrice}\u00a2
                   </div>
                 </div>
                 {volume && (

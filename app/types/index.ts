@@ -35,6 +35,8 @@ export interface MarketData {
   noTokenId: string;
   negRisk: boolean;
   tickSize: string;
+  outcomeName?: string | null;  // e.g. "Illinois Fighting Illini" — first outcome label (null = "Yes")
+  outcome2Name?: string | null; // e.g. "Iowa Hawkeyes" — second outcome label (null = "No")
 }
 
 export interface NewsItemData {
