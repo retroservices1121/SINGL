@@ -172,6 +172,11 @@ function TwitterCardManager({ secret, markets }: { secret: string; markets: { ti
   );
 }
 
+interface TradingStats {
+  totalVolume: number;
+  totalTraders: number;
+}
+
 export default function AdminPage() {
   const [secret, setSecret] = useState('');
   const [authed, setAuthed] = useState(false);
@@ -181,6 +186,7 @@ export default function AdminPage() {
   const [active, setActive] = useState<ActiveEvent | null>(null);
   const [setting, setSetting] = useState<string | null>(null);
   const [message, setMessage] = useState('');
+  const [tradingStats, setTradingStats] = useState<TradingStats | null>(null);
 
   const fetchActive = async (s: string) => {
     try {
@@ -192,12 +198,27 @@ export default function AdminPage() {
     } catch {}
   };
 
+  const fetchTradingStats = async () => {
+    try {
+      const res = await fetch('/api/leaderboard');
+      if (res.ok) {
+        const data = await res.json();
+        const leaders = data.leaders || [];
+        setTradingStats({
+          totalVolume: leaders.reduce((s: number, l: { totalVolume: number }) => s + l.totalVolume, 0),
+          totalTraders: leaders.length,
+        });
+      }
+    } catch {}
+  };
+
   const handleLogin = async () => {
     const res = await fetch(`/api/admin/event?secret=${encodeURIComponent(secret)}`);
     if (res.ok) {
       setAuthed(true);
       const data = await res.json();
       setActive(data);
+      fetchTradingStats();
     } else {
       setMessage('Invalid secret');
     }
@@ -471,6 +492,25 @@ export default function AdminPage() {
             <p className="text-gray-500">No active event set</p>
           )}
         </div>
+
+        {/* Trading Stats */}
+        {tradingStats && (
+          <div className="bg-[#16213e] rounded-xl p-5 mb-6 border border-gray-700">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Trading Stats</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <span className="block text-xs text-gray-400 mb-1">Total Volume</span>
+                <span className="text-2xl font-bold text-orange-400 font-mono">
+                  ${tradingStats.totalVolume >= 1000 ? `${(tradingStats.totalVolume / 1000).toFixed(1)}K` : tradingStats.totalVolume.toFixed(2)}
+                </span>
+              </div>
+              <div>
+                <span className="block text-xs text-gray-400 mb-1">Total Traders</span>
+                <span className="text-2xl font-bold text-white font-mono">{tradingStats.totalTraders}</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Twitter Card Images */}
         {active?.event && (

@@ -42,7 +42,6 @@ export default function LeaderboardClient() {
     );
   }
 
-  const totalVolume = leaders.reduce((sum, l) => sum + l.totalVolume, 0);
   const visible = showAll ? leaders : leaders.slice(0, 7);
   const top3 = leaders.slice(0, 3);
   const userEntry = walletAddress
@@ -58,8 +57,6 @@ export default function LeaderboardClient() {
         </h1>
         <p className="text-[var(--secondary)] max-w-2xl text-lg">
           Real-time market analytics and high-volume traders. Clinical precision.
-          <br />
-          Total Volume: <span className="text-[var(--primary-container)] font-mono font-bold">{formatVolume(totalVolume)}</span>
         </p>
       </div>
 
