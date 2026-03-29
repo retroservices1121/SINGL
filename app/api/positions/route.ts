@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   // Enrich positions with market metadata (negRisk, tickSize) needed for sell orders
   // Position tickers may be truncated conditionIds, so fetch all event markets and match by prefix
   const allMarkets = await prisma.market.findMany({
-    select: { ticker: true, negRisk: true, tickSize: true, yesPrice: true, noPrice: true, yesTokenId: true, noTokenId: true },
+    select: { ticker: true, negRisk: true, tickSize: true, yesPrice: true, noPrice: true, yesTokenId: true, noTokenId: true, outcomeName: true, outcome2Name: true },
   });
 
   const enriched = positions.map(p => {
@@ -36,6 +36,8 @@ export async function GET(req: NextRequest) {
       tickSize: market?.tickSize ?? '0.01',
       currentYesPrice: market?.yesPrice ?? null,
       currentNoPrice: market?.noPrice ?? null,
+      outcomeName: market?.outcomeName ?? null,
+      outcome2Name: market?.outcome2Name ?? null,
     };
   });
 

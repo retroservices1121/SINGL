@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { prisma } from '@/app/lib/db';
 import MarketPageClient from './MarketPageClient';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://singl.market';
-const GAMMA_API = 'https://gamma-api.polymarket.com';
 const CLOB_API = 'https://clob.polymarket.com';
 
 interface ClobToken {
@@ -72,6 +72,16 @@ export async function generateMetadata(
     ? `${yesLabel} ${market.yesPrice}¢ / ${noLabel} ${market.noPrice}¢ — Trade on SINGL`
     : 'Trade prediction markets on SINGL';
 
+  // Check DB for a custom OG image set via admin panel
+  let customOgImage: string | null = null;
+  try {
+    const dbMarket = await prisma.market.findFirst({
+      where: { OR: [{ conditionId }, { ticker: conditionId }] },
+      select: { ogImageUrl: true },
+    });
+    customOgImage = dbMarket?.ogImageUrl || null;
+  } catch { /* DB miss is fine, fall back to generated */ }
+
   const ogParams = new URLSearchParams({
     title: market?.title || conditionId,
     yes: String(market?.yesPrice ?? 50),
@@ -80,7 +90,8 @@ export async function generateMetadata(
     ...(market?.outcomeName ? { yesLabel: market.outcomeName } : {}),
     ...(market?.outcome2Name ? { noLabel: market.outcome2Name } : {}),
   });
-  const ogImageUrl = `${SITE_URL}/api/og/market?${ogParams}`;
+  const generatedOgUrl = `${SITE_URL}/api/og/market?${ogParams}`;
+  const ogImageUrl = customOgImage || generatedOgUrl;
   const marketUrl = `${SITE_URL}/market/${conditionId}`;
 
   return {

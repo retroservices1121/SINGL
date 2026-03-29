@@ -124,24 +124,31 @@ export async function GET(req: NextRequest) {
 
         const negRisk = (gm.negRisk ?? gm.neg_risk ?? false) as boolean;
         const tickSize = String(gm.orderPriceMinTickSize || gm.minimum_tick_size || '0.01');
+        const isStdYesNo = outcomes.includes('Yes') && outcomes.includes('No');
+        const outcomeName = !isStdYesNo && outcomes.length >= 1 ? (outcomes[0] as string) : null;
+        const outcome2Name = !isStdYesNo && outcomes.length >= 2 ? (outcomes[1] as string) : null;
         if (existingTickers.has(conditionId)) {
-          // Update existing market with missing token IDs
+          // Update existing market with missing token IDs or outcome names
           const existing = event.markets.find(m => m.ticker === conditionId);
-          if (existing && (!existing.yesTokenId || !existing.noTokenId)) {
+          const needsTokenBackfill = existing && (!existing.yesTokenId || !existing.noTokenId);
+          const needsOutcomeBackfill = existing && !existing.outcomeName && outcomeName;
+          if (existing && (needsTokenBackfill || needsOutcomeBackfill)) {
             await prisma.market.update({
               where: { id: existing.id },
               data: {
-                yesTokenId: yesTokenId || null,
-                noTokenId: noTokenId || null,
+                yesTokenId: yesTokenId || existing.yesTokenId || null,
+                noTokenId: noTokenId || existing.noTokenId || null,
                 conditionId,
                 negRisk,
                 tickSize,
+                ...(outcomeName && { outcomeName }),
+                ...(outcome2Name && { outcome2Name }),
               },
             });
-            existing.yesTokenId = yesTokenId || null;
-            existing.noTokenId = noTokenId || null;
-            tokenIdsBackfilled++;
-            console.log(`[prices] Backfilled token IDs for ${existing.title}`);
+            existing.yesTokenId = yesTokenId || existing.yesTokenId || null;
+            existing.noTokenId = noTokenId || existing.noTokenId || null;
+            if (needsTokenBackfill) tokenIdsBackfilled++;
+            console.log(`[prices] Backfilled ${needsTokenBackfill ? 'token IDs' : 'outcome names'} for ${existing.title}`);
           }
         } else {
           // Import new market
@@ -162,6 +169,8 @@ export async function GET(req: NextRequest) {
               noTokenId: noTokenId || null,
               negRisk,
               tickSize,
+              outcomeName,
+              outcome2Name,
             },
           });
           event.markets.push(newMarket as typeof event.markets[0]);
@@ -251,6 +260,9 @@ export async function GET(req: NextRequest) {
             const negRisk = (gm.negRisk ?? gm.neg_risk ?? false) as boolean;
             const tickSize = String(gm.orderPriceMinTickSize || gm.minimum_tick_size || '0.01');
             const endDate = gm.endDate as string | undefined;
+            const isStdYesNo2 = outcomes.includes('Yes') && outcomes.includes('No');
+            const gameOutcomeName = !isStdYesNo2 && outcomes.length >= 1 ? (outcomes[0] as string) : null;
+            const gameOutcome2Name = !isStdYesNo2 && outcomes.length >= 2 ? (outcomes[1] as string) : null;
 
             const newMarket = await prisma.market.create({
               data: {
@@ -268,6 +280,8 @@ export async function GET(req: NextRequest) {
                 noTokenId: noTokenId || null,
                 negRisk,
                 tickSize,
+                outcomeName: gameOutcomeName,
+                outcome2Name: gameOutcome2Name,
               },
             });
             event.markets.push(newMarket as typeof event.markets[0]);

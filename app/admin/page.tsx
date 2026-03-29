@@ -36,6 +36,142 @@ interface ActiveEvent {
   event?: { slug: string; title: string; searchTerms: string[]; contentTerms: string[]; markets: { ticker: string; title: string }[] } | null;
 }
 
+function TwitterCardManager({ secret, markets }: { secret: string; markets: { ticker: string; title: string }[] }) {
+  const [images, setImages] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState<string | null>(null);
+  const [msg, setMsg] = useState('');
+  const [expanded, setExpanded] = useState(false);
+
+  // Load existing custom images
+  useEffect(() => {
+    fetch(`/api/admin/market-image?secret=${encodeURIComponent(secret)}`)
+      .then(r => r.json())
+      .then(data => {
+        const map: Record<string, string> = {};
+        for (const m of data.markets || []) {
+          if (m.conditionId && m.ogImageUrl) map[m.conditionId] = m.ogImageUrl;
+        }
+        setImages(map);
+      })
+      .catch(() => {});
+  }, [secret]);
+
+  const saveImage = async (conditionId: string, url: string) => {
+    setSaving(conditionId);
+    setMsg('');
+    try {
+      const res = await fetch('/api/admin/market-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-secret': secret },
+        body: JSON.stringify({ conditionId, ogImageUrl: url || null }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        if (url) {
+          setImages(prev => ({ ...prev, [conditionId]: url }));
+          setMsg(`Card image set for "${data.market.title}"`);
+        } else {
+          setImages(prev => { const n = { ...prev }; delete n[conditionId]; return n; });
+          setMsg(`Card image cleared for "${data.market.title}"`);
+        }
+      } else {
+        setMsg(data.error || 'Failed');
+      }
+    } catch {
+      setMsg('Failed to save');
+    }
+    setSaving(null);
+  };
+
+  const marketsWithImages = markets.filter(m => images[m.ticker]);
+  const marketsWithout = markets.filter(m => !images[m.ticker]);
+
+  return (
+    <div className="bg-[#16213e] rounded-xl p-5 mb-6 border border-gray-700">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">Twitter Card Images</h2>
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-xs text-orange-400 hover:text-orange-300 cursor-pointer"
+        >
+          {expanded ? 'Collapse' : `Manage (${Object.keys(images).length} custom)`}
+        </button>
+      </div>
+      <p className="text-xs text-gray-500 mb-3">
+        Paste an image URL to override the auto-generated Twitter card for a market. Leave blank to use the default.
+      </p>
+
+      {msg && <p className="text-xs text-green-400 mb-3">{msg}</p>}
+
+      {/* Markets with custom images */}
+      {marketsWithImages.length > 0 && (
+        <div className="space-y-2 mb-3">
+          {marketsWithImages.map(m => (
+            <div key={m.ticker} className="bg-[#0f3460] rounded-lg p-3">
+              <div className="text-xs text-gray-300 mb-1.5 truncate">{m.title}</div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  defaultValue={images[m.ticker] || ''}
+                  placeholder="https://example.com/image.png"
+                  className="flex-1 border border-gray-600 bg-[#1a1a2e] text-white rounded px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') saveImage(m.ticker, (e.target as HTMLInputElement).value.trim());
+                  }}
+                  id={`og-${m.ticker}`}
+                />
+                <button
+                  onClick={() => saveImage(m.ticker, (document.getElementById(`og-${m.ticker}`) as HTMLInputElement).value.trim())}
+                  disabled={saving === m.ticker}
+                  className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-xs font-bold px-3 py-1.5 rounded cursor-pointer"
+                >
+                  {saving === m.ticker ? '...' : 'Save'}
+                </button>
+                <button
+                  onClick={() => saveImage(m.ticker, '')}
+                  disabled={saving === m.ticker}
+                  className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-bold px-3 py-1.5 rounded cursor-pointer"
+                >
+                  Clear
+                </button>
+              </div>
+              {images[m.ticker] && (
+                <img src={images[m.ticker]} alt="" className="mt-2 rounded max-h-24 object-cover" />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Expandable list of all markets */}
+      {expanded && (
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {marketsWithout.map(m => (
+            <div key={m.ticker} className="bg-[#0f3460] rounded-lg p-3">
+              <div className="text-xs text-gray-300 mb-1.5 truncate">{m.title}</div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Paste image URL for Twitter card..."
+                  className="flex-1 border border-gray-600 bg-[#1a1a2e] text-white rounded px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  id={`og-${m.ticker}`}
+                />
+                <button
+                  onClick={() => saveImage(m.ticker, (document.getElementById(`og-${m.ticker}`) as HTMLInputElement).value.trim())}
+                  disabled={saving === m.ticker}
+                  className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-xs font-bold px-3 py-1.5 rounded cursor-pointer"
+                >
+                  {saving === m.ticker ? '...' : 'Set'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [secret, setSecret] = useState('');
   const [authed, setAuthed] = useState(false);
@@ -335,6 +471,11 @@ export default function AdminPage() {
             <p className="text-gray-500">No active event set</p>
           )}
         </div>
+
+        {/* Twitter Card Images */}
+        {active?.event && (
+          <TwitterCardManager secret={secret} markets={active.event.markets || []} />
+        )}
 
         {/* Search */}
         <div className="bg-[#16213e] rounded-xl p-5 mb-6 border border-gray-700">

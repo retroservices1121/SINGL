@@ -48,6 +48,9 @@ model Market {
   noTokenId      String?
   negRisk        Boolean  @default(false)
   tickSize       String   @default("0.01")
+  outcomeName    String?
+  outcome2Name   String?
+  ogImageUrl     String?
   updatedAt      DateTime @updatedAt
 }
 

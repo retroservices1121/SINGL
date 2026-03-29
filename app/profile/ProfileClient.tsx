@@ -32,7 +32,8 @@ function SharePositionButton({ pos, pnlPct, currentValue }: { pos: Position; pnl
     payout: formatUSD(pos.shares),
   }).toString();
 
-  const tweetText = `${isWin ? '📈' : '📉'} ${pos.side.toUpperCase()} on "${pos.marketTitle}"\n\n${isWin ? '+' : ''}${pnlPct.toFixed(1)}% | ${entryPrice}¢ → ${livePrice}¢\n\nTrade on @singlmarket`;
+  const displaySide = sideLabel(pos);
+  const tweetText = `${isWin ? '📈' : '📉'} ${displaySide} on "${pos.marketTitle}"\n\n${isWin ? '+' : ''}${pnlPct.toFixed(1)}% | ${entryPrice}¢ → ${livePrice}¢\n\nTrade on @singlmarket`;
   const shareUrl = `${SITE_URL}/event/${pos.eventSlug}`;
 
   const shareOnX = () => {
@@ -150,6 +151,27 @@ interface Position {
   tickSize?: string;
   currentYesPrice?: number | null;
   currentNoPrice?: number | null;
+  outcomeName?: string | null;
+  outcome2Name?: string | null;
+}
+
+function shortName(name: string | null | undefined): string | null {
+  if (!name) return null;
+  return name.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts|Demon Deacons|Tar Heels|Wolfpack|Yellow Jackets|Nittany Lions|Scarlet Knights|Hokies|Thundering Herd|Blazers|Peacocks|Bonnies|Owls|Shockers|Penguins|Zips|Rockets|Bearcats|Flyers|Explorers|Mavericks|Miners|Hilltoppers|Mean Green|Monarchs|Roadrunners|Mustangs|Ramblers|Billikens|Dukes|Spiders)$/i, '').trim();
+}
+
+function sideLabel(pos: Position): string {
+  if (pos.side?.toLowerCase() === 'yes' && pos.outcomeName) {
+    return shortName(pos.outcomeName) || pos.outcomeName;
+  }
+  if (pos.side?.toLowerCase() === 'no' && pos.outcome2Name) {
+    return shortName(pos.outcome2Name) || pos.outcome2Name;
+  }
+  return pos.side?.toUpperCase() || 'YES';
+}
+
+function sideIsTeam(pos: Position): boolean {
+  return !!(pos.side?.toLowerCase() === 'yes' ? pos.outcomeName : pos.outcome2Name);
 }
 
 export default function ProfileClient() {
@@ -763,8 +785,8 @@ export default function ProfileClient() {
                             </div>
                           </td>
                           <td className="px-6 py-5">
-                            <span className={`text-xs font-bold uppercase ${pos.side === 'yes' ? 'text-[var(--yes)]' : 'text-[var(--no)]'}`}>
-                              {pos.side}
+                            <span className={`text-xs font-bold ${sideIsTeam(pos) ? '' : 'uppercase'} ${pos.side === 'yes' ? 'text-[var(--yes)]' : 'text-[var(--no)]'}`}>
+                              {sideLabel(pos)}
                             </span>
                           </td>
                           <td className="px-6 py-5">
@@ -833,7 +855,7 @@ export default function ProfileClient() {
                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                               pos.side === 'yes' ? 'bg-[var(--yes-bg)] text-[var(--yes)]' : 'bg-[var(--no-bg)] text-[var(--no)]'
                             }`}>
-                              {pos.side.toUpperCase()}
+                              {sideLabel(pos)}
                             </span>
                             <span className="font-heading font-bold text-sm">{pos.marketTitle}</span>
                           </div>
