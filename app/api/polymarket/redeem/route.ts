@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
+import { prisma } from '@/app/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-const CLOB_API = 'https://clob.polymarket.com';
+const SYNTHESIS_ACCOUNT_BASE = 'https://synthesis.trade';
 
 /**
  * GET: Check if a market condition has been resolved.
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const res = await fetch(`${CLOB_API}/markets/${conditionId}`);
+    const res = await fetch(`https://clob.polymarket.com/markets/${conditionId}`);
     if (!res.ok) {
       return NextResponse.json({ error: 'Market not found' }, { status: 404 });
     }
@@ -37,57 +37,76 @@ export async function GET(req: NextRequest) {
 }
 
 /**
- * POST: Redeem winning positions through Polymarket's merge/redeem endpoint.
- * After a market resolves, winning CTF tokens can be redeemed for USDC.
+ * POST: Redeem winning positions via Synthesis.
+ * Looks up the user's Synthesis account from DB and calls the Synthesis redeem endpoint.
  */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { conditionId, apiKey, apiSecret, passphrase, address } = body;
+    const { conditionId, walletAddress, privyUserId } = body;
 
-    if (!conditionId || !apiKey || !apiSecret || !passphrase || !address) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    if (!conditionId) {
+      return NextResponse.json({ error: 'conditionId is required' }, { status: 400 });
     }
 
-    // Build L2 auth headers
-    const timestamp = Math.floor(Date.now() / 1000);
-    const endpoint = '/redeem';
-    const data = { conditionId };
-    const bodyStr = JSON.stringify(data);
-    const message = `${timestamp}POST${endpoint}${bodyStr}`;
+    if (!walletAddress && !privyUserId) {
+      return NextResponse.json({ error: 'walletAddress or privyUserId is required' }, { status: 400 });
+    }
 
-    const base64Secret = Buffer.from(apiSecret, 'base64');
-    const hmac = crypto.createHmac('sha256', base64Secret);
-    const sig = hmac.update(message).digest('base64');
-    const sigUrlSafe = sig.replace(/\+/g, '-').replace(/\//g, '_');
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'POLY_ADDRESS': address,
-      'POLY_SIGNATURE': sigUrlSafe,
-      'POLY_TIMESTAMP': `${timestamp}`,
-      'POLY_API_KEY': apiKey,
-      'POLY_PASSPHRASE': passphrase,
-    };
-
-    // Try the rewards/redeem endpoint
-    const res = await fetch(`${CLOB_API}${endpoint}`, {
-      method: 'POST',
-      headers,
-      body: bodyStr,
+    // Look up Synthesis account from DB
+    const synthAccount = await prisma.synthesisAccount.findFirst({
+      where: privyUserId
+        ? { privyUserId }
+        : { walletAddress },
     });
 
-    const responseData = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      console.error('[redeem] CLOB error:', res.status, responseData);
-      return NextResponse.json(
-        { error: responseData.error || `Redeem failed: ${res.status}`, data: responseData },
-        { status: res.status }
-      );
+    if (!synthAccount || !synthAccount.apiKey || !synthAccount.walletId) {
+      return NextResponse.json({ error: 'Synthesis trading account not found. Please ensure your wallet is initialized.' }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, ...responseData });
+    // Try Synthesis merge/redeem endpoint
+    const redeemRes = await fetch(
+      `${SYNTHESIS_ACCOUNT_BASE}/api/v1/wallet/pol/${synthAccount.walletId}/redeem`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-KEY': synthAccount.apiKey,
+        },
+        body: JSON.stringify({ condition_id: conditionId }),
+      },
+    );
+
+    const redeemData = await redeemRes.json().catch(() => ({}));
+
+    if (!redeemRes.ok) {
+      // If Synthesis doesn't support /redeem, try /merge
+      const mergeRes = await fetch(
+        `${SYNTHESIS_ACCOUNT_BASE}/api/v1/wallet/pol/${synthAccount.walletId}/merge`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-KEY': synthAccount.apiKey,
+          },
+          body: JSON.stringify({ condition_id: conditionId }),
+        },
+      );
+
+      const mergeData = await mergeRes.json().catch(() => ({}));
+
+      if (!mergeRes.ok) {
+        console.error('[redeem] Synthesis redeem/merge failed:', redeemRes.status, redeemData, mergeRes.status, mergeData);
+        return NextResponse.json(
+          { error: mergeData.error || redeemData.error || `Redeem failed. The market may not be resolved yet.`, debug: { redeemStatus: redeemRes.status, mergeStatus: mergeRes.status } },
+          { status: 400 },
+        );
+      }
+
+      return NextResponse.json({ success: true, method: 'merge', ...mergeData });
+    }
+
+    return NextResponse.json({ success: true, method: 'redeem', ...redeemData });
   } catch (err) {
     console.error('[redeem] Error:', err);
     const msg = err instanceof Error ? err.message : 'Redeem error';

@@ -387,6 +387,7 @@ export default function ProfileClient() {
         body: JSON.stringify({
           conditionId: pos.marketTicker,
           walletAddress: walletAddress,
+          privyUserId: user?.id,
         }),
       });
 
