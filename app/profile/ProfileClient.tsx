@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { usePrivy, useWallets, useLinkAccount } from '@privy-io/react-auth';
 // import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
 import { useSynthesisTrading } from '@/app/hooks/useSynthesisTrading';
 import { formatUSD, formatPercent, formatVolume } from '@/app/lib/utils';
@@ -174,9 +174,36 @@ function sideIsTeam(pos: Position): boolean {
   return !!(pos.side?.toLowerCase() === 'yes' ? pos.outcomeName : pos.outcome2Name);
 }
 
+interface UserProfileData {
+  id: string;
+  privyUserId: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  twitterHandle: string | null;
+  twitterAvatar: string | null;
+  referralCode: string;
+  referredBy: string | null;
+  referralCount?: number;
+}
+
 export default function ProfileClient() {
   const { login, authenticated, user } = usePrivy();
   const { wallets } = useWallets();
+  const { linkTwitter } = useLinkAccount({
+    onSuccess: (params) => {
+      // After linking Twitter, sync to our profile
+      const linkedUser = params.user;
+      if (linkedUser?.twitter) {
+        saveProfile({
+          twitterHandle: linkedUser.twitter.username || null,
+          twitterId: linkedUser.twitter.subject || null,
+          twitterAvatar: linkedUser.twitter.profilePictureUrl || null,
+          displayName: profile?.displayName || linkedUser.twitter.name || null,
+          avatarUrl: profile?.avatarUrl || linkedUser.twitter.profilePictureUrl || null,
+        });
+      }
+    },
+  });
   const { ready, walletAddress, initializing, error: sessionError, placeOrder } = useSynthesisTrading();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
@@ -185,6 +212,11 @@ export default function ProfileClient() {
   const [usdceBalance, setUsdceBalance] = useState<string | null>(null);
   const [usdcBalance, setUsdcBalance] = useState<string | null>(null);
   const [balancesLoaded, setBalancesLoaded] = useState(false);
+  const [profile, setProfile] = useState<UserProfileData | null>(null);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editAvatar, setEditAvatar] = useState('');
+  const [referralCopied, setReferralCopied] = useState(false);
 
   const eoaAddress = wallets[0]?.address || null;
   const walletAddr = walletAddress || eoaAddress;
@@ -241,6 +273,59 @@ export default function ProfileClient() {
     const interval = setInterval(fetchBalances, 30000);
     return () => clearInterval(interval);
   }, [balanceAddr, fetchBalances]);
+
+  // Profile management
+  const fetchProfile = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const res = await fetch(`/api/profile?privyUserId=${encodeURIComponent(user.id)}`);
+      const data = await res.json();
+      if (data.profile) {
+        setProfile(data.profile);
+      } else {
+        // Auto-create profile on first visit
+        // Check for referral code in URL
+        const params = new URLSearchParams(window.location.search);
+        const ref = params.get('ref');
+        const createRes = await fetch('/api/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            privyUserId: user.id,
+            walletAddress: walletAddr,
+            displayName: (user as unknown as { twitter?: { name?: string } }).twitter?.name || null,
+            twitterHandle: (user as unknown as { twitter?: { username?: string } }).twitter?.username || null,
+            twitterId: (user as unknown as { twitter?: { subject?: string } }).twitter?.subject || null,
+            twitterAvatar: (user as unknown as { twitter?: { profilePictureUrl?: string } }).twitter?.profilePictureUrl || null,
+            avatarUrl: (user as unknown as { twitter?: { profilePictureUrl?: string } }).twitter?.profilePictureUrl || null,
+            referralCode: ref || undefined,
+          }),
+        });
+        const createData = await createRes.json();
+        if (createData.profile) setProfile(createData.profile);
+      }
+    } catch {}
+  }, [user?.id, walletAddr]);
+
+  useEffect(() => {
+    if (authenticated && user?.id) fetchProfile();
+  }, [authenticated, user?.id, fetchProfile]);
+
+  const saveProfile = async (updates: Record<string, string | null>) => {
+    if (!user?.id) return;
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ privyUserId: user.id, walletAddress: walletAddr, ...updates }),
+      });
+      const data = await res.json();
+      if (data.profile) {
+        setProfile(data.profile);
+        setEditingProfile(false);
+      }
+    } catch {}
+  };
 
   const fetchPositions = useCallback(async () => {
     if (!authenticated || !walletAddr) {
@@ -473,54 +558,94 @@ export default function ProfileClient() {
       {/* Header Summary */}
       <header className="mb-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <h1 className="font-heading text-5xl font-black uppercase tracking-tighter text-[var(--on-surface)] mb-3">
-              Portfolio Overview
-            </h1>
-            <div className="space-y-1.5">
-              {(() => {
-                const primaryWallet = eoaAddress || null;
-                const email = user?.email?.address;
-                return (
-                  <>
-                    {email && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">Email</span>
-                        <span className="text-xs text-[var(--on-surface)]">{email}</span>
-                      </div>
-                    )}
-                    {primaryWallet && (
-                      <CopyableAddress label="EOA Wallet" address={primaryWallet} />
-                    )}
-                    {walletAddress && (
-                      <CopyableAddress label="Safe (Trading)" address={walletAddress} />
-                    )}
-                    {!walletAddress && !initializing && authenticated && (
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">Trading Wallet</span>
-                        <span className="text-[10px] font-bold text-amber-600">Waiting for provisioning...</span>
-                      </div>
-                    )}
-                    {!walletAddress && initializing && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">Trading Wallet</span>
-                        <span className="text-xs text-[var(--secondary)] flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary-container)] animate-pulse" />
-                          Initializing...
-                        </span>
-                      </div>
-                    )}
-                    {sessionError && (
-                      <div className="text-[10px] text-red-500 mt-1">
-                        Session error: {sessionError}
-                      </div>
-                    )}
-                    {!primaryWallet && !walletAddress && !email && (
-                      <p className="text-[var(--secondary)] font-medium tracking-wide">Connected</p>
-                    )}
-                  </>
-                );
-              })()}
+          <div className="flex items-start gap-5">
+            {/* Avatar */}
+            <div className="relative group">
+              {profile?.avatarUrl || profile?.twitterAvatar ? (
+                <img
+                  src={profile.avatarUrl || profile.twitterAvatar || ''}
+                  alt="avatar"
+                  className="w-20 h-20 rounded-xl object-cover border-2 border-[var(--surface-container-highest)]"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-xl bg-[var(--surface-container-high)] flex items-center justify-center border-2 border-[var(--surface-container-highest)]">
+                  <span className="material-symbols-outlined text-3xl text-[var(--secondary)]">person</span>
+                </div>
+              )}
+              <button
+                onClick={() => { setEditName(profile?.displayName || ''); setEditAvatar(profile?.avatarUrl || ''); setEditingProfile(true); }}
+                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[var(--primary-container)] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-xs">edit</span>
+              </button>
+            </div>
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="font-heading text-3xl md:text-4xl font-black uppercase tracking-tighter text-[var(--on-surface)]">
+                  {profile?.displayName || 'Portfolio Overview'}
+                </h1>
+                <button
+                  onClick={() => { setEditName(profile?.displayName || ''); setEditAvatar(profile?.avatarUrl || ''); setEditingProfile(true); }}
+                  className="text-[var(--secondary)] hover:text-[var(--primary-container)] transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">edit</span>
+                </button>
+              </div>
+              {/* Twitter connection */}
+              {profile?.twitterHandle ? (
+                <a
+                  href={`https://x.com/${profile.twitterHandle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs text-[var(--secondary)] hover:text-[var(--primary-container)] transition-colors mb-2"
+                >
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+                  @{profile.twitterHandle}
+                </a>
+              ) : (
+                <button
+                  onClick={() => linkTwitter()}
+                  className="flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-[var(--on-surface)] text-white rounded-md hover:opacity-90 transition-all cursor-pointer mb-2"
+                >
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+                  Connect X
+                </button>
+              )}
+              {/* Wallet info */}
+              <div className="space-y-1">
+                {(() => {
+                  const primaryWallet = eoaAddress || null;
+                  const email = user?.email?.address;
+                  return (
+                    <>
+                      {email && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">Email</span>
+                          <span className="text-xs text-[var(--on-surface)]">{email}</span>
+                        </div>
+                      )}
+                      {primaryWallet && <CopyableAddress label="EOA" address={primaryWallet} />}
+                      {walletAddress && <CopyableAddress label="Safe" address={walletAddress} />}
+                      {!walletAddress && !initializing && authenticated && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">Trading Wallet</span>
+                          <span className="text-[10px] font-bold text-amber-600">Provisioning...</span>
+                        </div>
+                      )}
+                      {!walletAddress && initializing && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">Trading Wallet</span>
+                          <span className="text-xs text-[var(--secondary)] flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary-container)] animate-pulse" />
+                            Initializing...
+                          </span>
+                        </div>
+                      )}
+                      {sessionError && <div className="text-[10px] text-red-500">{sessionError}</div>}
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           </div>
           <div className="flex flex-col gap-3">
@@ -574,6 +699,117 @@ export default function ProfileClient() {
           </div>
         </div>
       </header>
+
+      {/* Edit Profile Modal */}
+      {editingProfile && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setEditingProfile(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-[var(--surface-container-lowest)] rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <h3 className="font-heading text-lg font-bold uppercase tracking-tight text-[var(--on-surface)] mb-4">Edit Profile</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest block mb-1">Display Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  placeholder="Enter your display name"
+                  maxLength={30}
+                  className="w-full px-3 py-2 bg-[var(--surface-container-low)] border border-[var(--surface-container-highest)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-container)]"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest block mb-1">Avatar URL</label>
+                <input
+                  type="text"
+                  value={editAvatar}
+                  onChange={e => setEditAvatar(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-3 py-2 bg-[var(--surface-container-low)] border border-[var(--surface-container-highest)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-container)]"
+                />
+                {editAvatar && (
+                  <img src={editAvatar} alt="preview" className="w-12 h-12 rounded-lg object-cover mt-2" onError={e => (e.currentTarget.style.display = 'none')} />
+                )}
+              </div>
+              {!profile?.twitterHandle && (
+                <button
+                  onClick={() => { setEditingProfile(false); linkTwitter(); }}
+                  className="flex items-center gap-2 w-full px-4 py-2.5 bg-[var(--on-surface)] text-white rounded-lg font-bold text-sm hover:opacity-90 transition-all cursor-pointer"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+                  Connect X to auto-fill avatar & name
+                </button>
+              )}
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => setEditingProfile(false)}
+                  className="flex-1 px-4 py-2.5 bg-[var(--surface-container-high)] text-[var(--on-surface)] rounded-lg font-bold text-sm cursor-pointer hover:bg-[var(--surface-container-highest)] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => saveProfile({ displayName: editName || null, avatarUrl: editAvatar || null })}
+                  className="flex-1 px-4 py-2.5 bg-[var(--primary-container)] text-white rounded-lg font-bold text-sm cursor-pointer hover:opacity-90 transition-all"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Referral Program */}
+      {profile && (
+        <div className="mb-8 bg-[var(--surface-container-lowest)] rounded-xl p-6 shadow-ambient border border-[var(--primary-fixed)]">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="material-symbols-outlined text-[var(--primary-container)]">group_add</span>
+                <h3 className="text-sm font-black font-heading uppercase tracking-widest text-[var(--on-surface)]">
+                  Referral Program
+                </h3>
+              </div>
+              <p className="text-xs text-[var(--secondary)]">
+                Share your code and earn rewards when friends trade on SINGL.
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <span className="block text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest">Referrals</span>
+                <span className="font-heading text-2xl font-bold text-[var(--on-surface)]">{profile.referralCount || 0}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="bg-[var(--surface-container-high)] px-4 py-2.5 rounded-lg">
+                  <span className="text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest block">Your Code</span>
+                  <span className="font-mono text-lg font-bold text-[var(--primary-container)]">{profile.referralCode}</span>
+                </div>
+                <button
+                  onClick={async () => {
+                    const link = `https://singl.market/profile?ref=${profile.referralCode}`;
+                    await navigator.clipboard.writeText(link);
+                    setReferralCopied(true);
+                    setTimeout(() => setReferralCopied(false), 2000);
+                  }}
+                  className="px-3 py-2.5 bg-[var(--primary-container)] text-white rounded-lg font-bold text-xs cursor-pointer hover:opacity-90 transition-all"
+                >
+                  {referralCopied ? 'Copied!' : 'Copy Link'}
+                </button>
+                <button
+                  onClick={() => {
+                    const link = `https://singl.market/profile?ref=${profile.referralCode}`;
+                    const text = `Trade prediction markets on SINGL — elections, sports, culture, macro. Use my referral link:`;
+                    window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(link)}`, '_blank');
+                  }}
+                  className="px-3 py-2.5 bg-[var(--on-surface)] text-white rounded-lg font-bold text-xs cursor-pointer hover:opacity-90 transition-all"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {positions.length === 0 ? (
         <div className="text-center py-20 bg-[var(--surface-container-lowest)] rounded-xl shadow-ambient">

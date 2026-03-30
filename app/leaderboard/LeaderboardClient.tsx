@@ -17,8 +17,16 @@ interface LeaderEntry {
   winRate: number;
 }
 
+interface ProfileInfo {
+  displayName: string | null;
+  avatarUrl: string | null;
+  twitterHandle: string | null;
+  twitterAvatar: string | null;
+}
+
 export default function LeaderboardClient() {
   const [leaders, setLeaders] = useState<LeaderEntry[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, ProfileInfo>>({});
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const { authenticated } = usePrivy();
@@ -28,8 +36,17 @@ export default function LeaderboardClient() {
     fetch('/api/leaderboard')
       .then(r => r.json())
       .then(data => {
-        setLeaders(data.leaders || []);
+        const leaderList = data.leaders || [];
+        setLeaders(leaderList);
         setLoading(false);
+        // Fetch profiles for all leaders
+        if (leaderList.length > 0) {
+          const wallets = leaderList.map((l: LeaderEntry) => l.walletAddress).join(',');
+          fetch(`/api/profile/bulk?wallets=${encodeURIComponent(wallets)}`)
+            .then(r => r.json())
+            .then(d => setProfiles(d.profiles || {}))
+            .catch(() => {});
+        }
       })
       .catch(() => setLoading(false));
   }, []);
@@ -41,6 +58,10 @@ export default function LeaderboardClient() {
       </div>
     );
   }
+
+  const getDisplayName = (addr: string) => profiles[addr]?.displayName || profiles[addr]?.twitterHandle ? `@${profiles[addr]?.twitterHandle}` : null;
+  const getAvatar = (addr: string) => profiles[addr]?.avatarUrl || profiles[addr]?.twitterAvatar || null;
+  const shortAddr = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
   const visible = showAll ? leaders : leaders.slice(0, 7);
   const top3 = leaders.slice(0, 3);
@@ -108,7 +129,7 @@ export default function LeaderboardClient() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 items-end">
               {/* Rank 2 */}
               {top3[1] ? (
-                <PodiumCard leader={top3[1]} className="order-2 md:order-1" />
+                <PodiumCard leader={top3[1]} className="order-2 md:order-1" profile={profiles[top3[1].walletAddress]} />
               ) : (
                 <div className="order-2 md:order-1" />
               )}
@@ -120,13 +141,17 @@ export default function LeaderboardClient() {
                 </div>
                 <div className="flex flex-col items-center gap-6 pt-4">
                   <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-[var(--primary-container)] to-orange-300">
-                    <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
-                      <span className="material-symbols-outlined text-4xl text-[var(--primary-container)]">person</span>
-                    </div>
+                    {getAvatar(top3[0].walletAddress) ? (
+                      <img src={getAvatar(top3[0].walletAddress)!} alt="" className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                        <span className="material-symbols-outlined text-4xl text-[var(--primary-container)]">person</span>
+                      </div>
+                    )}
                   </div>
                   <div className="text-center">
                     <h3 className="font-heading font-black text-3xl tracking-tight">
-                      {top3[0].walletAddress.slice(0, 6)}...{top3[0].walletAddress.slice(-4)}
+                      {getDisplayName(top3[0].walletAddress) || shortAddr(top3[0].walletAddress)}
                     </h3>
                     <p className="text-[var(--primary-container)] text-sm font-bold uppercase tracking-[0.2em] mt-1">
                       Top Trader
@@ -149,7 +174,7 @@ export default function LeaderboardClient() {
 
               {/* Rank 3 */}
               {top3[2] ? (
-                <PodiumCard leader={top3[2]} className="order-3" rank3 />
+                <PodiumCard leader={top3[2]} className="order-3" rank3 profile={profiles[top3[2].walletAddress]} />
               ) : (
                 <div className="order-3" />
               )}
@@ -174,11 +199,15 @@ export default function LeaderboardClient() {
                   {String(leader.rank).padStart(2, '0')}
                 </div>
                 <div className="flex-1 px-4 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded bg-slate-100 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[var(--secondary)]">person</span>
-                  </div>
+                  {getAvatar(leader.walletAddress) ? (
+                    <img src={getAvatar(leader.walletAddress)!} alt="" className="w-10 h-10 rounded object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded bg-slate-100 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[var(--secondary)]">person</span>
+                    </div>
+                  )}
                   <span className="font-heading font-bold text-lg">
-                    {leader.walletAddress.slice(0, 6)}...{leader.walletAddress.slice(-4)}
+                    {getDisplayName(leader.walletAddress) || shortAddr(leader.walletAddress)}
                   </span>
                 </div>
                 <div className="w-48 text-right font-mono text-lg text-[var(--secondary)]">
@@ -260,11 +289,13 @@ export default function LeaderboardClient() {
   );
 }
 
-function PodiumCard({ leader, className = '', rank3 }: { leader: LeaderEntry; className?: string; rank3?: boolean }) {
+function PodiumCard({ leader, className = '', rank3, profile }: { leader: LeaderEntry; className?: string; rank3?: boolean; profile?: ProfileInfo | null }) {
   const rankNum = rank3 ? '#03' : '#02';
   const badgeBg = rank3
     ? 'bg-[var(--secondary-container)] text-[var(--on-secondary-container)]'
     : 'bg-[var(--secondary)] text-white';
+  const avatar = profile?.avatarUrl || profile?.twitterAvatar || null;
+  const name = profile?.displayName || (profile?.twitterHandle ? `@${profile.twitterHandle}` : null);
 
   return (
     <div className={`bg-[var(--surface-container-low)] p-8 rounded-xl relative group hover:bg-[var(--surface-container)] transition-all ${className}`}>
@@ -272,12 +303,16 @@ function PodiumCard({ leader, className = '', rank3 }: { leader: LeaderEntry; cl
         {rankNum}
       </div>
       <div className="flex flex-col gap-4 pt-4">
-        <div className="w-16 h-16 rounded-full bg-[var(--surface-container-highest)] flex items-center justify-center">
-          <span className="material-symbols-outlined text-2xl text-[var(--secondary)]">person</span>
-        </div>
+        {avatar ? (
+          <img src={avatar} alt="" className="w-16 h-16 rounded-full object-cover" />
+        ) : (
+          <div className="w-16 h-16 rounded-full bg-[var(--surface-container-highest)] flex items-center justify-center">
+            <span className="material-symbols-outlined text-2xl text-[var(--secondary)]">person</span>
+          </div>
+        )}
         <div>
           <h3 className="font-heading font-bold text-2xl">
-            {leader.walletAddress.slice(0, 6)}...{leader.walletAddress.slice(-4)}
+            {name || `${leader.walletAddress.slice(0, 6)}...${leader.walletAddress.slice(-4)}`}
           </h3>
           <p className="text-[var(--secondary)] text-sm uppercase tracking-widest">
             {leader.tradeCount} trades

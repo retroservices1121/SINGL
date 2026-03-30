@@ -160,3 +160,22 @@ model SynthesisAccount {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+model UserProfile {
+  id              String   @id @default(cuid())
+  privyUserId     String   @unique
+  walletAddress   String?
+  displayName     String?
+  avatarUrl       String?
+  twitterHandle   String?
+  twitterId       String?
+  twitterAvatar   String?
+  referralCode    String   @unique
+  referredBy      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([walletAddress])
+  @@index([referralCode])
+  @@index([referredBy])
+}

@@ -17,7 +17,7 @@ export default function PrivyWalletProvider({ children }: { children: React.Reac
           accentColor: '#F2841A',
           logo: '/favicon.ico',
         },
-        loginMethods: ['email', 'wallet'],
+        loginMethods: ['email', 'wallet', 'twitter'],
         embeddedWallets: {
           ethereum: {
             createOnLogin: 'users-without-wallets',
