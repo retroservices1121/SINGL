@@ -21,21 +21,55 @@ export async function GET(req: NextRequest) {
     select: { ticker: true, negRisk: true, tickSize: true, yesPrice: true, noPrice: true, yesTokenId: true, noTokenId: true, outcomeName: true, outcome2Name: true },
   });
 
+  // Check CLOB for resolution status on open position markets
+  const openTickers = new Set(
+    positions.filter(p => p.status === 'open').map(p => p.marketTicker)
+  );
+  const resolvedMarkets = new Map<string, { yesPrice: number; noPrice: number }>();
+
+  await Promise.all(
+    [...openTickers].map(async (ticker) => {
+      try {
+        const res = await fetch(`https://clob.polymarket.com/markets/${ticker}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.closed || data.resolved) {
+          // Market is resolved — determine winning side from tokens
+          const tokens = data.tokens || [];
+          const yesToken = tokens.find((t: { outcome: string }) => t.outcome === 'Yes');
+          const noToken = tokens.find((t: { outcome: string }) => t.outcome === 'No');
+          const yesWon = yesToken?.winner === true;
+          const noWon = noToken?.winner === true;
+          if (yesWon || noWon) {
+            resolvedMarkets.set(ticker, {
+              yesPrice: yesWon ? 1.0 : 0.0,
+              noPrice: noWon ? 1.0 : 0.0,
+            });
+          }
+        }
+      } catch { /* skip — use DB prices */ }
+    })
+  );
+
   const enriched = positions.map(p => {
-    // Match by exact ticker first, then by prefix (position ticker may be truncated)
     const market = allMarkets.find(m => m.ticker === p.marketTicker)
       || allMarkets.find(m => m.ticker.startsWith(p.marketTicker) || p.marketTicker.startsWith(m.ticker));
-    // Resolve the correct CLOB token ID: use stored tokenId, or look up from market based on side
     const resolvedTokenId = p.tokenId
       || (p.side?.toLowerCase() === 'yes' ? market?.yesTokenId : market?.noTokenId)
       || null;
+
+    // Use resolved prices if available, otherwise DB prices
+    const resolved = resolvedMarkets.get(p.marketTicker);
+    const currentYesPrice = resolved?.yesPrice ?? market?.yesPrice ?? null;
+    const currentNoPrice = resolved?.noPrice ?? market?.noPrice ?? null;
+
     return {
       ...p,
       tokenId: resolvedTokenId,
       negRisk: market?.negRisk ?? false,
       tickSize: market?.tickSize ?? '0.01',
-      currentYesPrice: market?.yesPrice ?? null,
-      currentNoPrice: market?.noPrice ?? null,
+      currentYesPrice,
+      currentNoPrice,
       outcomeName: market?.outcomeName ?? null,
       outcome2Name: market?.outcome2Name ?? null,
     };

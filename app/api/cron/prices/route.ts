@@ -310,17 +310,34 @@ export async function GET(req: NextRequest) {
     let yesPrice = market.yesPrice;
     let noPrice = market.noPrice;
 
-    // Fetch live price from CLOB if we have a token ID
-    if (market.yesTokenId) {
-      try {
+    // Check if market is resolved first
+    try {
+      const clobRes = await fetch(`https://clob.polymarket.com/markets/${market.ticker}`);
+      if (clobRes.ok) {
+        const clobData = await clobRes.json();
+        if (clobData.closed || clobData.resolved) {
+          const tokens = clobData.tokens || [];
+          const yesToken = tokens.find((t: { outcome: string }) => t.outcome === 'Yes');
+          const noToken = tokens.find((t: { outcome: string }) => t.outcome === 'No');
+          if (yesToken?.winner === true) { yesPrice = 1.0; noPrice = 0.0; }
+          else if (noToken?.winner === true) { yesPrice = 0.0; noPrice = 1.0; }
+        } else if (market.yesTokenId) {
+          // Market still active — fetch live price
+          const priceData = await getMarketPrices(market.yesTokenId);
+          if (priceData) {
+            yesPrice = Math.round(priceData.price * 100) / 100;
+            noPrice = Math.round((1 - priceData.price) * 100) / 100;
+          }
+        }
+      } else if (market.yesTokenId) {
         const priceData = await getMarketPrices(market.yesTokenId);
         if (priceData) {
           yesPrice = Math.round(priceData.price * 100) / 100;
           noPrice = Math.round((1 - priceData.price) * 100) / 100;
         }
-      } catch (err) {
-        console.error(`Polymarket price fetch error for ${market.ticker}:`, err);
       }
+    } catch (err) {
+      console.error(`Polymarket price fetch error for ${market.ticker}:`, err);
     }
 
     // Update market in DB if live price differs
