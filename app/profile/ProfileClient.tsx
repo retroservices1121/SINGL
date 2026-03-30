@@ -1044,24 +1044,71 @@ export default function ProfileClient() {
                           <td className="px-6 py-5 rounded-r-xl text-right">
                             <div className="flex items-center justify-end gap-2">
                               <SharePositionButton pos={pos} pnlPct={pnlPercent} currentValue={currentValue} />
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 text-orange-700 text-[10px] font-bold uppercase tracking-wider">
-                                <span className="w-1.5 h-1.5 bg-[var(--primary-container)] rounded-full animate-pulse" />
-                                In Play
-                              </span>
-                              <button
-                                onClick={() => handleSell(pos)}
-                                disabled={selling === pos.id || !ready}
-                                className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-[var(--no-bg)] text-[var(--no)] rounded-full hover:bg-[var(--no)] hover:text-white transition-colors cursor-pointer disabled:opacity-50"
-                              >
-                                {selling === pos.id ? 'Selling...' : 'Sell'}
-                              </button>
-                              <button
-                                onClick={() => handleRedeem(pos)}
-                                disabled={redeeming === pos.id}
-                                className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-[var(--yes-bg)] text-[var(--yes)] rounded-full hover:bg-[var(--yes)] hover:text-white transition-colors cursor-pointer disabled:opacity-50"
-                              >
-                                {redeeming === pos.id ? 'Redeeming...' : 'Redeem'}
-                              </button>
+                              {(() => {
+                                const yesP = pos.currentYesPrice ?? null;
+                                const noP = pos.currentNoPrice ?? null;
+                                const resolved = yesP !== null && noP !== null && (yesP >= 0.99 || noP >= 0.99 || yesP <= 0.01 || noP <= 0.01);
+                                const won = resolved && (
+                                  (pos.side?.toLowerCase() === 'yes' && (yesP ?? 0) >= 0.99) ||
+                                  (pos.side?.toLowerCase() === 'no' && (noP ?? 0) >= 0.99)
+                                );
+
+                                if (resolved && won) {
+                                  return (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--yes-bg)] text-[var(--yes)] text-[10px] font-bold uppercase tracking-wider">
+                                      <span className="material-symbols-outlined text-xs">check_circle</span>
+                                      Won
+                                    </span>
+                                  );
+                                }
+                                if (resolved && !won) {
+                                  return (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--no-bg)] text-[var(--no)] text-[10px] font-bold uppercase tracking-wider">
+                                      <span className="material-symbols-outlined text-xs">cancel</span>
+                                      Loss
+                                    </span>
+                                  );
+                                }
+                                return (
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 text-orange-700 text-[10px] font-bold uppercase tracking-wider">
+                                    <span className="w-1.5 h-1.5 bg-[var(--primary-container)] rounded-full animate-pulse" />
+                                    In Play
+                                  </span>
+                                );
+                              })()}
+                              {(() => {
+                                const yesP = pos.currentYesPrice ?? null;
+                                const noP = pos.currentNoPrice ?? null;
+                                const resolved = yesP !== null && noP !== null && (yesP >= 0.99 || noP >= 0.99 || yesP <= 0.01 || noP <= 0.01);
+                                const won = resolved && (
+                                  (pos.side?.toLowerCase() === 'yes' && (yesP ?? 0) >= 0.99) ||
+                                  (pos.side?.toLowerCase() === 'no' && (noP ?? 0) >= 0.99)
+                                );
+
+                                if (resolved && won) {
+                                  return (
+                                    <button
+                                      onClick={() => handleRedeem(pos)}
+                                      disabled={redeeming === pos.id}
+                                      className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-[var(--yes-bg)] text-[var(--yes)] rounded-full hover:bg-[var(--yes)] hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+                                    >
+                                      {redeeming === pos.id ? 'Redeeming...' : 'Redeem'}
+                                    </button>
+                                  );
+                                }
+                                if (!resolved) {
+                                  return (
+                                    <button
+                                      onClick={() => handleSell(pos)}
+                                      disabled={selling === pos.id || !ready}
+                                      className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-[var(--no-bg)] text-[var(--no)] rounded-full hover:bg-[var(--no)] hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+                                    >
+                                      {selling === pos.id ? 'Selling...' : 'Sell'}
+                                    </button>
+                                  );
+                                }
+                                return null;
+                              })()}
                             </div>
                           </td>
                         </tr>
