@@ -759,7 +759,7 @@ export default function ProfileClient() {
         </>
       )}
 
-      {/* Referral Program */}
+      {/* Referral Program — hidden until fee model is live
       {profile && (
         <div className="mb-8 bg-[var(--surface-container-lowest)] rounded-xl p-6 shadow-ambient border border-[var(--primary-fixed)]">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -810,6 +810,7 @@ export default function ProfileClient() {
           </div>
         </div>
       )}
+      */}
 
       {positions.length === 0 ? (
         <div className="text-center py-20 bg-[var(--surface-container-lowest)] rounded-xl shadow-ambient">
