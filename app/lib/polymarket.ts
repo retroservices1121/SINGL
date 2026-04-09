@@ -267,6 +267,101 @@ export async function getNCAAMarkets(): Promise<{ markets: MarketData[]; totalVo
   return { markets: allMarkets, totalVolume };
 }
 
+/**
+ * Fetch ALL active FIFA World Cup 2026 markets from Polymarket.
+ */
+export async function getFIFAWorldCupMarkets(): Promise<{ markets: MarketData[]; totalVolume: number }> {
+  const seen = new Set<string>();
+  const allMarkets: MarketData[] = [];
+
+  const searchQueries = [
+    'FIFA World Cup 2026',
+    'World Cup Winner 2026',
+    'World Cup Group',
+    'World Cup Golden Boot',
+    'World Cup Golden Ball',
+    'World Cup knockout',
+    'World Cup quarter-final',
+    'World Cup semi-final',
+    'World Cup final 2026',
+    'FIFA 2026',
+  ];
+
+  // Event slugs for specific World Cup markets on Polymarket
+  const eventSlugs = [
+    'fifa-world-cup-2026-winner',
+    'fifa-world-cup-2026',
+    'world-cup-2026-winner',
+    '2026-world-cup',
+  ];
+
+  // 1. Fetch by event slug
+  for (const slug of eventSlugs) {
+    try {
+      const { markets } = await getEventBySlug(slug);
+      for (const m of markets) {
+        if (!seen.has(m.conditionId)) {
+          seen.add(m.conditionId);
+          allMarkets.push(m);
+        }
+      }
+    } catch (err) {
+      console.error(`FIFA event slug fetch error for "${slug}":`, err);
+    }
+  }
+
+  // 2. Fetch via text search
+  for (const query of searchQueries) {
+    try {
+      const res = await fetch(
+        `${GAMMA_API}/public-search?q=${encodeURIComponent(query)}&limit_per_type=50`,
+      );
+      if (!res.ok) continue;
+      const data = await res.json();
+
+      if (data.events) {
+        for (const event of data.events) {
+          if (event.closed || !event.active) continue;
+          const titleLower = (event.title || '').toLowerCase();
+          const isWC = titleLower.includes('world cup') ||
+            titleLower.includes('fifa') ||
+            titleLower.includes('golden boot') ||
+            titleLower.includes('golden ball');
+
+          if (!isWC) continue;
+
+          for (const market of event.markets || []) {
+            if (market.closed || !market.active) continue;
+            const key = market.conditionId || market.condition_id || market.id || market.question;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            const mapped = mapGammaMarket(market, event.volume);
+            if (mapped) allMarkets.push(mapped);
+          }
+        }
+      }
+
+      if (data.markets) {
+        for (const market of data.markets) {
+          if (market.closed || !market.active) continue;
+          const key = market.conditionId || market.condition_id || market.id || market.question;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          const mapped = mapGammaMarket(market);
+          if (mapped) allMarkets.push(mapped);
+        }
+      }
+    } catch (err) {
+      console.error(`FIFA search error for "${query}":`, err);
+    }
+  }
+
+  allMarkets.sort((a, b) => (b.volume || 0) - (a.volume || 0));
+  const totalVolume = allMarkets.reduce((sum, m) => sum + (m.volume || 0), 0);
+
+  return { markets: allMarkets, totalVolume };
+}
+
 export async function getMarketsBySearchTerms(searchTerms: string[]): Promise<MarketData[]> {
   const seen = new Set<string>();
   const allMarkets: MarketData[] = [];
@@ -280,6 +375,9 @@ export async function getMarketsBySearchTerms(searchTerms: string[]): Promise<Ma
       markets = result.markets;
     } else if (term.toLowerCase().includes('ncaa') || term.toLowerCase().includes('march madness')) {
       const result = await getNCAAMarkets();
+      markets = result.markets;
+    } else if (term.toLowerCase().includes('world cup') || term.toLowerCase().includes('fifa')) {
+      const result = await getFIFAWorldCupMarkets();
       markets = result.markets;
     } else {
       markets = await searchMarkets(term);

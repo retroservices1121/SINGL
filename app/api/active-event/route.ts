@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/db';
-import { getMarketsBySearchTerms, getNCAAMarkets } from '@/app/lib/polymarket';
+import { getMarketsBySearchTerms, getNCAAMarkets, getFIFAWorldCupMarkets } from '@/app/lib/polymarket';
+import { getLimitlessWorldCupMarkets } from '@/app/lib/spredd';
 import type { MarketData } from '@/app/types';
 
 export const dynamic = 'force-dynamic';
@@ -29,13 +30,41 @@ export async function GET() {
   // Fetch live market data from Polymarket
   let markets: MarketData[] = [];
   try {
-    // Check if this is an NCAA tournament event — fetch ALL NCAA markets
-    const isNCAA = event.searchTerms.some(t => {
+    // Check if this is a FIFA World Cup event
+    const isFIFA = event.searchTerms.some(t => {
+      const lower = t.toLowerCase();
+      return lower.includes('world cup') || lower.includes('fifa');
+    });
+
+    // Check if this is an NCAA tournament event
+    const isNCAA = !isFIFA && event.searchTerms.some(t => {
       const lower = t.toLowerCase();
       return lower.includes('ncaa') || lower.includes('march madness') || lower === 'ncaab';
     });
 
-    if (isNCAA) {
+    if (isFIFA) {
+      // Fetch from both Polymarket and Limitless (via Spredd) in parallel
+      const [polyResult, limitlessResult] = await Promise.all([
+        getFIFAWorldCupMarkets(),
+        getLimitlessWorldCupMarkets().catch(() => ({ markets: [], totalVolume: 0 })),
+      ]);
+
+      // Merge and deduplicate by title similarity
+      const seen = new Set<string>();
+      markets = [];
+      for (const m of polyResult.markets) {
+        seen.add(m.conditionId);
+        markets.push(m);
+      }
+      for (const m of limitlessResult.markets) {
+        if (!seen.has(m.conditionId)) {
+          seen.add(m.conditionId);
+          markets.push(m);
+        }
+      }
+      // Re-sort by volume
+      markets.sort((a, b) => (b.volume || 0) - (a.volume || 0));
+    } else if (isNCAA) {
       const result = await getNCAAMarkets();
       markets = result.markets;
     } else if (event.searchTerms.length > 0) {
