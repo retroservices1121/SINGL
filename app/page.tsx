@@ -1,6 +1,7 @@
 import ActiveEventPage from './components/ActiveEventPage';
 import WalletButton from './components/WalletButton';
 import ScoreTicker from './components/ScoreTicker';
+import TutorialOverlay from './components/TutorialOverlay';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -9,6 +10,8 @@ export const dynamic = 'force-dynamic';
 export default function Home() {
   return (
     <div className="min-h-screen bg-[var(--surface)]">
+      <TutorialOverlay />
+
       {/* Live Score Ticker */}
       <ScoreTicker />
 
