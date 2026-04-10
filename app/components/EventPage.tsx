@@ -263,7 +263,7 @@ function PlatformFilter({ markets, platform, setPlatform }: {
 }
 
 function FIFAEventPage({ event }: EventPageProps) {
-  const [view, setView] = useState<FIFAViewMode>('countries');
+  const [view, setView] = useState<FIFAViewMode>('markets');
   const [showAll, setShowAll] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<CountryProfile | null>(null);
   const [platformFilter, setPlatformFilter] = useState('all');
