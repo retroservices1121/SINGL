@@ -279,3 +279,309 @@ export async function getWorldCupArbitrage(): Promise<Array<{
     return [];
   }
 }
+
+// ── Trading API (Builder+ tier) ─────────────────────────────────────────────
+
+/**
+ * Create a Spredd account via signup
+ */
+export async function createSpreddAccount(email: string): Promise<{ account_id: string }> {
+  const res = await fetch(`${SPREDD_API}/auth/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Spredd signup failed: ${JSON.stringify(data)}`);
+  return data;
+}
+
+/**
+ * Create an API key for a Spredd account
+ */
+export async function createSpreddApiKey(accountId: string): Promise<{ api_key: string; key_id: string }> {
+  const res = await fetch(`${SPREDD_API}/auth/api-keys`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ account_id: accountId, tier: 'builder', label: 'singl-app' }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Spredd API key creation failed: ${JSON.stringify(data)}`);
+  return data;
+}
+
+/**
+ * Link Polymarket builder credentials for volume attribution
+ */
+export async function linkBuilderAttribution(
+  accountId: string,
+  builderKey: string,
+  builderSecret: string,
+  builderPassphrase: string,
+): Promise<void> {
+  const res = await fetch(`${SPREDD_API}/auth/builder-attribution`, {
+    method: 'PUT',
+    headers: headers(),
+    body: JSON.stringify({
+      account_id: accountId,
+      polymarket_builder_key: builderKey,
+      polymarket_builder_secret: builderSecret,
+      polymarket_builder_passphrase: builderPassphrase,
+    }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(`Builder attribution failed: ${JSON.stringify(data)}`);
+  }
+}
+
+/**
+ * Get a trading quote
+ */
+export interface SpreddQuoteParams {
+  platform: string;
+  market_id: string;
+  outcome: 'yes' | 'no';
+  side: 'buy' | 'sell';
+  amount: number;
+}
+
+export interface SpreddQuote {
+  platform: string;
+  market_id: string;
+  outcome: string;
+  side: string;
+  input_amount: number;
+  expected_output: number;
+  price_per_token: number;
+  price_impact: number;
+  fee_amount: number;
+  fee_bps: number;
+  expires_at: string;
+  quote_data: Record<string, unknown>;
+}
+
+export async function getSpreddQuote(params: SpreddQuoteParams): Promise<SpreddQuote> {
+  const res = await fetch(`${SPREDD_API}/trading/quote`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify(params),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Spredd quote failed: ${data.detail || JSON.stringify(data)}`);
+  return data;
+}
+
+/**
+ * Place an order via Spredd (server-side signing)
+ */
+export interface SpreddOrderParams {
+  platform: string;
+  market_id: string;
+  outcome: 'yes' | 'no';
+  side: 'buy' | 'sell';
+  order_type: 'market' | 'limit' | 'stoploss';
+  amount: number;
+  price?: number;
+  wallet_address: string;
+  private_key: string;
+}
+
+export interface SpreddOrderResult {
+  order_id: string;
+  platform: string;
+  market_id: string;
+  market_title: string;
+  outcome: string;
+  side: string;
+  order_type: string;
+  amount: number;
+  filled_amount: number;
+  price: number;
+  executed_price: number | null;
+  shares: number | null;
+  fee_amount: number;
+  status: string;
+  tx_hash: string | null;
+  created_at: string;
+  updated_at: string;
+  expires_at: string;
+}
+
+export async function placeSpreddOrder(params: SpreddOrderParams): Promise<SpreddOrderResult> {
+  const body: Record<string, unknown> = {
+    platform: params.platform,
+    market_id: params.market_id,
+    outcome: params.outcome,
+    side: params.side,
+    order_type: params.order_type,
+    amount: params.amount,
+    wallet_address: params.wallet_address,
+    private_key: params.private_key,
+  };
+  if (params.price !== undefined) body.price = params.price;
+
+  const res = await fetch(`${SPREDD_API}/trading/order`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Spredd order failed: ${data.detail || JSON.stringify(data)}`);
+  return data;
+}
+
+/**
+ * Place order on Limitless (Base chain CLOB)
+ */
+export interface LimitlessOrderParams {
+  market_id: string;
+  outcome: 'yes' | 'no';
+  side: 'buy' | 'sell';
+  order_type: 'FOK' | 'GTC';
+  amount: number;
+  price?: number;
+  wallet_address: string;
+  private_key: string;
+}
+
+export async function placeLimitlessOrder(params: LimitlessOrderParams): Promise<SpreddOrderResult> {
+  const body: Record<string, unknown> = {
+    market_id: params.market_id,
+    outcome: params.outcome,
+    side: params.side,
+    order_type: params.order_type,
+    amount: params.amount,
+    wallet_address: params.wallet_address,
+    private_key: params.private_key,
+  };
+  if (params.price !== undefined) body.price = params.price;
+
+  const res = await fetch(`${SPREDD_API}/limitless/orders`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Limitless order failed: ${data.detail || JSON.stringify(data)}`);
+  return data;
+}
+
+/**
+ * Get positions from Spredd
+ */
+export async function getSpreddPositions(walletAddress: string, platform?: string): Promise<Record<string, unknown>[]> {
+  const params = new URLSearchParams({ wallet_address: walletAddress, status: 'open', limit: '200' });
+  if (platform) params.set('platform', platform);
+
+  const res = await fetch(`${SPREDD_API}/positions?${params}`, { headers: headers() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Spredd positions failed: ${data.detail || JSON.stringify(data)}`);
+  return Array.isArray(data) ? data : (data.data || data.positions || []);
+}
+
+/**
+ * Get Limitless portfolio positions
+ */
+export async function getLimitlessPositions(walletAddress?: string): Promise<Record<string, unknown>[]> {
+  const params = new URLSearchParams({ limit: '200' });
+  if (walletAddress) params.set('wallet_address', walletAddress);
+
+  const res = await fetch(`${SPREDD_API}/limitless/portfolio/positions?${params}`, { headers: headers() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Limitless positions failed: ${data.detail || JSON.stringify(data)}`);
+  return Array.isArray(data) ? data : (data.data || data.positions || []);
+}
+
+/**
+ * Get PNL summary
+ */
+export async function getSpreddPnl(walletAddress: string, platform?: string): Promise<Record<string, unknown>> {
+  const params = new URLSearchParams({ wallet_address: walletAddress });
+  if (platform) params.set('platform', platform);
+
+  const res = await fetch(`${SPREDD_API}/trading/positions/pnl?${params}`, { headers: headers() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Spredd PNL failed: ${data.detail || JSON.stringify(data)}`);
+  return data;
+}
+
+/**
+ * Get Limitless USDC allowance (balance proxy)
+ */
+export async function getLimitlessAllowance(walletAddress?: string): Promise<Record<string, unknown>> {
+  const params = new URLSearchParams();
+  if (walletAddress) params.set('wallet_address', walletAddress);
+
+  const res = await fetch(`${SPREDD_API}/limitless/portfolio/allowance?${params}`, { headers: headers() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Limitless allowance failed: ${data.detail || JSON.stringify(data)}`);
+  return data;
+}
+
+/**
+ * Redeem a resolved position
+ */
+export async function redeemSpreddPosition(params: {
+  platform: string;
+  market_id: string;
+  outcome: 'yes' | 'no';
+  wallet_address: string;
+  private_key: string;
+}): Promise<Record<string, unknown>> {
+  const res = await fetch(`${SPREDD_API}/trading/redeem`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify(params),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Spredd redeem failed: ${data.detail || JSON.stringify(data)}`);
+  return data;
+}
+
+/**
+ * List orders
+ */
+export async function getSpreddOrders(walletAddress: string, params?: {
+  platform?: string;
+  market_id?: string;
+  status?: string;
+}): Promise<Record<string, unknown>[]> {
+  const qp = new URLSearchParams({ wallet_address: walletAddress, limit: '100' });
+  if (params?.platform) qp.set('platform', params.platform);
+  if (params?.market_id) qp.set('market_id', params.market_id);
+  if (params?.status) qp.set('status', params.status);
+
+  const res = await fetch(`${SPREDD_API}/trading/orders?${qp}`, { headers: headers() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Spredd orders failed: ${data.detail || JSON.stringify(data)}`);
+  return Array.isArray(data) ? data : (data.data || data.orders || []);
+}
+
+/**
+ * Cancel an order
+ */
+export async function cancelSpreddOrder(orderId: string): Promise<void> {
+  const res = await fetch(`${SPREDD_API}/trading/orders/${orderId}`, {
+    method: 'DELETE',
+    headers: headers(),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(`Spredd cancel failed: ${data.detail || JSON.stringify(data)}`);
+  }
+}
+
+/**
+ * Create Limitless partner account (for managed wallets)
+ */
+export async function createLimitlessPartnerAccount(userId: string, createServerWallet = true): Promise<Record<string, unknown>> {
+  const res = await fetch(`${SPREDD_API}/limitless/partner-accounts`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ user_id: userId, create_server_wallet: createServerWallet }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Limitless partner account failed: ${data.detail || JSON.stringify(data)}`);
+  return data;
+}

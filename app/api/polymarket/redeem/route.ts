@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/db';
+import { redeemSpreddPosition } from '@/app/lib/spredd';
 
 export const dynamic = 'force-dynamic';
-
-const SYNTHESIS_ACCOUNT_BASE = 'https://synthesis.trade';
 
 /**
  * GET: Check if a market condition has been resolved.
@@ -16,19 +15,32 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const res = await fetch(`https://clob.polymarket.com/markets/${conditionId}`);
-    if (!res.ok) {
-      return NextResponse.json({ error: 'Market not found' }, { status: 404 });
+    // Parse platform:market_id format
+    const isCompound = conditionId.includes(':');
+    const platform = isCompound ? conditionId.split(':')[0] : 'polymarket';
+    const marketId = isCompound ? conditionId.split(':')[1] : conditionId;
+
+    if (platform === 'polymarket') {
+      const res = await fetch(`https://clob.polymarket.com/markets/${marketId}`);
+      if (!res.ok) {
+        return NextResponse.json({ error: 'Market not found' }, { status: 404 });
+      }
+      const market = await res.json();
+      return NextResponse.json({
+        conditionId,
+        resolved: market.closed === true,
+        active: market.active,
+        closed: market.closed,
+        endDate: market.end_date_iso,
+      });
     }
 
-    const market = await res.json();
-
+    // For other platforms, return unknown status
     return NextResponse.json({
       conditionId,
-      resolved: market.closed === true,
-      active: market.active,
-      closed: market.closed,
-      endDate: market.end_date_iso,
+      resolved: false,
+      active: true,
+      closed: false,
     });
   } catch (err) {
     console.error('[redeem] Error:', err);
@@ -37,13 +49,12 @@ export async function GET(req: NextRequest) {
 }
 
 /**
- * POST: Redeem winning positions via Synthesis.
- * Looks up the user's Synthesis account from DB and calls the Synthesis redeem endpoint.
+ * POST: Redeem winning positions via Spredd.
  */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { conditionId, walletAddress, privyUserId } = body;
+    const { conditionId, walletAddress, privyUserId, outcome } = body;
 
     if (!conditionId) {
       return NextResponse.json({ error: 'conditionId is required' }, { status: 400 });
@@ -53,60 +64,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'walletAddress or privyUserId is required' }, { status: 400 });
     }
 
-    // Look up Synthesis account from DB
-    const synthAccount = await prisma.synthesisAccount.findFirst({
+    // Look up Spredd account from DB
+    const spreddAccount = await prisma.spreddAccount.findFirst({
       where: privyUserId
         ? { privyUserId }
         : { walletAddress },
     });
 
-    if (!synthAccount || !synthAccount.apiKey || !synthAccount.walletId) {
-      return NextResponse.json({ error: 'Synthesis trading account not found. Please ensure your wallet is initialized.' }, { status: 400 });
+    if (!spreddAccount || !spreddAccount.apiKey || !spreddAccount.walletAddress) {
+      return NextResponse.json({ error: 'Spredd trading account not found. Please ensure your wallet is initialized.' }, { status: 400 });
     }
 
-    // Try Synthesis merge/redeem endpoint
-    const redeemRes = await fetch(
-      `${SYNTHESIS_ACCOUNT_BASE}/api/v1/wallet/pol/${synthAccount.walletId}/redeem`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': synthAccount.apiKey,
-        },
-        body: JSON.stringify({ condition_id: conditionId }),
-      },
-    );
+    // Parse platform:market_id format
+    const isCompound = conditionId.includes(':');
+    const platform = isCompound ? conditionId.split(':')[0] : 'polymarket';
+    const marketId = isCompound ? conditionId.split(':')[1] : conditionId;
 
-    const redeemData = await redeemRes.json().catch(() => ({}));
+    const result = await redeemSpreddPosition({
+      platform,
+      market_id: marketId,
+      outcome: outcome || 'yes',
+      wallet_address: spreddAccount.walletAddress,
+      private_key: spreddAccount.apiKey,
+    });
 
-    if (!redeemRes.ok) {
-      // If Synthesis doesn't support /redeem, try /merge
-      const mergeRes = await fetch(
-        `${SYNTHESIS_ACCOUNT_BASE}/api/v1/wallet/pol/${synthAccount.walletId}/merge`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-API-KEY': synthAccount.apiKey,
-          },
-          body: JSON.stringify({ condition_id: conditionId }),
-        },
-      );
-
-      const mergeData = await mergeRes.json().catch(() => ({}));
-
-      if (!mergeRes.ok) {
-        console.error('[redeem] Synthesis redeem/merge failed:', redeemRes.status, redeemData, mergeRes.status, mergeData);
-        return NextResponse.json(
-          { error: mergeData.error || redeemData.error || `Redeem failed. The market may not be resolved yet.`, debug: { redeemStatus: redeemRes.status, mergeStatus: mergeRes.status } },
-          { status: 400 },
-        );
-      }
-
-      return NextResponse.json({ success: true, method: 'merge', ...mergeData });
-    }
-
-    return NextResponse.json({ success: true, method: 'redeem', ...redeemData });
+    return NextResponse.json({ success: true, method: 'redeem', ...result });
   } catch (err) {
     console.error('[redeem] Error:', err);
     const msg = err instanceof Error ? err.message : 'Redeem error';

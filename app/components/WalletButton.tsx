@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 // import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
-import { useSynthesisTrading } from '@/app/hooks/useSynthesisTrading';
+import { useSpreddTrading } from '@/app/hooks/useSpreddTrading';
 
 export default function WalletButton() {
   const [mounted, setMounted] = useState(false);
@@ -23,7 +23,7 @@ export default function WalletButton() {
 
 function WalletButtonInner() {
   const { login, logout, authenticated, user } = usePrivy();
-  const { walletAddress, initializing } = useSynthesisTrading();
+  const { walletAddress, initializing } = useSpreddTrading();
 
   if (!authenticated) {
     return (

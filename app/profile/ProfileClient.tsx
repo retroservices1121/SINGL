@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { usePrivy, useWallets, useLinkAccount } from '@privy-io/react-auth';
 // import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
-import { useSynthesisTrading } from '@/app/hooks/useSynthesisTrading';
+import { useSpreddTrading } from '@/app/hooks/useSpreddTrading';
 import { formatUSD, formatPercent, formatVolume } from '@/app/lib/utils';
 import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
@@ -204,7 +204,7 @@ export default function ProfileClient() {
       }
     },
   });
-  const { ready, walletAddress, initializing, error: sessionError, placeOrder } = useSynthesisTrading();
+  const { ready, walletAddress, initializing, error: sessionError, placeOrder } = useSpreddTrading();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [selling, setSelling] = useState<string | null>(null);
@@ -457,19 +457,20 @@ export default function ProfileClient() {
         ? (pos.currentYesPrice ?? pos.avgPrice)
         : (pos.currentNoPrice ?? pos.avgPrice);
 
-      // Query actual shares from Synthesis instead of trusting our DB
+      // Query actual shares from Spredd instead of trusting our DB
       let sellShares = Math.floor(pos.shares * 1000) / 1000;
       try {
         const privyUserId = user?.id;
         if (privyUserId) {
-          const synthPosRes = await fetch(`/api/synthesis/positions?privy_user_id=${encodeURIComponent(privyUserId)}`);
-          if (synthPosRes.ok) {
-            const synthData = await synthPosRes.json();
-            const synthPos = (synthData.positions || []).find(
-              (p: { position?: { token_id?: string } }) => p.position?.token_id === sellTokenId
+          const spreddPosRes = await fetch(`/api/spredd/positions?privy_user_id=${encodeURIComponent(privyUserId)}`);
+          if (spreddPosRes.ok) {
+            const spreddData = await spreddPosRes.json();
+            const spreddPos = (spreddData.positions || []).find(
+              (p: { token_id?: string; market_id?: string; token_amount?: string }) =>
+                p.token_id === sellTokenId || p.market_id === sellTokenId
             );
-            if (synthPos?.position?.shares) {
-              sellShares = Math.floor(parseFloat(synthPos.position.shares) * 1000) / 1000;
+            if (spreddPos?.token_amount) {
+              sellShares = Math.floor(parseFloat(spreddPos.token_amount) * 1000) / 1000;
             }
           }
         }

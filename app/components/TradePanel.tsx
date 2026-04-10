@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 // import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
-import { useSynthesisTrading } from '@/app/hooks/useSynthesisTrading';
+import { useSpreddTrading } from '@/app/hooks/useSpreddTrading';
 import { useTradeStore } from '@/app/store/tradeStore';
 import { useEventStore } from '@/app/store/eventStore';
 import { formatUSD, formatPercent } from '@/app/lib/utils';
@@ -15,7 +15,7 @@ export default function TradePanel() {
   const { isOpen, market, side, amount, submitting, confirmed, orderId, closeTrade, setAmount, setSubmitting, setConfirmed } = useTradeStore();
   const currentEvent = useEventStore(s => s.currentEvent);
   const { login, authenticated } = usePrivy();
-  const { ready, walletAddress, initializing, error: sessionError, placeOrder } = useSynthesisTrading();
+  const { ready, walletAddress, initializing, error: sessionError, placeOrder } = useSpreddTrading();
   const [localError, setLocalError] = useState<string | null>(null);
   const [minOrderSize, setMinOrderSize] = useState<number>(1);
 
@@ -281,7 +281,7 @@ export default function TradePanel() {
           {authenticated && walletAddress && (
             <div className="text-center">
               <span className="text-[9px] text-[var(--secondary)]">
-                Trading via Safe: <span className="font-mono">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
+                Trading via Spredd: <span className="font-mono">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
               </span>
             </div>
           )}

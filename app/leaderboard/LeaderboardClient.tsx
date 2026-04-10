@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 // import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
-import { useSynthesisTrading } from '@/app/hooks/useSynthesisTrading';
+import { useSpreddTrading } from '@/app/hooks/useSpreddTrading';
 import { formatVolume, formatUSD } from '@/app/lib/utils';
 import Spinner from '@/app/components/ui/Spinner';
 import Link from 'next/link';
@@ -30,7 +30,7 @@ export default function LeaderboardClient() {
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const { authenticated } = usePrivy();
-  const { walletAddress } = useSynthesisTrading();
+  const { walletAddress } = useSpreddTrading();
 
   useEffect(() => {
     fetch('/api/leaderboard')
