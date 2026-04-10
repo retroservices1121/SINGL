@@ -82,6 +82,8 @@ function mapSpreddMarket(m: SpreddMarket): MarketData {
     tickSize: '0.01',
     outcomeName,
     outcome2Name,
+    platform: m.platform as MarketData['platform'],
+    chain: m.chain || (m.platform === 'limitless' ? 'base' : m.platform === 'polymarket' ? 'polygon' : undefined),
   };
 }
 

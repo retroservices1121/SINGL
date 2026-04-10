@@ -211,22 +211,79 @@ function NCAAViewToggle({ view, setView }: { view: NCAViewMode; setView: (v: NCA
 
 // ── FIFA Event Page ──────────────────────────────────────────────────────────
 
+function PlatformFilter({ markets, platform, setPlatform }: {
+  markets: { platform?: string }[];
+  platform: string;
+  setPlatform: (p: string) => void;
+}) {
+  // Count markets per platform
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { all: markets.length };
+    for (const m of markets) {
+      const p = m.platform || 'polymarket';
+      c[p] = (c[p] || 0) + 1;
+    }
+    return c;
+  }, [markets]);
+
+  const platforms = Object.keys(counts).filter(k => k !== 'all');
+
+  // Don't show filter if only one platform
+  if (platforms.length <= 1) return null;
+
+  const pills: { key: string; label: string; count: number }[] = [
+    { key: 'all', label: 'All', count: counts.all },
+    ...platforms.map(p => ({
+      key: p,
+      label: p.charAt(0).toUpperCase() + p.slice(1),
+      count: counts[p],
+    })),
+  ];
+
+  return (
+    <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1">
+      {pills.map(p => (
+        <button
+          key={p.key}
+          onClick={() => setPlatform(p.key)}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+            platform === p.key
+              ? 'bg-[var(--on-surface)] text-white'
+              : 'bg-[var(--surface-container-high)] text-[var(--secondary)] hover:bg-[var(--surface-container-highest)]'
+          }`}
+        >
+          {p.label}
+          <span className={`text-[10px] font-mono ${platform === p.key ? 'text-white/70' : 'text-[var(--secondary)]'}`}>
+            {p.count}
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function FIFAEventPage({ event }: EventPageProps) {
   const [view, setView] = useState<FIFAViewMode>('countries');
   const [showAll, setShowAll] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<CountryProfile | null>(null);
+  const [platformFilter, setPlatformFilter] = useState('all');
 
   const parsedMarkets = useMemo(() => parseFIFAMarkets(event.markets), [event.markets]);
   const countryProfiles = useMemo(() => buildCountryProfiles(parsedMarkets), [parsedMarkets]);
   const groups = useMemo(() => enrichGroupsWithMarkets(getGroups(), countryProfiles), [countryProfiles]);
 
-  const visibleMarkets = showAll ? event.markets : event.markets.slice(0, 12);
-  const hasMore = event.markets.length > 12;
+  const filteredMarkets = useMemo(() => {
+    if (platformFilter === 'all') return event.markets;
+    return event.markets.filter(m => (m.platform || 'polymarket') === platformFilter);
+  }, [event.markets, platformFilter]);
+
+  const visibleMarkets = showAll ? filteredMarkets : filteredMarkets.slice(0, 12);
+  const hasMore = filteredMarkets.length > 12;
 
   const viewTitle = () => {
     switch (view) {
       case 'countries': return `${countryProfiles.length} Countries`;
-      case 'markets': return `${event.markets.length} Markets`;
+      case 'markets': return `${filteredMarkets.length} Markets`;
       case 'groups': return '12 Groups';
       case 'bracket': return 'Knockout Bracket';
       case 'schedule': return 'Match Schedule';
@@ -268,7 +325,8 @@ function FIFAEventPage({ event }: EventPageProps) {
       {/* Markets View */}
       {view === 'markets' && (
         <section className="mb-8">
-          {event.markets.length > 0 ? (
+          <PlatformFilter markets={event.markets} platform={platformFilter} setPlatform={(p) => { setPlatformFilter(p); setShowAll(false); }} />
+          {filteredMarkets.length > 0 ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {visibleMarkets.map((market, i) => (
@@ -278,7 +336,7 @@ function FIFAEventPage({ event }: EventPageProps) {
               {hasMore && !showAll && (
                 <div className="text-center mt-6">
                   <button onClick={() => setShowAll(true)} className="px-8 py-3 bg-[var(--surface-container-high)] text-[var(--on-surface)] rounded-md font-heading font-bold uppercase tracking-widest text-sm hover:bg-[var(--surface-container-highest)] transition-all cursor-pointer">
-                    Show All {event.markets.length} Markets
+                    Show All {filteredMarkets.length} Markets
                   </button>
                 </div>
               )}
@@ -356,12 +414,18 @@ function NCAAEventPage({ event }: EventPageProps) {
   const [view, setView] = useState<NCAViewMode>('teams');
   const [showAll, setShowAll] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
+  const [platformFilter, setPlatformFilter] = useState('all');
 
   const parsedMarkets = parseMarkets(event.markets);
   const teamProfiles = buildTeamProfiles(parsedMarkets);
 
-  const visibleMarkets = showAll ? event.markets : event.markets.slice(0, 12);
-  const hasMore = event.markets.length > 12;
+  const filteredMarkets = useMemo(() => {
+    if (platformFilter === 'all') return event.markets;
+    return event.markets.filter(m => (m.platform || 'polymarket') === platformFilter);
+  }, [event.markets, platformFilter]);
+
+  const visibleMarkets = showAll ? filteredMarkets : filteredMarkets.slice(0, 12);
+  const hasMore = filteredMarkets.length > 12;
 
   return (
     <>
@@ -395,7 +459,8 @@ function NCAAEventPage({ event }: EventPageProps) {
 
       {view === 'markets' && (
         <section className="mb-8">
-          {event.markets.length > 0 ? (
+          <PlatformFilter markets={event.markets} platform={platformFilter} setPlatform={(p) => { setPlatformFilter(p); setShowAll(false); }} />
+          {filteredMarkets.length > 0 ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {visibleMarkets.map((market, i) => (
@@ -405,7 +470,7 @@ function NCAAEventPage({ event }: EventPageProps) {
               {hasMore && !showAll && (
                 <div className="text-center mt-6">
                   <button onClick={() => setShowAll(true)} className="px-8 py-3 bg-[var(--surface-container-high)] text-[var(--on-surface)] rounded-md font-heading font-bold uppercase tracking-widest text-sm hover:bg-[var(--surface-container-highest)] transition-all cursor-pointer">
-                    Show All {event.markets.length} Markets
+                    Show All {filteredMarkets.length} Markets
                   </button>
                 </div>
               )}

@@ -19,6 +19,14 @@ function shortName(name: string | null | undefined): string | null {
   return name.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts)$/i, '').trim();
 }
 
+const PLATFORM_STYLES: Record<string, { label: string; bg: string; text: string; chain?: string }> = {
+  polymarket: { label: 'Polymarket', bg: 'bg-purple-50', text: 'text-purple-700', chain: 'Polygon' },
+  limitless: { label: 'Limitless', bg: 'bg-blue-50', text: 'text-blue-700', chain: 'Base' },
+  kalshi: { label: 'Kalshi', bg: 'bg-emerald-50', text: 'text-emerald-700', chain: 'Solana' },
+  myriad: { label: 'Myriad', bg: 'bg-orange-50', text: 'text-orange-700', chain: 'Abstract' },
+  spredd: { label: 'Spredd', bg: 'bg-amber-50', text: 'text-amber-700' },
+};
+
 export default function MarketCard({ market, index }: MarketCardProps) {
   const openTrade = useTradeStore(s => s.openTrade);
   const openDetail = useTradeStore(s => s.openDetail);
@@ -27,6 +35,8 @@ export default function MarketCard({ market, index }: MarketCardProps) {
   const noCents = Math.round(market.noPrice * 100) || (100 - yesCents);
   const yesLabel = shortName(market.outcomeName) || 'Yes';
   const noLabel = shortName(market.outcome2Name) || 'No';
+  const platformKey = market.platform || 'polymarket';
+  const platformStyle = PLATFORM_STYLES[platformKey] || PLATFORM_STYLES.polymarket;
 
   const copyShareText = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -43,8 +53,18 @@ export default function MarketCard({ market, index }: MarketCardProps) {
       style={{ animationDelay: `${index * 40}ms` }}
       onClick={() => openDetail(market)}
     >
+      {/* Platform badge */}
+      <div className="flex items-center gap-1.5 mb-2">
+        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${platformStyle.bg} ${platformStyle.text}`}>
+          {platformStyle.label}
+        </span>
+        {platformStyle.chain && (
+          <span className="text-[9px] text-[var(--secondary)] font-mono">{platformStyle.chain}</span>
+        )}
+      </div>
+
       {/* Title + share */}
-      <div className="flex items-start justify-between gap-2 mb-4">
+      <div className="flex items-start justify-between gap-2 mb-3">
         <h4 className="font-heading font-bold text-sm text-[var(--on-surface)] leading-snug uppercase tracking-tight flex-1">
           {market.title}
         </h4>

@@ -121,6 +121,8 @@ function mapGammaMarket(m: GammaMarket, eventVolume?: number | string): MarketDa
     tickSize: String(m.orderPriceMinTickSize || m.minimum_tick_size || '0.01'),
     outcomeName,
     outcome2Name,
+    platform: 'polymarket',
+    chain: 'polygon',
   };
 }
 

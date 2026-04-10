@@ -37,6 +37,8 @@ export interface MarketData {
   tickSize: string;
   outcomeName?: string | null;  // e.g. "Illinois Fighting Illini" — first outcome label (null = "Yes")
   outcome2Name?: string | null; // e.g. "Iowa Hawkeyes" — second outcome label (null = "No")
+  platform?: 'polymarket' | 'limitless' | 'kalshi' | 'myriad' | 'opinion' | 'spredd' | string;
+  chain?: 'polygon' | 'base' | 'solana' | string;
 }
 
 export interface NewsItemData {
