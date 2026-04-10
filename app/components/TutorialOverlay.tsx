@@ -25,14 +25,54 @@ const STEPS: TutorialStep[] = [
     icon: 'swap_horiz',
   },
   {
-    title: 'Countries & Groups',
-    description: 'Explore every country\'s championship odds, group stage standings, and knockout bracket. Switch views with the tabs above the market grid.',
+    title: 'Country Explorer',
+    description: 'Tap "Countries" to see every nation\'s championship odds, form, and market data. Select a country card to dive into its full stats panel with round-by-round odds and sparklines.',
     icon: 'flag',
   },
   {
+    title: 'Group Stage Tables',
+    description: 'Switch to "Groups" to see all 12 World Cup groups with standings, advancement odds, and country profiles. Track which teams are favorites to qualify from each group.',
+    icon: 'groups',
+  },
+  {
+    title: 'Knockout Bracket',
+    description: 'The "Bracket" view shows the full knockout stage from the Round of 32 to the Final. See projected matchups and championship odds at every stage.',
+    icon: 'account_tree',
+  },
+  {
+    title: 'Match Schedule',
+    description: 'The "Schedule" tab shows upcoming matches with kick-off times, venues, and countdown timers. Never miss a game.',
+    icon: 'calendar_month',
+  },
+  {
+    title: 'Pick\'em Challenge',
+    description: 'Play the free Pick\'em game. Predict which teams advance from each group, then pick your knockout bracket all the way to the champion. Share your picks on X and compete with friends.',
+    icon: 'sports_score',
+  },
+  {
+    title: 'Head to Head',
+    description: 'Compare any two countries side by side in the "H2H" tab. See odds, group placement, and historical matchup context to inform your trades.',
+    icon: 'compare_arrows',
+  },
+  {
+    title: 'Squad Rosters',
+    description: 'Browse full squad rosters for every country in the "Squads" tab. See who\'s been called up and how deep each team runs.',
+    icon: 'person',
+  },
+  {
+    title: 'Golden Boot & Awards',
+    description: 'The "Awards" tab tracks Golden Boot contenders and other individual award markets. See which players are tipped for top scorer honors.',
+    icon: 'emoji_events',
+  },
+  {
     title: 'News, X & Video',
-    description: 'Scroll down for real-time news, posts from X, TikToks, and YouTube coverage, all filtered to the active event so you stay informed.',
+    description: 'Scroll down for real-time news articles, posts from X, TikToks, and YouTube coverage, all filtered to the active event so you stay informed.',
     icon: 'feed',
+  },
+  {
+    title: 'Portfolio',
+    description: 'Track all your open positions, USDC balance, unrealized P&L, and trade history. Sell or redeem positions directly from the Portfolio page.',
+    icon: 'account_balance_wallet',
   },
   {
     title: 'Leaderboard',
