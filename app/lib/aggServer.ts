@@ -173,8 +173,10 @@ export async function listVenueEvents(params: {
           status: params.status,
           venues: params.venues,
           categoryIds: params.categoryIds,
-          sortBy: params.sortBy ?? 'volume',
-          limit: params.limit ?? 100,
+          // Only pass sortBy/limit when the caller asked for them — AGG
+          // 500s on certain combinations of search + sortBy.
+          ...(params.sortBy ? { sortBy: params.sortBy } : {}),
+          ...(params.limit ? { limit: params.limit } : {}),
           cursor: params.cursor,
         },
       },

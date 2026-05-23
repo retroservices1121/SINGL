@@ -15,11 +15,10 @@ export async function GET(req: NextRequest) {
   if (!q) return NextResponse.json({ events: [] });
 
   try {
-    const { data: venueEvents } = await listVenueEvents({
-      search: q,
-      status: 'open',
-      limit: 40,
-    });
+    // Minimal params — AGG returned 500 on the kitchen-sink query
+    // (search + status + sortBy + limit). Drop everything except `search`
+    // and let AGG default the rest.
+    const { data: venueEvents } = await listVenueEvents({ search: q });
 
     const events = venueEvents.map(ve => {
       const activeMarkets = (ve.markets || []).filter(m => m.status === 'open' || m.status === undefined);
