@@ -406,7 +406,10 @@ export default function MarketDetailOverlay() {
               <BuyPanel
                 key={selectedOutcome?.id ?? market.venueMarketId}
                 yesOutcomeId={selectedOutcome?.id ?? market.yesOutcomeId}
-                noOutcomeId={market.noOutcomeId}
+                /* For synthesized multi-outcome cards each outcome carries its own
+                   noId; fall back to the parent market's noOutcomeId for plain
+                   binary markets. */
+                noOutcomeId={selectedOutcome?.noId ?? market.noOutcomeId}
                 yesPriceFallback={selectedOutcome?.price ?? market.yesPrice}
                 noPriceFallback={market.noPrice || (1 - (selectedOutcome?.price ?? market.yesPrice))}
                 yesLabel={selectedLabel}

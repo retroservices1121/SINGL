@@ -30,10 +30,17 @@ export type AggVenue =
 // One outcome in a (possibly multi-outcome) market — e.g. "Spain" in
 // "Nation to Reach Final" or "Yes" in "Will inflation drop below 3%".
 export interface MarketOutcome {
-  id: string;        // venueMarketOutcomeId
+  id: string;        // venueMarketOutcomeId for the YES side
   label: string;     // human label, e.g. "Spain" or "Yes"
   price: number;     // 0..1 midpoint at fetch time (live overrides via WS hook)
   imageUrl?: string | null;
+  // For synthesized multi-outcome cards (where each outcome row is its own
+  // underlying binary market), the NO-side outcome id and the per-child
+  // market id used to build /api/agg/route quotes. Optional — undefined on
+  // truly multi-outcome AGG markets where there's only one parent market.
+  noId?: string;
+  childMarketId?: string;
+  venue?: string;
 }
 
 export interface MarketData {
