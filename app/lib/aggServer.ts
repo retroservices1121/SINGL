@@ -159,42 +159,53 @@ export async function listVenueEvents(params: {
   limit?: number;
   cursor?: string;
 }): Promise<{ data: AggVenueEvent[]; nextCursor?: string; hasMore?: boolean }> {
-  // If multiple search terms, dedupe results across them.
+  // AGG's /venue-events listing endpoint 500s for our app config. Pivot to
+  // /search?type=events for discovery, then enrich each event with its
+  // markets via the single-event lookup. Same overall shape — same
+  // {data, nextCursor, hasMore} contract — so all callers are unchanged.
+
   const terms = params.searchTerms?.length
     ? params.searchTerms
     : params.search
       ? [params.search]
-      : [''];
+      : [];
+
+  // /search requires a non-empty q. Without one, return empty.
+  if (terms.length === 0) return { data: [] };
+
+  const categoryIds = params.categoryIds ?? (DEFAULT_CATEGORY_IDS.length ? DEFAULT_CATEGORY_IDS : undefined);
+  const perTermLimit = params.limit ?? 25;
 
   const seen = new Map<string, AggVenueEvent>();
-  let nextCursor: string | undefined;
-  let hasMore = false;
 
   for (const term of terms) {
-    const result = await aggFetch<{ data: AggVenueEvent[]; nextCursor?: string; hasMore?: boolean }>(
-      '/venue-events',
-      {
+    if (!term) continue;
+    let brief: { data?: AggVenueEvent[] };
+    try {
+      brief = await aggFetch<{ data?: AggVenueEvent[] }>('/search', {
         query: {
-          search: term || undefined,
-          status: params.status,
-          venues: params.venues,
-          categoryIds: params.categoryIds ?? (DEFAULT_CATEGORY_IDS.length ? DEFAULT_CATEGORY_IDS : undefined),
-          // Only pass sortBy/limit when the caller asked for them — AGG
-          // 500s on certain combinations of search + sortBy.
-          ...(params.sortBy ? { sortBy: params.sortBy } : {}),
-          ...(params.limit ? { limit: params.limit } : {}),
-          cursor: params.cursor,
+          q: term,
+          type: 'events',
+          ...(categoryIds ? { categoryIds } : {}),
+          limit: perTermLimit,
         },
-      },
-    );
-    for (const ev of result.data || []) {
-      if (!seen.has(ev.id)) seen.set(ev.id, ev);
+      });
+    } catch (err) {
+      console.error(`[listVenueEvents] /search failed for "${term}":`, err);
+      continue;
     }
-    nextCursor = result.nextCursor;
-    hasMore = result.hasMore ?? false;
+
+    for (const ev of brief.data || []) {
+      if (seen.has(ev.id)) continue;
+      // Enrich with the full event payload (which includes nested markets).
+      // Falls back to the bare /search result if the single-event lookup
+      // also errors so the caller at least sees the event title/metadata.
+      const full = await getVenueEvent(ev.id);
+      seen.set(ev.id, full ?? ev);
+    }
   }
 
-  return { data: [...seen.values()], nextCursor, hasMore };
+  return { data: [...seen.values()] };
 }
 
 export async function getVenueEvent(id: string): Promise<AggVenueEvent | null> {

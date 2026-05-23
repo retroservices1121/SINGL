@@ -44,10 +44,11 @@ export async function GET(req: Request) {
   const SPORTS = 'd7iw9fo6tp4nkgws7m3e8naw';
 
   const results = await Promise.all([
-    ping('/venue-events?limit=1'),
     ping('/search?type=events&q=FIFA&limit=5'),
-    ping('/search?type=markets&q=FIFA&limit=5'),
-    ping(`/search?type=events&q=FIFA&categoryIds=${SPORTS}&limit=5`),
+    // Single-event lookup — the SDK uses a different code path here than
+    // the broken /venue-events list endpoint, so this MAY work and give
+    // us nested markets per event.
+    ping('/venue-events/uflqeqhtzei1c97cmwkuedlq'),
   ]);
 
   return NextResponse.json({ config, results });
