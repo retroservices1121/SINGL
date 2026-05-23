@@ -1,7 +1,14 @@
 [build]
 builder = "dockerfile"
 dockerfilePath = "Dockerfile"
-dockerBuildArgs = ["NEXT_PUBLIC_DFLOW_METADATA_URL", "NEXT_PUBLIC_DFLOW_TRADE_URL", "NEXT_PUBLIC_SOLANA_RPC", "NEXT_PUBLIC_SOLANA_RPC_URL", "NEXT_PUBLIC_SITE_URL"]
+dockerBuildArgs = [
+  "NEXT_PUBLIC_AGG_APP_ID",
+  "NEXT_PUBLIC_AGG_BASE_URL",
+  "NEXT_PUBLIC_AGG_WS_URL",
+  "NEXT_PUBLIC_AGG_AUTH_REDIRECT",
+  "NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID",
+  "NEXT_PUBLIC_SITE_URL",
+]
 
 [deploy]
 healthcheckPath = "/api/health"
