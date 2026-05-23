@@ -38,9 +38,13 @@ export async function GET(req: Request) {
   };
 
   const results = await Promise.all([
-    ping('/hello'),
+    ping('/venue-events'),
     ping('/venue-events?limit=1'),
-    ping('/venue-events?search=FIFA&limit=1'),
+    ping('/categories'),
+    ping('/categories?limit=1'),
+    ping('/orderbooks?venueMarketIds=test'),
+    ping('/app/config'),
+    ping('/users/me'),
   ]);
 
   return NextResponse.json({ config, results });
