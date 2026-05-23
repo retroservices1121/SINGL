@@ -44,6 +44,9 @@ function groupMarketsByParentEvent(markets: MarketData[]): MarketData[] {
         noId: m.noOutcomeId,
         childMarketId: m.venueMarketId,
         venue: typeof m.venue === 'string' ? m.venue : undefined,
+        // Polymarket FIFA markets ship country flags via the market image,
+        // so this becomes the per-outcome row icon in the detail panel.
+        imageUrl: m.image ?? null,
       }))
       // Sort by descending YES price — front-runner first, like AGG's UI.
       .sort((a, b) => (b.price ?? 0) - (a.price ?? 0));

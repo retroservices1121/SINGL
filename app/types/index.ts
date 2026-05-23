@@ -72,6 +72,11 @@ export interface MarketData {
   // many AGG events into one active-event payload, so each market carries
   // its own parent context for display ("FIFA World Cup 2026 → USA").
   parentEventTitle?: string | null;
+  // Cover image — Polymarket uses country flags for FIFA per-country
+  // markets; falls back to whatever the source venue provides. Surfaced
+  // as the per-outcome row icon when this market becomes an outcome of
+  // a synthesized multi-outcome card.
+  image?: string | null;
 }
 
 export interface NewsItemData {

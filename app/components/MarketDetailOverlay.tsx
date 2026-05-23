@@ -14,7 +14,7 @@ interface PricePoint {
 
 type TimeRange = '1d' | '1w' | '1m' | 'all';
 
-function PriceChart({ data, height = 220 }: { data: PricePoint[]; height?: number }) {
+function PriceChart({ data, height = 220, livePrice }: { data: PricePoint[]; height?: number; livePrice?: number }) {
   if (!data || data.length < 2) {
     return (
       <div className="flex items-center justify-center text-[var(--secondary)] text-xs" style={{ height }}>
@@ -28,27 +28,36 @@ function PriceChart({ data, height = 220 }: { data: PricePoint[]; height?: numbe
   const chartW = width - padding.left - padding.right;
   const chartH = height - padding.top - padding.bottom;
 
+  // Append the live price as a synthetic trailing point so the chart
+  // extends to "now" and pulses with WebSocket updates. Skipped when
+  // livePrice matches the last historical sample (avoids jitter).
+  const liveTail: PricePoint | null = livePrice !== undefined
+    && Math.abs(livePrice - data[data.length - 1].yesPrice) > 0.0001
+    ? { timestamp: new Date().toISOString(), yesPrice: livePrice }
+    : null;
+  const plotted = liveTail ? [...data, liveTail] : data;
+
   // Yes and No prices (No = 1 - Yes)
-  const yesPrices = data.map(d => d.yesPrice);
-  const noPrices = data.map(d => 1 - d.yesPrice);
+  const yesPrices = plotted.map(d => d.yesPrice);
+  const noPrices = plotted.map(d => 1 - d.yesPrice);
 
   // Fixed 0-100% range for clarity
   const min = 0;
   const max = 1;
   const range = 1;
 
-  const toX = (i: number) => padding.left + (i / (data.length - 1)) * chartW;
+  const toX = (i: number) => padding.left + (i / (plotted.length - 1)) * chartW;
   const toY = (v: number) => padding.top + chartH - ((v - min) / range) * chartH;
 
   // Yes line
-  const yesPoints = data.map((d, i) => `${toX(i)},${toY(d.yesPrice)}`);
+  const yesPoints = plotted.map((d, i) => `${toX(i)},${toY(d.yesPrice)}`);
   const yesLinePath = `M${yesPoints.join(' L')}`;
-  const yesAreaPath = `${yesLinePath} L${toX(data.length - 1)},${padding.top + chartH} L${padding.left},${padding.top + chartH} Z`;
+  const yesAreaPath = `${yesLinePath} L${toX(plotted.length - 1)},${padding.top + chartH} L${padding.left},${padding.top + chartH} Z`;
 
   // No line
-  const noPoints = data.map((d, i) => `${toX(i)},${toY(1 - d.yesPrice)}`);
+  const noPoints = plotted.map((d, i) => `${toX(i)},${toY(1 - d.yesPrice)}`);
   const noLinePath = `M${noPoints.join(' L')}`;
-  const noAreaPath = `${noLinePath} L${toX(data.length - 1)},${padding.top + chartH} L${padding.left},${padding.top + chartH} Z`;
+  const noAreaPath = `${noLinePath} L${toX(plotted.length - 1)},${padding.top + chartH} L${padding.left},${padding.top + chartH} Z`;
 
   const yesLast = yesPrices[yesPrices.length - 1];
   const noLast = noPrices[noPrices.length - 1];
@@ -58,7 +67,7 @@ function PriceChart({ data, height = 220 }: { data: PricePoint[]; height?: numbe
   const yLabels = Array.from({ length: yTicks }, (_, i) => i / (yTicks - 1));
 
   // X-axis labels
-  const xLabelIndices = [0, Math.floor(data.length / 2), data.length - 1];
+  const xLabelIndices = [0, Math.floor(plotted.length / 2), plotted.length - 1];
   const formatDate = (ts: string) => {
     const d = new Date(ts);
     return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -106,20 +115,34 @@ function PriceChart({ data, height = 220 }: { data: PricePoint[]; height?: numbe
       <path d={yesAreaPath} fill="url(#yes-fill)" />
       <path d={yesLinePath} fill="none" stroke="var(--yes)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 
-      {/* End dots — Yes */}
-      <circle cx={toX(data.length - 1)} cy={toY(yesLast)} r="4" fill="var(--yes)" />
-      <circle cx={toX(data.length - 1)} cy={toY(yesLast)} r="7" fill="var(--yes)" opacity="0.2" />
+      {/* End dots — Yes (pulses when the trailing point is the live tick). */}
+      <circle cx={toX(plotted.length - 1)} cy={toY(yesLast)} r="4" fill="var(--yes)" />
+      {liveTail ? (
+        <circle cx={toX(plotted.length - 1)} cy={toY(yesLast)} r="7" fill="var(--yes)" opacity="0.35">
+          <animate attributeName="r" values="5;12;5" dur="1.6s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.5;0;0.5" dur="1.6s" repeatCount="indefinite" />
+        </circle>
+      ) : (
+        <circle cx={toX(plotted.length - 1)} cy={toY(yesLast)} r="7" fill="var(--yes)" opacity="0.2" />
+      )}
 
       {/* End dots — No */}
-      <circle cx={toX(data.length - 1)} cy={toY(noLast)} r="3" fill="var(--no)" />
-      <circle cx={toX(data.length - 1)} cy={toY(noLast)} r="6" fill="var(--no)" opacity="0.15" />
+      <circle cx={toX(plotted.length - 1)} cy={toY(noLast)} r="3" fill="var(--no)" />
+      {liveTail ? (
+        <circle cx={toX(plotted.length - 1)} cy={toY(noLast)} r="6" fill="var(--no)" opacity="0.3">
+          <animate attributeName="r" values="4;10;4" dur="1.6s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.4;0;0.4" dur="1.6s" repeatCount="indefinite" />
+        </circle>
+      ) : (
+        <circle cx={toX(plotted.length - 1)} cy={toY(noLast)} r="6" fill="var(--no)" opacity="0.15" />
+      )}
 
-      {/* End labels */}
+      {/* End labels — show current cents alongside */}
       <text x={width - padding.right + 2} y={toY(yesLast) - 6} fill="var(--yes)" fontSize="9" fontWeight="bold" fontFamily="JetBrains Mono, monospace">
-        Yes
+        {Math.round(yesLast * 100)}¢
       </text>
       <text x={width - padding.right + 2} y={toY(noLast) - 6} fill="var(--no)" fontSize="9" fontWeight="bold" fontFamily="JetBrains Mono, monospace">
-        No
+        {Math.round(noLast * 100)}¢
       </text>
     </svg>
   );
@@ -313,7 +336,7 @@ export default function MarketDetailOverlay() {
                       Loading price data...
                     </div>
                   ) : (
-                    <PriceChart data={priceHistory} />
+                    <PriceChart data={priceHistory} livePrice={selectedPriceLive} />
                   )}
                 </div>
               </section>

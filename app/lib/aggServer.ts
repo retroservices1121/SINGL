@@ -110,6 +110,9 @@ export interface AggVenueMarket {
   liquidity?: number;
   endDate?: string;
   tickSize?: string;
+  // Cover image — Polymarket FIFA per-country markets use country flags
+  // here; other venues may use team logos / candidate photos.
+  image?: string | null;
 }
 
 export interface AggOutcome {
@@ -173,6 +176,7 @@ export function mapAggMarket(ev: { id: string; venue?: string; endDate?: string;
       })),
     venue: m.venue || ev.venue,
     parentEventTitle: ev.title || null,
+    image: m.image ?? null,
   };
 }
 
