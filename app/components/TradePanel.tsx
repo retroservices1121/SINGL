@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { usePrivy } from '@privy-io/react-auth';
-// import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
-import { useSpreddTrading } from '@/app/hooks/useSpreddTrading';
+import { useState, useEffect, useRef } from 'react';
+import { useAggAuth } from '@agg-build/hooks';
+import { useAggAuthFlow } from '@agg-build/auth';
+import { useAggTrading, type AggQuote } from '@/app/hooks/useAggTrading';
 import { useTradeStore } from '@/app/store/tradeStore';
-import { useEventStore } from '@/app/store/eventStore';
 import { formatUSD, formatPercent } from '@/app/lib/utils';
 import Spinner from './ui/Spinner';
 
@@ -13,103 +12,70 @@ const PRESETS = [10, 25, 50, 100, 250];
 
 export default function TradePanel() {
   const { isOpen, market, side, amount, submitting, confirmed, orderId, closeTrade, setAmount, setSubmitting, setConfirmed } = useTradeStore();
-  const currentEvent = useEventStore(s => s.currentEvent);
-  const { login, authenticated } = usePrivy();
-  const { ready, walletAddress, initializing, error: sessionError, placeOrder } = useSpreddTrading();
+  const { isAuthenticated } = useAggAuth();
+  const { startMethod } = useAggAuthFlow();
+  const authenticated = isAuthenticated;
+  const signIn = () => startMethod('siwe');
+  const { ready, walletAddress, initializing, error: sessionError, getQuote, placeOrder } = useAggTrading();
   const [localError, setLocalError] = useState<string | null>(null);
-  const [minOrderSize, setMinOrderSize] = useState<number>(1);
+  const [quote, setQuote] = useState<AggQuote | null>(null);
+  const [quoting, setQuoting] = useState(false);
+  const quoteSeq = useRef(0);
 
-  // Fetch min order size from CLOB when market changes
+  const outcomeId = market ? (side === 'yes' ? market.yesOutcomeId : market.noOutcomeId) : '';
+
+  // Re-quote whenever the user changes amount/side/market. Debounce 250 ms.
   useEffect(() => {
-    if (!market) return;
-    const tokenId = side === 'yes' ? market.yesTokenId : market.noTokenId;
-    if (!tokenId) return;
-    setMinOrderSize(1); // reset
-    fetch(`/api/resolve-token?conditionId=${encodeURIComponent(market.ticker)}&side=${side}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.minOrderSize) setMinOrderSize(d.minOrderSize); })
-      .catch(() => {});
-  }, [market, side]);
+    if (!market || !outcomeId || amount <= 0) { setQuote(null); return; }
+    const seq = ++quoteSeq.current;
+    setQuoting(true);
+    const t = setTimeout(async () => {
+      try {
+        const q = await getQuote({ outcomeId, side: 'BUY', maxSpend: amount });
+        if (seq === quoteSeq.current) setQuote(q);
+      } catch {
+        if (seq === quoteSeq.current) setQuote(null);
+      } finally {
+        if (seq === quoteSeq.current) setQuoting(false);
+      }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [market, outcomeId, amount, getQuote]);
 
   if (!isOpen || !market) return null;
 
-  // Use team names for game matchups
   const sideLabel = side === 'yes'
-    ? (market.outcomeName
-        ? market.outcomeName.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts)$/i, '').trim()
-        : 'YES')
-    : (market.outcome2Name
-        ? market.outcome2Name.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts)$/i, '').trim()
-        : 'NO');
+    ? (market.outcomeName || 'YES')
+    : (market.outcome2Name || 'NO');
 
-  const price = side === 'yes' ? market.yesPrice : (market.noPrice || (1 - market.yesPrice));
-  const tokenId = side === 'yes' ? market.yesTokenId : market.noTokenId;
-  const shares = price > 0 ? amount / price : 0;
-  const payout = shares;
-  const profit = payout - amount;
+  // Use quote when available; fall back to displayed mid prices for the breakdown.
+  const fallbackPrice = side === 'yes' ? market.yesPrice : (market.noPrice || (1 - market.yesPrice));
+  const shares = quote?.totalFilled ?? (fallbackPrice > 0 ? amount / fallbackPrice : 0);
+  const cost = quote?.estimatedCostRaw ?? amount;
+  const payout = quote?.estimatedPayout ?? shares;
+  const profit = quote?.estimatedProfit ?? (payout - cost);
+  const effectivePrice = shares > 0 ? cost / shares : fallbackPrice;
+  const routedVenues = quote?.fills?.map(f => f.venue).filter(Boolean) ?? [];
 
   const handleSubmit = async () => {
     setLocalError(null);
 
-    if (!authenticated) {
-      login();
-      return;
-    }
-
-    if (!ready || !walletAddress) {
-      setLocalError('Trading session not ready. Please wait for initialization to complete.');
-      return;
-    }
-
-    if (!tokenId) {
-      setLocalError('Market token ID not available. Cannot place trade.');
-      return;
-    }
-
-    if (price <= 0) {
-      setLocalError('Invalid market price. Cannot place trade.');
-      return;
-    }
+    if (!authenticated) { signIn(); return; }
+    if (!ready || !walletAddress) { setLocalError('Trading session not ready. Please wait.'); return; }
+    if (!outcomeId) { setLocalError('Market outcome not available.'); return; }
+    if (!quote?.quoteId) { setLocalError('Waiting for live quote. Try again in a moment.'); return; }
 
     setSubmitting(true);
     try {
       const result = await placeOrder({
-        tokenId,
-        side: 'BUY',
-        type: 'MARKET',
-        amount,
-        units: 'USDC',
+        quoteId: quote.quoteId,
+        fallback: { outcomeId, side: 'BUY', maxSpend: amount },
       });
-
-      // Use actual shares/price from Synthesis response (more accurate than our calculation)
-      const actualShares = parseFloat(String(result.shares || '')) || (amount / price);
-      const actualPrice = parseFloat(String(result.price || '')) || price;
-
-      await fetch('/api/positions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          walletAddress: walletAddress,
-          marketTicker: market.ticker,
-          marketTitle: market.title,
-          eventSlug: currentEvent?.slug || '',
-          eventTitle: currentEvent?.title || '',
-          side,
-          amount,
-          price: actualPrice,
-          shares: actualShares,
-          orderId: result.order_id,
-          tokenId: tokenId,
-        }),
-      });
-
-      setConfirmed(result.order_id);
+      setConfirmed(result.orderIds[0] || 'submitted');
     } catch (err) {
-      console.error('[trade] Client error:', err);
+      console.error('[trade] error:', err);
       const msg = err instanceof Error ? err.message : 'Trade failed';
-      if (!msg.includes('rejected')) {
-        setLocalError(`Trade error: ${msg}`);
-      }
+      if (!msg.includes('rejected')) setLocalError(`Trade error: ${msg}`);
       setSubmitting(false);
     }
   };
@@ -144,7 +110,6 @@ export default function TradePanel() {
     );
   }
 
-  // Determine button state and label
   let buttonLabel = '';
   let buttonDisabled = submitting || amount <= 0;
   if (!authenticated) {
@@ -154,6 +119,9 @@ export default function TradePanel() {
     buttonDisabled = true;
   } else if (!ready) {
     buttonLabel = 'Waiting for Trading Session...';
+    buttonDisabled = true;
+  } else if (quoting || !quote) {
+    buttonLabel = 'Fetching Best Route...';
     buttonDisabled = true;
   } else {
     buttonLabel = `Confirm ${sideLabel} - ${formatUSD(amount)}`;
@@ -165,7 +133,6 @@ export default function TradePanel() {
         className="bg-[var(--surface-container-lowest)] rounded-xl max-w-sm w-full animate-[pop-in_0.3s_ease-out] shadow-ambient border-t-4 border-[var(--primary-container)]"
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="p-5 border-b border-[var(--surface-container)]">
           <div className="flex items-center justify-between">
             <h3 className="font-heading text-lg font-black uppercase">
@@ -178,7 +145,6 @@ export default function TradePanel() {
         <div className="p-5 space-y-5">
           <p className="text-xs text-[var(--secondary)] leading-snug">{market.title}</p>
 
-          {/* Session status */}
           {authenticated && !ready && !initializing && (
             <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
               <span className="material-symbols-outlined text-sm">warning</span>
@@ -198,7 +164,6 @@ export default function TradePanel() {
             </div>
           )}
 
-          {/* Amount input */}
           <div>
             <label className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-1.5 block">Amount (USDC)</label>
             <div className="relative">
@@ -229,11 +194,10 @@ export default function TradePanel() {
             </div>
           </div>
 
-          {/* Cost breakdown */}
           <div className="bg-[var(--surface-container-low)] rounded-lg p-4 space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-[var(--secondary)]">Price</span>
-              <span className="font-mono font-bold">{formatPercent(price)}</span>
+              <span className="font-mono font-bold">{formatPercent(effectivePrice)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-[var(--secondary)]">Est. Shares</span>
@@ -247,24 +211,22 @@ export default function TradePanel() {
               <span className="text-[var(--secondary)]">Potential Profit</span>
               <span className="font-mono font-bold text-[var(--yes)]">+{formatUSD(profit)}</span>
             </div>
-            {minOrderSize > 1 && shares < minOrderSize && (
+            {routedVenues.length > 0 && (
               <div className="flex items-center gap-1.5 pt-2 border-t border-[var(--surface-container)]">
-                <span className="material-symbols-outlined text-sm text-amber-500">info</span>
-                <span className="text-[10px] text-amber-600">
-                  Min {minOrderSize} shares to sell before expiration. Buy at least {formatUSD(minOrderSize * price)} to sell later.
+                <span className="material-symbols-outlined text-sm text-[var(--secondary)]">route</span>
+                <span className="text-[10px] text-[var(--secondary)] uppercase tracking-wider">
+                  Routed: {[...new Set(routedVenues)].join(', ')}
                 </span>
               </div>
             )}
           </div>
 
-          {/* Error */}
           {localError && (
             <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
               {localError}
             </div>
           )}
 
-          {/* Submit */}
           <button
             onClick={handleSubmit}
             disabled={buttonDisabled}
@@ -277,11 +239,10 @@ export default function TradePanel() {
             {submitting ? <><Spinner size="sm" /> Processing...</> : buttonLabel}
           </button>
 
-          {/* Trading wallet info */}
           {authenticated && walletAddress && (
             <div className="text-center">
               <span className="text-[9px] text-[var(--secondary)]">
-                Trading via Spredd: <span className="font-mono">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
+                Trading via AGG: <span className="font-mono">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
               </span>
             </div>
           )}

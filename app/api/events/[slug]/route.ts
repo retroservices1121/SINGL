@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/db';
-import { getMarketsBySearchTerms } from '@/app/lib/polymarket';
+import { listVenueEvents, mapAggMarket } from '@/app/lib/aggServer';
 import type { MarketData } from '@/app/types';
 
 export const dynamic = 'force-dynamic';
@@ -19,17 +19,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
   });
 
   if (!event) {
-    // Auto-create event from slug
     const words = slug.split('-');
-    const title = words
-      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
-
+    const title = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     const searchTerms = [title];
     const keyWords = words.filter(w => w.length > 3).join(' ');
-    if (keyWords && keyWords !== title.toLowerCase()) {
-      searchTerms.push(keyWords);
-    }
+    if (keyWords && keyWords !== title.toLowerCase()) searchTerms.push(keyWords);
 
     event = await prisma.event.create({
       data: { slug, title, searchTerms },
@@ -42,18 +36,28 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
     });
   }
 
-  // Fetch live market data from Polymarket Gamma API
   let markets: MarketData[] = [];
   if (event.searchTerms.length > 0) {
     try {
-      markets = await getMarketsBySearchTerms(event.searchTerms);
+      const { data: venueEvents } = await listVenueEvents({
+        searchTerms: event.searchTerms,
+        status: 'open',
+        limit: 100,
+      });
+      const seen = new Set<string>();
+      for (const ve of venueEvents) {
+        for (const m of (ve.markets || [])) {
+          if (seen.has(m.id)) continue;
+          seen.add(m.id);
+          const mapped = mapAggMarket(ve, m);
+          if (mapped) markets.push(mapped);
+        }
+      }
+      markets.sort((a, b) => (b.volume || 0) - (a.volume || 0));
     } catch (err) {
-      console.error('Polymarket market fetch error:', err);
+      console.error('[events/slug] AGG fetch error:', err);
     }
   }
 
-  return NextResponse.json({
-    ...event,
-    markets,
-  });
+  return NextResponse.json({ ...event, markets });
 }

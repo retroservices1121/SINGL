@@ -19,12 +19,15 @@ function shortName(name: string | null | undefined): string | null {
   return name.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts)$/i, '').trim();
 }
 
-const PLATFORM_STYLES: Record<string, { label: string; bg: string; text: string; chain?: string }> = {
+const VENUE_STYLES: Record<string, { label: string; bg: string; text: string; chain?: string }> = {
   polymarket: { label: 'Polymarket', bg: 'bg-purple-50', text: 'text-purple-700', chain: 'Polygon' },
   limitless: { label: 'Limitless', bg: 'bg-blue-50', text: 'text-blue-700', chain: 'Base' },
-  kalshi: { label: 'Kalshi', bg: 'bg-emerald-50', text: 'text-emerald-700', chain: 'Solana' },
+  kalshi: { label: 'Kalshi', bg: 'bg-emerald-50', text: 'text-emerald-700' },
   myriad: { label: 'Myriad', bg: 'bg-orange-50', text: 'text-orange-700', chain: 'Abstract' },
-  spredd: { label: 'Spredd', bg: 'bg-amber-50', text: 'text-amber-700' },
+  opinion: { label: 'Opinion', bg: 'bg-indigo-50', text: 'text-indigo-700' },
+  predict: { label: 'Predict', bg: 'bg-pink-50', text: 'text-pink-700' },
+  probable: { label: 'Probable', bg: 'bg-sky-50', text: 'text-sky-700' },
+  hyperliquid: { label: 'Hyperliquid', bg: 'bg-teal-50', text: 'text-teal-700', chain: 'Hyperliquid' },
 };
 
 export default function MarketCard({ market, index }: MarketCardProps) {
@@ -35,12 +38,12 @@ export default function MarketCard({ market, index }: MarketCardProps) {
   const noCents = Math.round(market.noPrice * 100) || (100 - yesCents);
   const yesLabel = shortName(market.outcomeName) || 'Yes';
   const noLabel = shortName(market.outcome2Name) || 'No';
-  const platformKey = market.platform || 'polymarket';
-  const platformStyle = PLATFORM_STYLES[platformKey] || PLATFORM_STYLES.polymarket;
+  const venueKey = (market.venue as string) || 'polymarket';
+  const platformStyle = VENUE_STYLES[venueKey] || { label: venueKey, bg: 'bg-zinc-50', text: 'text-zinc-700' };
 
   const copyShareText = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    const url = `${SITE_URL}/market/${market.conditionId}`;
+    const url = `${SITE_URL}/market/${market.venueMarketId}`;
     const text = `${market.title}\n\n${yesLabel} ${yesCents}\u00a2 / ${noLabel} ${noCents}\u00a2\n\nTrade on SINGL\n${url}`;
     await navigator.clipboard.writeText(text);
     setCopied(true);

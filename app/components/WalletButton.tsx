@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { usePrivy } from '@privy-io/react-auth';
-// import { usePolymarketSession } from '@/app/hooks/usePolymarketSession';
-import { useSpreddTrading } from '@/app/hooks/useSpreddTrading';
+import { useAggAuth } from '@agg-build/hooks';
+import { useAggAuthFlow } from '@agg-build/auth';
+import { useAggTrading } from '@/app/hooks/useAggTrading';
 
 export default function WalletButton() {
   const [mounted, setMounted] = useState(false);
@@ -22,13 +22,14 @@ export default function WalletButton() {
 }
 
 function WalletButtonInner() {
-  const { login, logout, authenticated, user } = usePrivy();
-  const { walletAddress, initializing } = useSpreddTrading();
+  const { isAuthenticated, user, signOut } = useAggAuth();
+  const { startMethod } = useAggAuthFlow();
+  const { walletAddress, initializing } = useAggTrading();
 
-  if (!authenticated) {
+  if (!isAuthenticated) {
     return (
       <button
-        onClick={() => login()}
+        onClick={() => startMethod('siwe')}
         className="gradient-cta text-white px-6 py-2 rounded-md font-bold text-sm tracking-tight shadow-lg shadow-[var(--primary-container)]/20 hover:scale-[1.02] transition-transform cursor-pointer"
       >
         Connect Wallet
@@ -36,13 +37,15 @@ function WalletButtonInner() {
     );
   }
 
+  const userEmail = (user as { email?: string | null } | undefined)?.email;
+  const userName = (user as { displayName?: string | null } | undefined)?.displayName;
   const displayAddress = walletAddress
     ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
-    : user?.email?.address || 'Connected';
+    : userEmail || userName || 'Connected';
 
   return (
     <button
-      onClick={() => logout()}
+      onClick={() => signOut()}
       className="px-4 py-2 text-sm font-bold bg-[var(--surface-container-high)] text-[var(--on-surface)] rounded-md hover:bg-[var(--surface-container-highest)] transition-colors cursor-pointer flex items-center gap-2"
     >
       {initializing && (

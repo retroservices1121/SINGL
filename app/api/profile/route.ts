@@ -8,24 +8,23 @@ function generateReferralCode(): string {
   return crypto.randomBytes(4).toString('hex').toUpperCase();
 }
 
-// GET: fetch profile by privy user ID or wallet address
+// GET: fetch profile by AGG user ID or wallet address
 export async function GET(req: NextRequest) {
-  const privyUserId = req.nextUrl.searchParams.get('privyUserId');
+  const aggUserId = req.nextUrl.searchParams.get('aggUserId');
   const wallet = req.nextUrl.searchParams.get('wallet');
 
-  if (!privyUserId && !wallet) {
-    return NextResponse.json({ error: 'privyUserId or wallet required' }, { status: 400 });
+  if (!aggUserId && !wallet) {
+    return NextResponse.json({ error: 'aggUserId or wallet required' }, { status: 400 });
   }
 
   const profile = await prisma.userProfile.findFirst({
-    where: privyUserId ? { privyUserId } : { walletAddress: wallet! },
+    where: aggUserId ? { aggUserId } : { walletAddress: wallet! },
   });
 
   if (!profile) {
     return NextResponse.json({ profile: null });
   }
 
-  // Count referrals
   const referralCount = await prisma.userProfile.count({
     where: { referredBy: profile.referralCode },
   });
@@ -36,21 +35,19 @@ export async function GET(req: NextRequest) {
 // POST: create or update profile
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { privyUserId, walletAddress, displayName, avatarUrl, twitterHandle, twitterId, twitterAvatar, referralCode: usedReferralCode } = body;
+  const { aggUserId, walletAddress, displayName, avatarUrl, twitterHandle, twitterId, twitterAvatar, referralCode: usedReferralCode } = body;
 
-  if (!privyUserId) {
-    return NextResponse.json({ error: 'privyUserId required' }, { status: 400 });
+  if (!aggUserId) {
+    return NextResponse.json({ error: 'aggUserId required' }, { status: 400 });
   }
 
-  // Check if profile exists
   const existing = await prisma.userProfile.findUnique({
-    where: { privyUserId },
+    where: { aggUserId },
   });
 
   if (existing) {
-    // Update existing profile
     const profile = await prisma.userProfile.update({
-      where: { privyUserId },
+      where: { aggUserId },
       data: {
         ...(walletAddress !== undefined && { walletAddress }),
         ...(displayName !== undefined && { displayName }),
@@ -63,7 +60,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ profile });
   }
 
-  // Validate referral code if provided
   if (usedReferralCode) {
     const referrer = await prisma.userProfile.findUnique({
       where: { referralCode: usedReferralCode },
@@ -73,9 +69,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Create new profile with unique referral code
   let code = generateReferralCode();
-  // Ensure uniqueness (very unlikely collision with 8 hex chars but be safe)
   for (let i = 0; i < 5; i++) {
     const dup = await prisma.userProfile.findUnique({ where: { referralCode: code } });
     if (!dup) break;
@@ -84,7 +78,7 @@ export async function POST(req: NextRequest) {
 
   const profile = await prisma.userProfile.create({
     data: {
-      privyUserId,
+      aggUserId,
       walletAddress: walletAddress || null,
       displayName: displayName || null,
       avatarUrl: avatarUrl || null,

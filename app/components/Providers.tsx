@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 
-const PrivyWalletProvider = dynamic(() => import('./PrivyWalletProvider'), {
+const AggProvider = dynamic(() => import('./AggProvider'), {
   ssr: false,
   loading: () => null,
 });
@@ -15,11 +15,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-  // Don't render children at all until mounted + wrapped in Privy
-  // This prevents hooks like usePrivy/useWallets from being called outside the provider
-  if (!mounted) {
-    return null;
-  }
+  if (!mounted) return null;
 
-  return <PrivyWalletProvider>{children}</PrivyWalletProvider>;
+  return <AggProvider>{children}</AggProvider>;
 }

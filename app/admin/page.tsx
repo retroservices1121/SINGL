@@ -49,29 +49,29 @@ function TwitterCardManager({ secret, markets }: { secret: string; markets: { ti
       .then(data => {
         const map: Record<string, string> = {};
         for (const m of data.markets || []) {
-          if (m.conditionId && m.ogImageUrl) map[m.conditionId] = m.ogImageUrl;
+          if (m.venueMarketId && m.ogImageUrl) map[m.venueMarketId] = m.ogImageUrl;
         }
         setImages(map);
       })
       .catch(() => {});
   }, [secret]);
 
-  const saveImage = async (conditionId: string, url: string) => {
-    setSaving(conditionId);
+  const saveImage = async (venueMarketId: string, url: string) => {
+    setSaving(venueMarketId);
     setMsg('');
     try {
       const res = await fetch('/api/admin/market-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-secret': secret },
-        body: JSON.stringify({ conditionId, ogImageUrl: url || null }),
+        body: JSON.stringify({ venueMarketId, ogImageUrl: url || null }),
       });
       const data = await res.json();
       if (data.ok) {
         if (url) {
-          setImages(prev => ({ ...prev, [conditionId]: url }));
+          setImages(prev => ({ ...prev, [venueMarketId]: url }));
           setMsg(`Card image set for "${data.market.title}"`);
         } else {
-          setImages(prev => { const n = { ...prev }; delete n[conditionId]; return n; });
+          setImages(prev => { const n = { ...prev }; delete n[venueMarketId]; return n; });
           setMsg(`Card image cleared for "${data.market.title}"`);
         }
       } else {
@@ -519,7 +519,7 @@ export default function AdminPage() {
 
         {/* Search */}
         <div className="bg-[#16213e] rounded-xl p-5 mb-6 border border-gray-700">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Search Polymarket Events</h2>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Search AGG Markets Events</h2>
           <div className="flex gap-2">
             <input
               type="text"
@@ -610,7 +610,7 @@ export default function AdminPage() {
         )}
 
         {searching && (
-          <div className="text-center py-12 text-gray-400">Searching Polymarket...</div>
+          <div className="text-center py-12 text-gray-400">Searching AGG venues…</div>
         )}
       </div>
     </div>

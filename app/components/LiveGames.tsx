@@ -186,7 +186,7 @@ export default function LiveGames({ markets }: LiveGamesProps) {
       </div>
       <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
         {games.map(game => (
-          <GameCard key={game.market.conditionId} game={game} />
+          <GameCard key={game.market.venueMarketId} game={game} />
         ))}
       </div>
     </div>

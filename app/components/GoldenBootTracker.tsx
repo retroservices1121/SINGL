@@ -165,7 +165,7 @@ export default function GoldenBootTracker({ markets }: GoldenBootTrackerProps) {
             <div className="space-y-2">
               {goldenGloveMarkets.map(m => (
                 <div
-                  key={m.conditionId}
+                  key={m.venueMarketId}
                   className="flex items-center justify-between p-3 bg-[var(--surface-container-low)] rounded-lg cursor-pointer hover:bg-[var(--surface-container)] transition-all"
                   onClick={() => openTrade(m, 'yes')}
                 >
@@ -191,7 +191,7 @@ export default function GoldenBootTracker({ markets }: GoldenBootTrackerProps) {
             <div className="space-y-2">
               {bestYoungMarkets.map(m => (
                 <div
-                  key={m.conditionId}
+                  key={m.venueMarketId}
                   className="flex items-center justify-between p-3 bg-[var(--surface-container-low)] rounded-lg cursor-pointer hover:bg-[var(--surface-container)] transition-all"
                   onClick={() => openTrade(m, 'yes')}
                 >

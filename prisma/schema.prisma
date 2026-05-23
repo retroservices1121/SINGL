@@ -43,10 +43,10 @@ model Market {
   rulesPrimary   String?
   closeTime      DateTime?
   expirationTime DateTime?
-  conditionId    String?
-  yesTokenId     String?
-  noTokenId      String?
-  negRisk        Boolean  @default(false)
+  venueMarketId  String?
+  yesOutcomeId   String?
+  noOutcomeId    String?
+  venue          String?
   tickSize       String   @default("0.01")
   outcomeName    String?
   outcome2Name   String?
@@ -126,46 +126,9 @@ model PriceSnapshot {
   @@index([eventId, marketTicker, timestamp])
 }
 
-model Position {
+model AggAccount {
   id            String   @id @default(cuid())
-  walletAddress String
-  marketTicker  String
-  marketTitle   String
-  eventSlug     String
-  eventTitle    String
-  side          String
-  shares        Float
-  avgPrice      Float
-  costBasis     Float
-  status        String   @default("open")
-  orderId       String?
-  tokenId       String?
-  txSignature   String?
-  closeTxSig    String?
-  closePrice    Float?
-  realizedPnl   Float?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@index([walletAddress, status])
-}
-
-model SynthesisAccount {
-  id            String   @id @default(cuid())
-  privyUserId   String   @unique
-  accountId     String   @unique
-  apiKey        String
-  walletId      String?
-  walletAddress String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-model SpreddAccount {
-  id            String   @id @default(cuid())
-  privyUserId   String   @unique
-  spreddAccountId String @unique
-  apiKey        String
+  aggUserId     String   @unique
   walletAddress String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -173,7 +136,7 @@ model SpreddAccount {
 
 model UserProfile {
   id              String   @id @default(cuid())
-  privyUserId     String   @unique
+  aggUserId       String   @unique
   walletAddress   String?
   displayName     String?
   avatarUrl       String?

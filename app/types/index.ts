@@ -17,6 +17,16 @@ export interface EventData {
   tiktoks: TikTokData[];
 }
 
+export type AggVenue =
+  | 'polymarket'
+  | 'kalshi'
+  | 'limitless'
+  | 'opinion'
+  | 'predict'
+  | 'probable'
+  | 'myriad'
+  | 'hyperliquid';
+
 export interface MarketData {
   id: string;
   eventId: string;
@@ -30,15 +40,14 @@ export interface MarketData {
   rulesPrimary?: string | null;
   closeTime?: string | null;
   expirationTime?: string | null;
-  conditionId: string;
-  yesTokenId: string;
-  noTokenId: string;
-  negRisk: boolean;
+  venueMarketId: string;
+  yesOutcomeId: string;
+  noOutcomeId: string;
   tickSize: string;
-  outcomeName?: string | null;  // e.g. "Illinois Fighting Illini" — first outcome label (null = "Yes")
-  outcome2Name?: string | null; // e.g. "Iowa Hawkeyes" — second outcome label (null = "No")
-  platform?: 'polymarket' | 'limitless' | 'kalshi' | 'myriad' | 'opinion' | 'spredd' | string;
-  chain?: 'polygon' | 'base' | 'solana' | string;
+  outcomeName?: string | null;  // first outcome label (null = "Yes")
+  outcome2Name?: string | null; // second outcome label (null = "No")
+  venue?: AggVenue | string;
+  chain?: string;
 }
 
 export interface NewsItemData {

@@ -9,10 +9,10 @@ import TradePanel from '@/app/components/TradePanel';
 const SITE_URL = 'https://singl.market';
 
 interface MarketPageClientProps {
-  conditionId: string;
+  venueMarketId: string;
 }
 
-export default function MarketPageClient({ conditionId }: MarketPageClientProps) {
+export default function MarketPageClient({ venueMarketId }: MarketPageClientProps) {
   const [market, setMarket] = useState<MarketData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +21,7 @@ export default function MarketPageClient({ conditionId }: MarketPageClientProps)
 
   const fetchMarket = useCallback(async () => {
     try {
-      const res = await fetch(`/api/market/${conditionId}`);
+      const res = await fetch(`/api/market/${venueMarketId}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to load market');
       setMarket(data.market);
@@ -31,7 +31,7 @@ export default function MarketPageClient({ conditionId }: MarketPageClientProps)
     } finally {
       setLoading(false);
     }
-  }, [conditionId]);
+  }, [venueMarketId]);
 
   useEffect(() => {
     fetchMarket();
@@ -39,7 +39,7 @@ export default function MarketPageClient({ conditionId }: MarketPageClientProps)
     return () => clearInterval(interval);
   }, [fetchMarket]);
 
-  const url = `${SITE_URL}/market/${conditionId}`;
+  const url = `${SITE_URL}/market/${venueMarketId}`;
 
   const shareOnX = () => {
     if (!market) return;

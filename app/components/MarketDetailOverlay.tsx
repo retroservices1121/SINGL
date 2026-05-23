@@ -143,35 +143,20 @@ export default function MarketDetailOverlay() {
         const fidelityMap: Record<TimeRange, string> = { '1d': '5', '1w': '60', '1m': '360', 'all': '1440' };
         const fidelity = fidelityMap[timeRange];
 
-        // Fetch directly from Polymarket CLOB via our proxy
-        const tokenId = detailMarket.yesTokenId;
-        if (tokenId) {
-          const res = await fetch(`/api/prices/history?tokenId=${encodeURIComponent(tokenId)}&fidelity=${fidelity}`);
+        // Fetch chart bars from AGG via our proxy
+        const outcomeId = detailMarket.yesOutcomeId;
+        if (outcomeId) {
+          const res = await fetch(`/api/agg/charts?outcomeId=${encodeURIComponent(outcomeId)}&fidelity=${fidelity}&range=${timeRange}`);
           const data = await res.json();
 
-          if (data.history && data.history.length > 0) {
-            // Filter by time range
-            const now = Date.now();
-            const rangeMs: Record<TimeRange, number> = {
-              '1d': 24 * 60 * 60 * 1000,
-              '1w': 7 * 24 * 60 * 60 * 1000,
-              '1m': 30 * 24 * 60 * 60 * 1000,
-              'all': Infinity,
-            };
-            const cutoff = now - rangeMs[timeRange];
-
-            const filtered = data.history
-              .filter((p: { t: number }) => p.t * 1000 >= cutoff)
-              .map((p: { t: number; p: number }) => ({
-                timestamp: new Date(p.t * 1000).toISOString(),
-                yesPrice: p.p,
-              }));
-
-            if (filtered.length > 0) {
-              setPriceHistory(filtered);
-              setLoading(false);
-              return;
-            }
+          if (data.bars && data.bars.length > 0) {
+            const points: PricePoint[] = data.bars.map((b: { t: number; p: number }) => ({
+              timestamp: new Date(b.t * 1000).toISOString(),
+              yesPrice: b.p,
+            }));
+            setPriceHistory(points);
+            setLoading(false);
+            return;
           }
         }
 
@@ -180,7 +165,7 @@ export default function MarketDetailOverlay() {
           const dbRes = await fetch(`/api/prices?eventId=${currentEvent.id}&range=${timeRange}`);
           const dbData = await dbRes.json();
           const marketPrices = dbData.snapshots?.[detailMarket.ticker] ||
-            dbData.snapshots?.[detailMarket.conditionId] || [];
+            dbData.snapshots?.[detailMarket.venueMarketId] || [];
           setPriceHistory(marketPrices);
         } else {
           setPriceHistory([]);
@@ -364,9 +349,15 @@ export default function MarketDetailOverlay() {
                 </div>
               )}
               <div className="bg-[var(--surface-container-low)] rounded-lg p-3">
-                <div className="text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-0.5">Condition ID</div>
-                <div className="font-mono text-[10px] text-[var(--on-surface)] truncate">{market.conditionId}</div>
+                <div className="text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-0.5">Market ID</div>
+                <div className="font-mono text-[10px] text-[var(--on-surface)] truncate">{market.venueMarketId}</div>
               </div>
+              {market.venue && (
+                <div className="bg-[var(--surface-container-low)] rounded-lg p-3">
+                  <div className="text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-0.5">Venue</div>
+                  <div className="font-mono font-bold text-[var(--on-surface)] capitalize">{market.venue}</div>
+                </div>
+              )}
               <div className="bg-[var(--surface-container-low)] rounded-lg p-3">
                 <div className="text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-0.5">Tick Size</div>
                 <div className="font-mono font-bold text-[var(--on-surface)]">{market.tickSize}</div>

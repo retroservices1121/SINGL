@@ -31,7 +31,7 @@ function detectUpsets(markets: ParsedMarket[], previousPrices?: Map<string, numb
     }
     // Method 2: Use previousPrices map
     else if (previousPrices && previousPrices.size > 0) {
-      const prevPrice = previousPrices.get(m.conditionId);
+      const prevPrice = previousPrices.get(m.venueMarketId);
       if (prevPrice !== undefined) {
         changePoints = (m.yesPrice - prevPrice) * 100;
       }
@@ -137,7 +137,7 @@ export default function UpsetAlertBanner({ markets, previousPrices }: UpsetAlert
           const isRising = alert.change > 0;
           return (
             <div
-              key={alert.market.conditionId}
+              key={alert.market.venueMarketId}
               className={`shrink-0 w-60 p-4 rounded-xl transition-all cursor-pointer hover:scale-[1.02] ${
                 alert.severity === 'major'
                   ? 'bg-[var(--on-surface)] text-white'

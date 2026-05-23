@@ -8,16 +8,11 @@ function isAuthorized(req: NextRequest): boolean {
   return secret === process.env.CRON_SECRET;
 }
 
-// GET: get current active event
 export async function GET(req: NextRequest) {
-  if (!isAuthorized(req)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  if (!isAuthorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const config = await prisma.siteConfig.findUnique({ where: { key: 'activeEventSlug' } });
-  if (!config) {
-    return NextResponse.json({ activeEventSlug: null });
-  }
+  if (!config) return NextResponse.json({ activeEventSlug: null });
 
   const event = await prisma.event.findUnique({
     where: { slug: config.value },
@@ -27,23 +22,16 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ activeEventSlug: config.value, event });
 }
 
-// POST: set active event
 export async function POST(req: NextRequest) {
-  if (!isAuthorized(req)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  if (!isAuthorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json();
   const { slug, title, searchTerms, contentTerms, emoji, subtitle, imageUrl, eventMeta, markets: rawMarkets, eventTicker } = body;
 
-  if (!slug) {
-    return NextResponse.json({ error: 'slug is required' }, { status: 400 });
-  }
+  if (!slug) return NextResponse.json({ error: 'slug is required' }, { status: 400 });
 
   const eventTitle = title || slug.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-  // searchTerms: used for Polymarket market lookup (include event ticker if available)
   const terms = searchTerms || (eventTicker ? [eventTicker, eventTitle] : [eventTitle]);
-  // contentTerms: used for news/social media searches (descriptive, human-readable)
   const content = contentTerms || [eventTitle];
   const meta = eventMeta || {};
 
@@ -75,7 +63,6 @@ export async function POST(req: NextRequest) {
     include: { markets: true },
   });
 
-  // If no markets provided, just update event metadata and return
   if (!rawMarkets) {
     await prisma.siteConfig.upsert({
       where: { key: 'activeEventSlug' },
@@ -85,30 +72,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, activeEventSlug: slug, event });
   }
 
-  // Save markets
   let marketError: string | null = null;
   let receivedCount = 0;
 
   interface RawMarket {
     ticker?: string;
-    condition_id?: string;
-    conditionId?: string;
+    venueMarketId?: string;
+    id?: string;
     title: string;
     yesPrice?: number;
     noPrice?: number;
-    yesBid?: string;
-    yesAsk?: string;
-    noBid?: string;
-    noAsk?: string;
     volume?: number | string;
-    openInterest?: number;
     rulesPrimary?: string;
     closeTime?: number | string;
     expirationTime?: number | string;
-    yesTokenId?: string;
-    noTokenId?: string;
-    negRisk?: boolean;
+    yesOutcomeId?: string;
+    noOutcomeId?: string;
     tickSize?: string;
+    venue?: string;
+    outcomeName?: string | null;
+    outcome2Name?: string | null;
   }
 
   const marketList: RawMarket[] = Array.isArray(rawMarkets) ? rawMarkets : [];
@@ -120,24 +103,11 @@ export async function POST(req: NextRequest) {
 
       await Promise.all(
         marketList.map(m => {
-          // Support both old format (yesBid/yesAsk) and Polymarket format (yesPrice/noPrice)
-          let yesPrice = m.yesPrice ?? 0;
-          let noPrice = m.noPrice ?? 0;
-
-          if (!yesPrice && !noPrice) {
-            const yesBid = parseFloat(m.yesBid || '0') || 0;
-            const yesAsk = parseFloat(m.yesAsk || '0') || 0;
-            const noBid = parseFloat(m.noBid || '0') || 0;
-            const noAsk = parseFloat(m.noAsk || '0') || 0;
-            yesPrice = yesAsk || yesBid || 0;
-            noPrice = noAsk || noBid || 0;
-          }
-
-          // ticker can come as ticker or condition_id from Polymarket
-          const ticker = m.ticker || m.condition_id || m.title.slice(0, 50);
+          const yesPrice = m.yesPrice ?? 0;
+          const noPrice = m.noPrice ?? 0;
+          const ticker = m.ticker || m.venueMarketId || m.id || m.title.slice(0, 50);
           const vol = typeof m.volume === 'string' ? parseFloat(m.volume) || null : (m.volume ?? null);
 
-          // closeTime can be ISO string or unix timestamp
           let closeTime: Date | null = null;
           if (m.closeTime) {
             closeTime = typeof m.closeTime === 'string' ? new Date(m.closeTime) : new Date(m.closeTime * 1000);
@@ -160,11 +130,13 @@ export async function POST(req: NextRequest) {
               expirationTime,
               change24h: null,
               category: null,
-              conditionId: m.conditionId || m.condition_id || ticker,
-              yesTokenId: m.yesTokenId || null,
-              noTokenId: m.noTokenId || null,
-              negRisk: m.negRisk ?? false,
+              venueMarketId: m.venueMarketId || m.id || ticker,
+              yesOutcomeId: m.yesOutcomeId || null,
+              noOutcomeId: m.noOutcomeId || null,
               tickSize: m.tickSize || '0.01',
+              venue: m.venue || null,
+              outcomeName: m.outcomeName ?? null,
+              outcome2Name: m.outcome2Name ?? null,
             },
           });
         })
@@ -180,7 +152,6 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Set as active event
   await prisma.siteConfig.upsert({
     where: { key: 'activeEventSlug' },
     update: { value: slug },

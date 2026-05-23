@@ -16,7 +16,7 @@ const STEPS: TutorialStep[] = [
   },
   {
     title: 'Live Markets',
-    description: 'Browse prediction markets powered by Polymarket. See real-time prices, volume, and odds for every outcome. Tap any market card to see detailed charts and resolution rules.',
+    description: 'Browse prediction markets aggregated across Polymarket, Kalshi, Limitless, and more via AGG. See real-time prices, volume, and odds for every outcome. Tap any market card to see detailed charts and resolution rules.',
     icon: 'show_chart',
   },
   {

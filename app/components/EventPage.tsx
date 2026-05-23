@@ -212,15 +212,15 @@ function NCAAViewToggle({ view, setView }: { view: NCAViewMode; setView: (v: NCA
 // ── FIFA Event Page ──────────────────────────────────────────────────────────
 
 function PlatformFilter({ markets, platform, setPlatform }: {
-  markets: { platform?: string }[];
+  markets: { venue?: string }[];
   platform: string;
   setPlatform: (p: string) => void;
 }) {
-  // Count markets per platform
+  // Count markets per venue
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: markets.length };
     for (const m of markets) {
-      const p = m.platform || 'polymarket';
+      const p = m.venue || 'polymarket';
       c[p] = (c[p] || 0) + 1;
     }
     return c;
@@ -228,7 +228,7 @@ function PlatformFilter({ markets, platform, setPlatform }: {
 
   const platforms = Object.keys(counts).filter(k => k !== 'all');
 
-  // Don't show filter if only one platform
+  // Don't show filter if only one venue
   if (platforms.length <= 1) return null;
 
   const pills: { key: string; label: string; count: number }[] = [
@@ -274,7 +274,7 @@ function FIFAEventPage({ event }: EventPageProps) {
 
   const filteredMarkets = useMemo(() => {
     if (platformFilter === 'all') return event.markets;
-    return event.markets.filter(m => (m.platform || 'polymarket') === platformFilter);
+    return event.markets.filter(m => (m.venue || 'polymarket') === platformFilter);
   }, [event.markets, platformFilter]);
 
   const visibleMarkets = showAll ? filteredMarkets : filteredMarkets.slice(0, 12);
@@ -421,7 +421,7 @@ function NCAAEventPage({ event }: EventPageProps) {
 
   const filteredMarkets = useMemo(() => {
     if (platformFilter === 'all') return event.markets;
-    return event.markets.filter(m => (m.platform || 'polymarket') === platformFilter);
+    return event.markets.filter(m => (m.venue || 'polymarket') === platformFilter);
   }, [event.markets, platformFilter]);
 
   const visibleMarkets = showAll ? filteredMarkets : filteredMarkets.slice(0, 12);

@@ -8,48 +8,30 @@ function isAuthorized(req: NextRequest): boolean {
   return secret === process.env.CRON_SECRET;
 }
 
-/**
- * GET /api/admin/market-image?secret=...
- * Returns all markets with custom OG images set.
- */
 export async function GET(req: NextRequest) {
-  if (!isAuthorized(req)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  if (!isAuthorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const markets = await prisma.market.findMany({
     where: { ogImageUrl: { not: null } },
-    select: { id: true, conditionId: true, title: true, ogImageUrl: true },
+    select: { id: true, venueMarketId: true, title: true, ogImageUrl: true },
     orderBy: { updatedAt: 'desc' },
   });
 
   return NextResponse.json({ markets });
 }
 
-/**
- * POST /api/admin/market-image
- * Body: { conditionId: string, ogImageUrl: string | null }
- * Sets or clears a custom OG image for a market.
- */
 export async function POST(req: NextRequest) {
-  if (!isAuthorized(req)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  if (!isAuthorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { conditionId, ogImageUrl } = await req.json();
+  const { venueMarketId, ogImageUrl } = await req.json();
 
-  if (!conditionId) {
-    return NextResponse.json({ error: 'conditionId is required' }, { status: 400 });
-  }
+  if (!venueMarketId) return NextResponse.json({ error: 'venueMarketId is required' }, { status: 400 });
 
-  // Find market by conditionId or ticker
   const market = await prisma.market.findFirst({
-    where: { OR: [{ conditionId }, { ticker: conditionId }] },
+    where: { OR: [{ venueMarketId }, { ticker: venueMarketId }] },
   });
 
-  if (!market) {
-    return NextResponse.json({ error: 'Market not found' }, { status: 404 });
-  }
+  if (!market) return NextResponse.json({ error: 'Market not found' }, { status: 404 });
 
   const updated = await prisma.market.update({
     where: { id: market.id },
@@ -58,6 +40,6 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    market: { id: updated.id, conditionId: updated.conditionId, title: updated.title, ogImageUrl: updated.ogImageUrl },
+    market: { id: updated.id, venueMarketId: updated.venueMarketId, title: updated.title, ogImageUrl: updated.ogImageUrl },
   });
 }
