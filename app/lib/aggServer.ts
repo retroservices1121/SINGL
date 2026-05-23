@@ -6,6 +6,12 @@
 const APP_ID = process.env.NEXT_PUBLIC_AGG_APP_ID || '';
 const BASE_URL = process.env.NEXT_PUBLIC_AGG_BASE_URL || 'https://api.agg.market';
 const SERVER_KEY = process.env.AGG_SERVER_API_KEY || '';
+// AGG /venue-events 500s when our app has most category presets disabled
+// and no categoryIds filter is passed. Default to the comma-separated
+// list in AGG_DEFAULT_CATEGORY_IDS so every call scopes itself to
+// enabled categories. Override per call by passing categoryIds.
+const DEFAULT_CATEGORY_IDS = (process.env.AGG_DEFAULT_CATEGORY_IDS || '')
+  .split(',').map(s => s.trim()).filter(Boolean);
 
 interface AggFetchOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
@@ -172,7 +178,7 @@ export async function listVenueEvents(params: {
           search: term || undefined,
           status: params.status,
           venues: params.venues,
-          categoryIds: params.categoryIds,
+          categoryIds: params.categoryIds ?? (DEFAULT_CATEGORY_IDS.length ? DEFAULT_CATEGORY_IDS : undefined),
           // Only pass sortBy/limit when the caller asked for them — AGG
           // 500s on certain combinations of search + sortBy.
           ...(params.sortBy ? { sortBy: params.sortBy } : {}),

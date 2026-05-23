@@ -37,14 +37,16 @@ export async function GET(req: Request) {
     }
   };
 
+  // The /app/config probe showed only `sports` is enabled — most other
+  // category presets are disabled. AGG's /venue-events 500s when it has
+  // to fan out across disabled categories. Force the sports id and see
+  // if the call recovers.
+  const SPORTS = 'd7iw9fo6tp4nkgws7m3e8naw';
+
   const results = await Promise.all([
-    ping('/venue-events'),
     ping('/venue-events?limit=1'),
-    ping('/categories'),
-    ping('/categories?limit=1'),
-    ping('/orderbooks?venueMarketIds=test'),
-    ping('/app/config'),
-    ping('/users/me'),
+    ping(`/venue-events?categoryIds=${SPORTS}&limit=1`),
+    ping(`/venue-events?categoryIds=${SPORTS}&search=FIFA&limit=1`),
   ]);
 
   return NextResponse.json({ config, results });
