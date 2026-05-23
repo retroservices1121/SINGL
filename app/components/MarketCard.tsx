@@ -3,8 +3,29 @@
 import { useState } from 'react';
 import type { MarketData } from '@/app/types';
 import { useTradeStore } from '@/app/store/tradeStore';
-import { useLivePrice } from './LivePricesProvider';
+import { useLivePriceInfo } from './LivePricesProvider';
 import { formatVolume } from '@/app/lib/utils';
+
+const VENUE_LABEL: Record<string, string> = {
+  polymarket: 'Polymarket',
+  kalshi: 'Kalshi',
+  limitless: 'Limitless',
+  myriad: 'Myriad',
+  opinion: 'Opinion',
+  predict: 'Predict',
+  probable: 'Probable',
+  hyperliquid: 'Hyperliquid',
+};
+
+function VenueChip({ venue }: { venue: string | null }) {
+  if (!venue) return null;
+  const label = VENUE_LABEL[venue] || venue;
+  return (
+    <span className="inline-flex items-center px-1 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-[var(--surface-container-high)] text-[var(--secondary)]">
+      {label}
+    </span>
+  );
+}
 
 const SITE_URL = 'https://singl.market';
 
@@ -35,10 +56,10 @@ export default function MarketCard({ market, index }: MarketCardProps) {
   const openTrade = useTradeStore(s => s.openTrade);
   const openDetail = useTradeStore(s => s.openDetail);
   const [copied, setCopied] = useState(false);
-  const liveYes = useLivePrice(market.yesOutcomeId, market.yesPrice);
-  const liveNo = useLivePrice(market.noOutcomeId, market.noPrice || (1 - liveYes));
-  const yesCents = Math.round(liveYes * 100);
-  const noCents = Math.round(liveNo * 100) || (100 - yesCents);
+  const yesInfo = useLivePriceInfo(market.yesOutcomeId, market.yesPrice, market.venue ?? null);
+  const noInfo = useLivePriceInfo(market.noOutcomeId, market.noPrice || (1 - yesInfo.price), market.venue ?? null);
+  const yesCents = Math.round(yesInfo.price * 100);
+  const noCents = Math.round(noInfo.price * 100) || (100 - yesCents);
   const yesLabel = shortName(market.outcomeName) || 'Yes';
   const noLabel = shortName(market.outcome2Name) || 'No';
   const venueKey = (market.venue as string) || 'polymarket';
@@ -95,15 +116,19 @@ export default function MarketCard({ market, index }: MarketCardProps) {
         />
       </div>
 
-      {/* Prices */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-[var(--yes)]">{yesLabel} {yesCents}c</span>
+      {/* Prices + per-side venue chip (AGG may route YES + NO to different venues) */}
+      <div className="flex items-center justify-between mb-3 gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="inline-flex items-center gap-1 text-xs font-bold text-[var(--yes)]">
+            {yesLabel} {yesCents}c <VenueChip venue={yesInfo.venue} />
+          </span>
           <span className="text-[var(--surface-container-highest)]">|</span>
-          <span className="text-xs font-bold text-[var(--no)]">{noLabel} {noCents}c</span>
+          <span className="inline-flex items-center gap-1 text-xs font-bold text-[var(--no)]">
+            {noLabel} {noCents}c <VenueChip venue={noInfo.venue} />
+          </span>
         </div>
         {market.volume != null && market.volume > 0 && (
-          <span className="text-[10px] text-[var(--secondary)]">
+          <span className="text-[10px] text-[var(--secondary)] shrink-0">
             Vol: {formatVolume(market.volume)}
           </span>
         )}

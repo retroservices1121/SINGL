@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import '@agg-build/ui/styles.css';
+// @agg-build/ui/styles.css ships a full Tailwind v4 build at root scope —
+// importing it stomps on our globals (card widths, video sizes, country
+// flag image rules). We only use AGG hooks, never their UI components,
+// so the missing-styles warning at runtime is informational and safe to
+// ignore.
 import Providers from './components/Providers';
 
 export const metadata: Metadata = {

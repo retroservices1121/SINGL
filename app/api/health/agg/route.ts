@@ -45,10 +45,10 @@ export async function GET(req: Request) {
 
   const results = await Promise.all([
     ping('/search?type=events&q=FIFA&limit=5'),
-    // Single-event lookup — the SDK uses a different code path here than
-    // the broken /venue-events list endpoint, so this MAY work and give
-    // us nested markets per event.
     ping('/venue-events/uflqeqhtzei1c97cmwkuedlq'),
+    // Sample 2 markets for the FIFA event so we can see exactly which
+    // fields AGG populates (question vs title, outcomes count, venues, etc.)
+    ping('/venue-markets?venueEventId=uflqeqhtzei1c97cmwkuedlq&limit=2'),
   ]);
 
   return NextResponse.json({ config, results });
