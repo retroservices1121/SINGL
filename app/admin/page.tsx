@@ -344,16 +344,24 @@ export default function AdminPage() {
                   onClick={async () => {
                     const input = document.getElementById('eventTitleInput') as HTMLInputElement;
                     const newTitle = input.value.trim();
-                    if (!newTitle) return;
-                    const res = await fetch('/api/admin/event', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json', 'x-admin-secret': secret },
-                      body: JSON.stringify({ slug: active.activeEventSlug, title: newTitle }),
-                    });
-                    const data = await res.json();
-                    if (data.ok) {
+                    if (!newTitle) { setMessage('Title cannot be empty'); return; }
+                    if (!active?.activeEventSlug) { setMessage('No active event slug — Set Active on an event first'); return; }
+                    setMessage('Saving title…');
+                    try {
+                      const res = await fetch('/api/admin/event', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-admin-secret': secret },
+                        body: JSON.stringify({ slug: active.activeEventSlug, title: newTitle }),
+                      });
+                      const data = await res.json();
+                      if (!res.ok || !data.ok) {
+                        setMessage(`Update failed: ${data.error || res.status}`);
+                        return;
+                      }
                       setMessage(`Title updated to "${newTitle}"`);
                       fetchActive(secret);
+                    } catch (err) {
+                      setMessage(`Update error: ${err instanceof Error ? err.message : String(err)}`);
                     }
                   }}
                   className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
@@ -364,33 +372,44 @@ export default function AdminPage() {
               <p className="text-sm text-gray-400">Slug: {active.activeEventSlug}</p>
               <p className="text-sm text-gray-400">{active.event.markets?.length || 0} markets</p>
 
-              {/* Search terms editor */}
+              {/* Search terms editor — drives both AGG market discovery
+                  (listVenueEvents) and the YouTube/Twitter crons. Add several
+                  variants ('2026 FIFA World Cup', 'FIFA World Cup', 'World
+                  Cup 2026') to pull every matching AGG parent event. */}
               <div className="mt-3">
                 <label className="text-xs font-bold uppercase tracking-wider text-gray-400 block mb-1">
-                  Search Terms (for YouTube/Twitter)
+                  Search Terms (AGG event discovery + YouTube/Twitter)
                 </label>
                 <div className="flex gap-2">
                   <input
                     id="searchTermsInput"
                     type="text"
                     defaultValue={active.event.searchTerms?.join(', ') || ''}
-                    placeholder="e.g. WTI oil price, crude oil forecast"
+                    placeholder="e.g. 2026 FIFA World Cup, FIFA World Cup, World Cup 2026"
                     className="flex-1 border border-gray-600 bg-[#0f3460] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                   <button
                     onClick={async () => {
                       const input = document.getElementById('searchTermsInput') as HTMLInputElement;
                       const terms = input.value.split(',').map(t => t.trim()).filter(Boolean);
-                      if (terms.length === 0) return;
-                      const res = await fetch('/api/admin/event', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'x-admin-secret': secret },
-                        body: JSON.stringify({ slug: active.activeEventSlug, searchTerms: terms }),
-                      });
-                      const data = await res.json();
-                      if (data.ok) {
+                      if (terms.length === 0) { setMessage('Provide at least one search term'); return; }
+                      if (!active?.activeEventSlug) { setMessage('No active event slug — Set Active on an event first'); return; }
+                      setMessage('Saving search terms…');
+                      try {
+                        const res = await fetch('/api/admin/event', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json', 'x-admin-secret': secret },
+                          body: JSON.stringify({ slug: active.activeEventSlug, searchTerms: terms }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok || !data.ok) {
+                          setMessage(`Update failed: ${data.error || res.status}`);
+                          return;
+                        }
                         setMessage(`Search terms updated: ${terms.join(', ')}`);
                         fetchActive(secret);
+                      } catch (err) {
+                        setMessage(`Update error: ${err instanceof Error ? err.message : String(err)}`);
                       }
                     }}
                     className="bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold px-4 py-2 rounded-lg cursor-pointer transition-colors"
@@ -398,7 +417,7 @@ export default function AdminPage() {
                     Save
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Comma-separated. Used to search YouTube and Twitter for related content.</p>
+                <p className="text-xs text-gray-500 mt-1">Comma-separated. Each term hits AGG /search and the YouTube/Twitter crons.</p>
               </div>
 
               {/* Cron triggers */}
