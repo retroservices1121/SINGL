@@ -28,12 +28,14 @@ function PriceChart({ data, height = 220, livePrice }: { data: PricePoint[]; hei
   const chartW = width - padding.left - padding.right;
   const chartH = height - padding.top - padding.bottom;
 
-  // Append the live price as a synthetic trailing point so the chart
-  // extends to "now" and pulses with WebSocket updates. Skipped when
-  // livePrice matches the last historical sample (avoids jitter).
-  const liveTail: PricePoint | null = livePrice !== undefined
-    && Math.abs(livePrice - data[data.length - 1].yesPrice) > 0.0001
-    ? { timestamp: new Date().toISOString(), yesPrice: livePrice }
+  // Append the live price as a synthetic trailing point ONLY when it
+  // meaningfully differs from the last historical sample (avoids a 1-pixel
+  // jitter on flat markets). The pulse animation itself runs whenever a
+  // live price is available, regardless — so the chart always looks live.
+  const hasLive = livePrice !== undefined;
+  const liveTail: PricePoint | null = hasLive
+    && Math.abs((livePrice as number) - data[data.length - 1].yesPrice) > 0.0001
+    ? { timestamp: new Date().toISOString(), yesPrice: livePrice as number }
     : null;
   const plotted = liveTail ? [...data, liveTail] : data;
 
@@ -115,27 +117,21 @@ function PriceChart({ data, height = 220, livePrice }: { data: PricePoint[]; hei
       <path d={yesAreaPath} fill="url(#yes-fill)" />
       <path d={yesLinePath} fill="none" stroke="var(--yes)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 
-      {/* End dots — Yes (pulses when the trailing point is the live tick). */}
+      {/* End dots — Yes (always pulses while the chart is wired to the
+          live WS feed; quiet markets still animate so the chart never
+          looks frozen). */}
       <circle cx={toX(plotted.length - 1)} cy={toY(yesLast)} r="4" fill="var(--yes)" />
-      {liveTail ? (
-        <circle cx={toX(plotted.length - 1)} cy={toY(yesLast)} r="7" fill="var(--yes)" opacity="0.35">
-          <animate attributeName="r" values="5;12;5" dur="1.6s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0.5;0;0.5" dur="1.6s" repeatCount="indefinite" />
-        </circle>
-      ) : (
-        <circle cx={toX(plotted.length - 1)} cy={toY(yesLast)} r="7" fill="var(--yes)" opacity="0.2" />
-      )}
+      <circle cx={toX(plotted.length - 1)} cy={toY(yesLast)} r="7" fill="var(--yes)" opacity="0.35">
+        <animate attributeName="r" values="5;12;5" dur="1.6s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.5;0;0.5" dur="1.6s" repeatCount="indefinite" />
+      </circle>
 
       {/* End dots — No */}
       <circle cx={toX(plotted.length - 1)} cy={toY(noLast)} r="3" fill="var(--no)" />
-      {liveTail ? (
-        <circle cx={toX(plotted.length - 1)} cy={toY(noLast)} r="6" fill="var(--no)" opacity="0.3">
-          <animate attributeName="r" values="4;10;4" dur="1.6s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0.4;0;0.4" dur="1.6s" repeatCount="indefinite" />
-        </circle>
-      ) : (
-        <circle cx={toX(plotted.length - 1)} cy={toY(noLast)} r="6" fill="var(--no)" opacity="0.15" />
-      )}
+      <circle cx={toX(plotted.length - 1)} cy={toY(noLast)} r="6" fill="var(--no)" opacity="0.3">
+        <animate attributeName="r" values="4;10;4" dur="1.6s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.4;0;0.4" dur="1.6s" repeatCount="indefinite" />
+      </circle>
 
       {/* End labels — show current cents alongside */}
       <text x={width - padding.right + 2} y={toY(yesLast) - 6} fill="var(--yes)" fontSize="9" fontWeight="bold" fontFamily="JetBrains Mono, monospace">
