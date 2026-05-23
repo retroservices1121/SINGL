@@ -69,7 +69,8 @@ export async function GET(req: NextRequest) {
     events.sort((a, b) => b.activeCount - a.activeCount);
     return NextResponse.json({ events });
   } catch (err) {
-    console.error('Admin search error:', err);
-    return NextResponse.json({ error: 'Search failed' }, { status: 500 });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('Admin search error:', msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

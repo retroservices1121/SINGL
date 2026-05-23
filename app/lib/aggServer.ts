@@ -53,9 +53,14 @@ export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Pro
   try { parsed = text ? JSON.parse(text) : null; } catch { parsed = text; }
 
   if (!res.ok) {
+    const bodyExcerpt = text.slice(0, 500);
+    const detail = (parsed && typeof parsed === 'object')
+      ? JSON.stringify(parsed).slice(0, 500)
+      : bodyExcerpt;
+    console.error(`[aggFetch] ${opts.method ?? 'GET'} ${path} → ${res.status} ${res.statusText} :: ${detail}`);
     const msg = (parsed && typeof parsed === 'object' && 'error' in (parsed as Record<string, unknown>))
       ? String((parsed as { error: unknown }).error)
-      : `AGG ${res.status}: ${text || res.statusText}`;
+      : `AGG ${res.status}: ${bodyExcerpt || res.statusText}`;
     throw new Error(msg);
   }
 
