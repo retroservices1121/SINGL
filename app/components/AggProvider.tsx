@@ -13,7 +13,7 @@ import {
   createEmailAuthMethod,
 } from '@agg-build/auth';
 import { useSiweAuthMethod } from '@agg-build/auth/siwe';
-import { getAggClient } from '@/app/lib/agg';
+import { getAggClient, AGG_APP_ID } from '@/app/lib/agg';
 
 const WC_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '';
 const AUTH_REDIRECT = process.env.NEXT_PUBLIC_AGG_AUTH_REDIRECT || '';
@@ -48,6 +48,21 @@ function AuthMethods({ children }: { children: React.ReactNode }) {
 }
 
 export default function AggProvider({ children }: { children: React.ReactNode }) {
+  if (!AGG_APP_ID) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0b0b0f', color: 'white', padding: 24, fontFamily: 'sans-serif' }}>
+        <div style={{ maxWidth: 560, textAlign: 'center' }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>AGG config missing</h1>
+          <p style={{ fontSize: 14, color: '#bbb', lineHeight: 1.6 }}>
+            <code>NEXT_PUBLIC_AGG_APP_ID</code> was empty when this build ran.
+            Set it in Railway → Variables and trigger a rebuild —
+            <code>NEXT_PUBLIC_*</code> vars are inlined at build time, so a
+            redeploy without a fresh build won&apos;t fix it.
+          </p>
+        </div>
+      </div>
+    );
+  }
   const client = useMemo(() => getAggClient(), []);
   return (
     <WagmiProvider config={wagmiConfig}>
