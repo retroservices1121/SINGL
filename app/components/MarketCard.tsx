@@ -5,27 +5,7 @@ import type { MarketData } from '@/app/types';
 import { useTradeStore } from '@/app/store/tradeStore';
 import { useLivePriceInfo } from './LivePricesProvider';
 import { formatVolume } from '@/app/lib/utils';
-
-const VENUE_LABEL: Record<string, string> = {
-  polymarket: 'Polymarket',
-  kalshi: 'Kalshi',
-  limitless: 'Limitless',
-  myriad: 'Myriad',
-  opinion: 'Opinion',
-  predict: 'Predict',
-  probable: 'Probable',
-  hyperliquid: 'Hyperliquid',
-};
-
-function VenueChip({ venue }: { venue: string | null }) {
-  if (!venue) return null;
-  const label = VENUE_LABEL[venue] || venue;
-  return (
-    <span className="inline-flex items-center px-1 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-[var(--surface-container-high)] text-[var(--secondary)]">
-      {label}
-    </span>
-  );
-}
+import VenueChip from './VenueChip';
 
 const SITE_URL = 'https://singl.market';
 
@@ -41,17 +21,6 @@ function shortName(name: string | null | undefined): string | null {
   return name.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts)$/i, '').trim();
 }
 
-const VENUE_STYLES: Record<string, { label: string; bg: string; text: string; chain?: string }> = {
-  polymarket: { label: 'Polymarket', bg: 'bg-purple-50', text: 'text-purple-700', chain: 'Polygon' },
-  limitless: { label: 'Limitless', bg: 'bg-blue-50', text: 'text-blue-700', chain: 'Base' },
-  kalshi: { label: 'Kalshi', bg: 'bg-emerald-50', text: 'text-emerald-700' },
-  myriad: { label: 'Myriad', bg: 'bg-orange-50', text: 'text-orange-700', chain: 'Abstract' },
-  opinion: { label: 'Opinion', bg: 'bg-indigo-50', text: 'text-indigo-700' },
-  predict: { label: 'Predict', bg: 'bg-pink-50', text: 'text-pink-700' },
-  probable: { label: 'Probable', bg: 'bg-sky-50', text: 'text-sky-700' },
-  hyperliquid: { label: 'Hyperliquid', bg: 'bg-teal-50', text: 'text-teal-700', chain: 'Hyperliquid' },
-};
-
 export default function MarketCard({ market, index }: MarketCardProps) {
   const openTrade = useTradeStore(s => s.openTrade);
   const openDetail = useTradeStore(s => s.openDetail);
@@ -62,8 +31,6 @@ export default function MarketCard({ market, index }: MarketCardProps) {
   const noCents = Math.round(noInfo.price * 100) || (100 - yesCents);
   const yesLabel = shortName(market.outcomeName) || 'Yes';
   const noLabel = shortName(market.outcome2Name) || 'No';
-  const venueKey = (market.venue as string) || 'polymarket';
-  const platformStyle = VENUE_STYLES[venueKey] || { label: venueKey, bg: 'bg-zinc-50', text: 'text-zinc-700' };
 
   const copyShareText = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -80,17 +47,8 @@ export default function MarketCard({ market, index }: MarketCardProps) {
       style={{ animationDelay: `${index * 40}ms` }}
       onClick={() => openDetail(market)}
     >
-      {/* Platform badge */}
-      <div className="flex items-center gap-1.5 mb-2">
-        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${platformStyle.bg} ${platformStyle.text}`}>
-          {platformStyle.label}
-        </span>
-        {platformStyle.chain && (
-          <span className="text-[9px] text-[var(--secondary)] font-mono">{platformStyle.chain}</span>
-        )}
-      </div>
-
-      {/* Title + share */}
+      {/* Title + share. Venue is surfaced inline next to each side's price
+          via VenueChip — no separate top badge needed. */}
       <div className="flex items-start justify-between gap-2 mb-3">
         <h4 className="font-heading font-bold text-sm text-[var(--on-surface)] leading-snug uppercase tracking-tight flex-1">
           {market.title}
