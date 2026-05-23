@@ -5,6 +5,7 @@ import { useAggAuth } from '@agg-build/hooks';
 import { useAggAuthFlow } from '@agg-build/auth';
 import { useAggTrading, type AggQuote } from '@/app/hooks/useAggTrading';
 import { useTradeStore } from '@/app/store/tradeStore';
+import { useLivePrice } from './LivePricesProvider';
 import { formatUSD, formatPercent } from '@/app/lib/utils';
 import Spinner from './ui/Spinner';
 
@@ -23,6 +24,12 @@ export default function TradePanel() {
   const quoteSeq = useRef(0);
 
   const outcomeId = market ? (side === 'yes' ? market.yesOutcomeId : market.noOutcomeId) : '';
+  // Live price for the side the user picked, falling back to the static
+  // price baked into MarketData on first paint.
+  const livePrice = useLivePrice(
+    outcomeId || null,
+    side === 'yes' ? (market?.yesPrice ?? 0.5) : (market?.noPrice ?? 0.5),
+  );
 
   // Re-quote whenever the user changes amount/side/market. Debounce 250 ms.
   useEffect(() => {
@@ -48,8 +55,9 @@ export default function TradePanel() {
     ? (market.outcomeName || 'YES')
     : (market.outcome2Name || 'NO');
 
-  // Use quote when available; fall back to displayed mid prices for the breakdown.
-  const fallbackPrice = side === 'yes' ? market.yesPrice : (market.noPrice || (1 - market.yesPrice));
+  // Use quote when available; fall back to live mid price (which itself
+  // falls back to the static MarketData price) for the breakdown.
+  const fallbackPrice = livePrice > 0 ? livePrice : (side === 'yes' ? market.yesPrice : (market.noPrice || (1 - market.yesPrice)));
   const shares = quote?.totalFilled ?? (fallbackPrice > 0 ? amount / fallbackPrice : 0);
   const cost = quote?.estimatedCostRaw ?? amount;
   const payout = quote?.estimatedPayout ?? shares;

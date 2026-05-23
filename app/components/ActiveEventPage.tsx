@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import type { EventData } from '@/app/types';
 import EventPage from './EventPage';
 import Spinner from './ui/Spinner';
+import { LivePricesProvider } from './LivePricesProvider';
 
 export default function ActiveEventPage() {
   const [event, setEvent] = useState<EventData | null>(null);
@@ -63,5 +64,9 @@ export default function ActiveEventPage() {
     );
   }
 
-  return <EventPage event={event} />;
+  return (
+    <LivePricesProvider markets={event.markets}>
+      <EventPage event={event} />
+    </LivePricesProvider>
+  );
 }

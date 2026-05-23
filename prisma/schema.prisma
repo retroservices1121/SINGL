@@ -115,17 +115,6 @@ model SiteConfig {
   value String
 }
 
-model PriceSnapshot {
-  id           String   @id @default(cuid())
-  eventId      String
-  marketTicker String
-  yesPrice     Float
-  noPrice      Float
-  timestamp    DateTime @default(now())
-
-  @@index([eventId, marketTicker, timestamp])
-}
-
 model RedeemedAccessCode {
   code       String   @id
   redeemedAt DateTime @default(now())

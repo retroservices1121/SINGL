@@ -4,6 +4,9 @@ import { listVenueEvents, mapAggMarket } from '@/app/lib/aggServer';
 
 export const dynamic = 'force-dynamic';
 
+// SYNC-ONLY: keeps the Market table in step with AGG so we know which
+// markets belong to the active event (for /admin, /api/depth, etc.).
+// Pricing is live via WebSockets — no prices are written here.
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
   const secret = req.nextUrl.searchParams.get('secret');
@@ -43,7 +46,6 @@ export async function GET(req: NextRequest) {
 
   let newMarketsAdded = 0;
   let updatedMarkets = 0;
-  const snapshotsBatch: Array<{ eventId: string; marketTicker: string; yesPrice: number; noPrice: number }> = [];
 
   const existingByVenueId = new Map(event.markets.map(m => [m.venueMarketId, m]));
 
@@ -53,12 +55,13 @@ export async function GET(req: NextRequest) {
     const closeTime = am.closeTime ? new Date(am.closeTime) : null;
 
     if (existing) {
+      // Refresh metadata only — leave yesPrice/noPrice untouched. They
+      // exist on Market as a bootstrap value for first paint and have no
+      // authority over live WebSocket prices.
       await prisma.market.update({
         where: { id: existing.id },
         data: {
           title: am.title,
-          yesPrice: am.yesPrice,
-          noPrice: am.noPrice,
           volume: am.volume ?? null,
           yesOutcomeId: am.yesOutcomeId,
           noOutcomeId: am.noOutcomeId,
@@ -78,6 +81,7 @@ export async function GET(req: NextRequest) {
           eventId: event.id,
           ticker: am.venueMarketId,
           title: am.title,
+          // Initial price bootstrap — overridden by WS the moment client mounts.
           yesPrice: am.yesPrice,
           noPrice: am.noPrice,
           volume: am.volume ?? null,
@@ -95,24 +99,13 @@ export async function GET(req: NextRequest) {
       });
       newMarketsAdded += 1;
     }
-
-    snapshotsBatch.push({
-      eventId: event.id,
-      marketTicker: am.venueMarketId,
-      yesPrice: am.yesPrice,
-      noPrice: am.noPrice,
-    });
-  }
-
-  if (snapshotsBatch.length > 0) {
-    await prisma.priceSnapshot.createMany({ data: snapshotsBatch });
   }
 
   return NextResponse.json({
     success: true,
-    snapshots: snapshotsBatch.length,
     updatedMarkets,
     newMarketsAdded,
     totalMarkets: aggMarkets.length,
+    note: 'sync-only — pricing is live via WebSocket from AGG',
   });
 }

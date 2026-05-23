@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { MarketData } from '@/app/types';
 import { useTradeStore } from '@/app/store/tradeStore';
+import { useLivePrice } from './LivePricesProvider';
 import { formatVolume } from '@/app/lib/utils';
 
 const SITE_URL = 'https://singl.market';
@@ -34,8 +35,10 @@ export default function MarketCard({ market, index }: MarketCardProps) {
   const openTrade = useTradeStore(s => s.openTrade);
   const openDetail = useTradeStore(s => s.openDetail);
   const [copied, setCopied] = useState(false);
-  const yesCents = Math.round(market.yesPrice * 100);
-  const noCents = Math.round(market.noPrice * 100) || (100 - yesCents);
+  const liveYes = useLivePrice(market.yesOutcomeId, market.yesPrice);
+  const liveNo = useLivePrice(market.noOutcomeId, market.noPrice || (1 - liveYes));
+  const yesCents = Math.round(liveYes * 100);
+  const noCents = Math.round(liveNo * 100) || (100 - yesCents);
   const yesLabel = shortName(market.outcomeName) || 'Yes';
   const noLabel = shortName(market.outcome2Name) || 'No';
   const venueKey = (market.venue as string) || 'polymarket';

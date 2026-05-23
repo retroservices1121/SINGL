@@ -10,7 +10,7 @@ export async function register() {
     const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
 
     const jobs = [
-      { name: 'prices',  endpoint: '/api/cron/prices',  intervalMs: 5 * 60 * 1000 },   // every 5 min
+      { name: 'markets', endpoint: '/api/cron/prices',  intervalMs: 30 * 60 * 1000 },  // sync market list only — pricing is live via WS
       { name: 'news',    endpoint: '/api/cron/news',    intervalMs: 30 * 60 * 1000 },   // every 30 min
       { name: 'youtube', endpoint: '/api/cron/youtube', intervalMs: 60 * 60 * 1000 },   // every 1 hour
       { name: 'twitter',   endpoint: '/api/cron/twitter',    intervalMs: 15 * 60 * 1000 },   // every 15 min

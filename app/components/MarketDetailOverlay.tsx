@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTradeStore } from '@/app/store/tradeStore';
-import { useEventStore } from '@/app/store/eventStore';
+import { useLivePrice } from './LivePricesProvider';
 import { formatVolume, formatPercent } from '@/app/lib/utils';
 
 interface PricePoint {
@@ -125,10 +125,12 @@ function PriceChart({ data, height = 220 }: { data: PricePoint[]; height?: numbe
 
 export default function MarketDetailOverlay() {
   const { detailOpen, detailMarket, closeDetail, openTrade } = useTradeStore();
-  const currentEvent = useEventStore(s => s.currentEvent);
   const [priceHistory, setPriceHistory] = useState<PricePoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('1w');
+  // Hook calls must run on every render, before any conditional return.
+  const liveYes = useLivePrice(detailMarket?.yesOutcomeId, detailMarket?.yesPrice ?? 0.5);
+  const liveNo = useLivePrice(detailMarket?.noOutcomeId, detailMarket?.noPrice ?? (1 - liveYes));
 
   useEffect(() => {
     if (!detailOpen || !detailMarket) {
@@ -143,30 +145,17 @@ export default function MarketDetailOverlay() {
         const fidelityMap: Record<TimeRange, string> = { '1d': '5', '1w': '60', '1m': '360', 'all': '1440' };
         const fidelity = fidelityMap[timeRange];
 
-        // Fetch chart bars from AGG via our proxy
+        // Chart bars come straight from AGG. No DB fallback — pricing
+        // is never persisted on our side.
         const outcomeId = detailMarket.yesOutcomeId;
         if (outcomeId) {
           const res = await fetch(`/api/agg/charts?outcomeId=${encodeURIComponent(outcomeId)}&fidelity=${fidelity}&range=${timeRange}`);
           const data = await res.json();
-
-          if (data.bars && data.bars.length > 0) {
-            const points: PricePoint[] = data.bars.map((b: { t: number; p: number }) => ({
-              timestamp: new Date(b.t * 1000).toISOString(),
-              yesPrice: b.p,
-            }));
-            setPriceHistory(points);
-            setLoading(false);
-            return;
-          }
-        }
-
-        // Fallback: try DB snapshots
-        if (currentEvent) {
-          const dbRes = await fetch(`/api/prices?eventId=${currentEvent.id}&range=${timeRange}`);
-          const dbData = await dbRes.json();
-          const marketPrices = dbData.snapshots?.[detailMarket.ticker] ||
-            dbData.snapshots?.[detailMarket.venueMarketId] || [];
-          setPriceHistory(marketPrices);
+          const points: PricePoint[] = (data.bars || []).map((b: { t: number; p: number }) => ({
+            timestamp: new Date(b.t * 1000).toISOString(),
+            yesPrice: b.p,
+          }));
+          setPriceHistory(points);
         } else {
           setPriceHistory([]);
         }
@@ -177,13 +166,13 @@ export default function MarketDetailOverlay() {
     };
 
     fetchPrices();
-  }, [detailOpen, detailMarket, currentEvent, timeRange]);
+  }, [detailOpen, detailMarket, timeRange]);
 
   if (!detailOpen || !detailMarket) return null;
 
   const market = detailMarket;
-  const yesCents = Math.round(market.yesPrice * 100);
-  const noCents = Math.round(market.noPrice * 100) || (100 - yesCents);
+  const yesCents = Math.round(liveYes * 100);
+  const noCents = Math.round(liveNo * 100) || (100 - yesCents);
 
   // Use team names for game matchups
   const yesLabel = market.outcomeName
