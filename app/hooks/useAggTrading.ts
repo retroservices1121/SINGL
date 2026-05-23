@@ -24,7 +24,9 @@ export interface AggQuote {
   estimatedCostRaw?: number;
   estimatedPayout?: number;
   estimatedProfit?: number;
-  fills?: Array<{ venue: string; price: number; size: number }>;
+  // Per-venue fill split: which venue contributed how many shares + USD cost.
+  // Drives the "Smart Routing" display in the buy panel.
+  fills?: Array<{ venue: string; price: number; size: number; cost: number }>;
   raw?: unknown;
 }
 
@@ -128,6 +130,8 @@ export function useAggTrading() {
         venue: sp.venue,
         price: parseFloat(sp.price) || 0,
         size: parseFloat(sp.size) || 0,
+        // AGG returns costRaw in 6-decimal USDC units. Normalize to dollars.
+        cost: (parseFloat(sp.costRaw) || 0) / 1e6,
       })),
       raw: resp,
     };

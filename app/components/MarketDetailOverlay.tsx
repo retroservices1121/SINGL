@@ -5,6 +5,7 @@ import { useTradeStore } from '@/app/store/tradeStore';
 import { useLivePrice, useLivePricesMap } from './LivePricesProvider';
 import { formatVolume, formatPercent } from '@/app/lib/utils';
 import VenueChip from './VenueChip';
+import BuyPanel from './BuyPanel';
 
 interface PricePoint {
   timestamp: string;
@@ -199,9 +200,16 @@ export default function MarketDetailOverlay() {
     ? market.outcome2Name.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts)$/i, '').trim()
     : 'No';
 
-  const handleTrade = (side: 'yes' | 'no') => {
-    closeDetail();
-    openTrade(market, side);
+  // Clicking a Yes/No button on an outcome row focuses that outcome
+  // in the sidebar (and sets the BuyPanel's side via uncontrolled state).
+  // The actual buy flow lives inside BuyPanel now — no more handoff to
+  // the legacy TradePanel modal from inside the detail view.
+  const focusOutcome = (outcomeId: string) => {
+    setSelectedOutcomeId(outcomeId);
+  };
+  // Legacy hand-off retained for any spots that still call it (none in this file).
+  const handleTrade = (_side: 'yes' | 'no') => {
+    void openTrade; void closeDetail;
   };
 
   const isMulti = outcomesList.length > 2;
@@ -355,13 +363,13 @@ export default function MarketDetailOverlay() {
                           <div className="w-12 text-right font-mono text-sm font-bold text-[var(--on-surface)]">{pct}%</div>
                           <div className="flex gap-1.5 shrink-0">
                             <button
-                              onClick={(e) => { e.stopPropagation(); handleTrade('yes'); }}
+                              onClick={(e) => { e.stopPropagation(); focusOutcome(o.id); }}
                               className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-[var(--yes-bg)] text-[var(--yes)] hover:bg-[var(--yes)] hover:text-white transition-colors"
                             >
                               Yes {pct}¢
                             </button>
                             <button
-                              onClick={(e) => { e.stopPropagation(); handleTrade('no'); }}
+                              onClick={(e) => { e.stopPropagation(); focusOutcome(o.id); }}
                               className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-[var(--no-bg)] text-[var(--no)] hover:bg-[var(--no)] hover:text-white transition-colors"
                             >
                               No {100 - pct}¢
@@ -385,48 +393,25 @@ export default function MarketDetailOverlay() {
               </section>
             </div>
 
-            {/* RIGHT — sticky buy sidebar (Stage 1 keeps the existing
-                handoff to TradePanel; Stage 2 will inline the full flow). */}
-            <aside className="lg:sticky lg:top-20 self-start">
-              <div className="bg-[var(--surface-container-low)] rounded-2xl p-5 space-y-4 shadow-ambient">
-                <div className="flex items-center gap-2">
-                  <VenueChip venue={market.venue ?? null} size="md" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">Trade</p>
-                    <p className="font-heading font-bold text-sm text-[var(--on-surface)] truncate">{selectedLabel}</p>
-                  </div>
+            {/* RIGHT — sticky inline buy panel with smart routing. */}
+            <aside className="lg:sticky lg:top-20 self-start space-y-3">
+              <div className="flex items-center gap-2 px-1">
+                <VenueChip venue={market.venue ?? null} size="md" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">Trade</p>
+                  <p className="font-heading font-bold text-sm text-[var(--on-surface)] truncate">{selectedLabel}</p>
                 </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-[var(--yes-bg)] rounded-lg px-3 py-2 text-center">
-                    <div className="text-[9px] font-bold text-[var(--yes)] uppercase tracking-widest">Yes</div>
-                    <div className="font-mono text-lg font-black text-[var(--yes)]">{selectedYesCents}¢</div>
-                  </div>
-                  <div className="bg-[var(--no-bg)] rounded-lg px-3 py-2 text-center">
-                    <div className="text-[9px] font-bold text-[var(--no)] uppercase tracking-widest">No</div>
-                    <div className="font-mono text-lg font-black text-[var(--no)]">{selectedNoCents}¢</div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <button
-                    onClick={() => handleTrade('yes')}
-                    className="py-3 text-sm font-black uppercase tracking-widest rounded-lg bg-[var(--yes)] text-white hover:brightness-110 transition-all cursor-pointer"
-                  >
-                    Buy Yes
-                  </button>
-                  <button
-                    onClick={() => handleTrade('no')}
-                    className="py-3 text-sm font-black uppercase tracking-widest rounded-lg bg-[var(--no)] text-white hover:brightness-110 transition-all cursor-pointer"
-                  >
-                    Buy No
-                  </button>
-                </div>
-
-                <p className="text-[10px] text-[var(--secondary)] text-center leading-relaxed">
-                  Smart routing surfaces here in stage 2 — for now Buy opens the trade modal with best-route execution.
-                </p>
               </div>
+
+              <BuyPanel
+                key={selectedOutcome?.id ?? market.venueMarketId}
+                yesOutcomeId={selectedOutcome?.id ?? market.yesOutcomeId}
+                noOutcomeId={market.noOutcomeId}
+                yesPriceFallback={selectedOutcome?.price ?? market.yesPrice}
+                noPriceFallback={market.noPrice || (1 - (selectedOutcome?.price ?? market.yesPrice))}
+                yesLabel={selectedLabel}
+                noLabel={market.outcome2Name || 'No'}
+              />
             </aside>
           </div>
         </div>
