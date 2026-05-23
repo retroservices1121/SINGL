@@ -79,6 +79,12 @@ export function useLivePrice(outcomeId: string | undefined | null, fallback: num
   return findLivePriceById(prices, outcomeId) ?? fallback;
 }
 
+// Bulk read of the live prices map — for components that iterate over many
+// outcomes (e.g. the outcomes table in MarketDetailOverlay).
+export function useLivePricesMap(): Map<string, number> {
+  return useContext(LivePricesContext).prices;
+}
+
 // Read both the live price and the venue currently offering it for one outcome.
 export function useLivePriceInfo(outcomeId: string | undefined | null, fallback: number, fallbackVenue?: string | null) {
   const { prices, venueByOutcome } = useContext(LivePricesContext);

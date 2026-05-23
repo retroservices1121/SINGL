@@ -161,6 +161,16 @@ export function mapAggMarket(ev: { id: string; venue?: string; endDate?: string 
     tickSize: m.tickSize ?? '0.01',
     outcomeName: !isStandardYesNo ? (l1 || null) : null,
     outcome2Name: !isStandardYesNo ? (l2 || null) : null,
+    // Preserve the full outcomes list for multi-outcome markets (e.g.
+    // "Nation to Reach Final" with 32 country outcomes). MarketCard /
+    // detail overlay can iterate over this when length > 2.
+    outcomes: outcomes
+      .filter(o => o && o.id)
+      .map(o => ({
+        id: o.id,
+        label: outcomeLabel(o) || 'Outcome',
+        price: o.price ?? 0,
+      })),
     venue: m.venue || ev.venue,
   };
 }

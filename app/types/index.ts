@@ -27,6 +27,15 @@ export type AggVenue =
   | 'myriad'
   | 'hyperliquid';
 
+// One outcome in a (possibly multi-outcome) market — e.g. "Spain" in
+// "Nation to Reach Final" or "Yes" in "Will inflation drop below 3%".
+export interface MarketOutcome {
+  id: string;        // venueMarketOutcomeId
+  label: string;     // human label, e.g. "Spain" or "Yes"
+  price: number;     // 0..1 midpoint at fetch time (live overrides via WS hook)
+  imageUrl?: string | null;
+}
+
 export interface MarketData {
   id: string;
   eventId: string;
@@ -44,8 +53,12 @@ export interface MarketData {
   yesOutcomeId: string;
   noOutcomeId: string;
   tickSize: string;
+  // First two outcome labels kept for legacy binary-market display paths.
   outcomeName?: string | null;  // first outcome label (null = "Yes")
   outcome2Name?: string | null; // second outcome label (null = "No")
+  // Full outcomes list (>= 2 entries when populated). Empty/undefined for
+  // legacy data; populated by mapAggMarket for new server-fetched markets.
+  outcomes?: MarketOutcome[];
   venue?: AggVenue | string;
   chain?: string;
 }

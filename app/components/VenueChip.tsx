@@ -1,36 +1,51 @@
 'use client';
 
-// Small logo-style chip used inline next to a price to surface which venue
-// is currently offering the best fill for that outcome. Uses a colored
-// initial circle as a stand-in for a real logo — easy to swap to an <img>
-// later when AGG exposes brand asset URLs or we host the marks ourselves.
+// Small logo chip used inline next to a price to surface which venue is
+// currently offering the best fill for that outcome. Uses AGG's public
+// brand-asset CDN (same URLs their own UI uses), so no extra deps.
 
-const VENUE_STYLE: Record<string, { initial: string; bg: string; text: string; title: string }> = {
-  polymarket:  { initial: 'P', bg: 'bg-purple-600',   text: 'text-white', title: 'Polymarket' },
-  kalshi:      { initial: 'K', bg: 'bg-emerald-600',  text: 'text-white', title: 'Kalshi' },
-  limitless:   { initial: 'L', bg: 'bg-blue-600',     text: 'text-white', title: 'Limitless' },
-  myriad:      { initial: 'M', bg: 'bg-orange-500',   text: 'text-white', title: 'Myriad' },
-  opinion:     { initial: 'O', bg: 'bg-indigo-600',   text: 'text-white', title: 'Opinion' },
-  predict:     { initial: 'P', bg: 'bg-pink-600',     text: 'text-white', title: 'Predict' },
-  probable:    { initial: 'P', bg: 'bg-sky-600',      text: 'text-white', title: 'Probable' },
-  hyperliquid: { initial: 'H', bg: 'bg-teal-600',     text: 'text-white', title: 'Hyperliquid' },
+const VENUE_LOGO_BASE = 'https://assets.snagsolutions.io/public/prediction-markets/logos';
+const VENUES = new Set([
+  'kalshi', 'polymarket', 'limitless', 'opinion',
+  'predict', 'probable', 'myriad', 'hyperliquid',
+]);
+
+const VENUE_TITLE: Record<string, string> = {
+  polymarket: 'Polymarket',
+  kalshi: 'Kalshi',
+  limitless: 'Limitless',
+  myriad: 'Myriad',
+  opinion: 'Opinion',
+  predict: 'Predict',
+  probable: 'Probable',
+  hyperliquid: 'Hyperliquid',
 };
 
 export default function VenueChip({ venue, size = 'sm' }: { venue: string | null | undefined; size?: 'xs' | 'sm' | 'md' }) {
   if (!venue) return null;
-  const style = VENUE_STYLE[venue] ?? {
-    initial: venue.charAt(0).toUpperCase(),
-    bg: 'bg-zinc-600',
-    text: 'text-white',
-    title: venue,
-  };
-  const dimensions = size === 'xs' ? 'w-3.5 h-3.5 text-[8px]' : size === 'md' ? 'w-5 h-5 text-[10px]' : 'w-4 h-4 text-[9px]';
+  const dimensions = size === 'xs' ? 'w-3.5 h-3.5' : size === 'md' ? 'w-5 h-5' : 'w-4 h-4';
+  const title = VENUE_TITLE[venue] ?? venue;
+
+  if (VENUES.has(venue)) {
+    return (
+      <img
+        src={`${VENUE_LOGO_BASE}/${venue}.png`}
+        alt={title}
+        title={title}
+        className={`${dimensions} rounded-full object-cover ring-1 ring-black/5`}
+        loading="lazy"
+      />
+    );
+  }
+
+  // Unknown venue → letter fallback
+  const text = size === 'xs' ? 'text-[8px]' : size === 'md' ? 'text-[10px]' : 'text-[9px]';
   return (
     <span
-      title={style.title}
-      className={`inline-flex items-center justify-center ${dimensions} rounded-full font-bold ${style.bg} ${style.text} ring-1 ring-white/20`}
+      title={title}
+      className={`inline-flex items-center justify-center ${dimensions} ${text} rounded-full font-bold bg-zinc-600 text-white ring-1 ring-white/20`}
     >
-      {style.initial}
+      {venue.charAt(0).toUpperCase()}
     </span>
   );
 }
