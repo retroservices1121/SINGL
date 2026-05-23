@@ -21,7 +21,12 @@ export async function GET(req: NextRequest) {
     const { data: venueEvents } = await listVenueEvents({ search: q });
 
     const events = venueEvents.map(ve => {
-      const activeMarkets = (ve.markets || []).filter(m => m.status === 'open' || m.status === undefined);
+      const markets = ve.markets || [];
+      // AGG market status enum: open|closed|resolved|unopened|paused
+      // — treat anything other than closed/resolved as tradable.
+      const activeMarkets = markets.filter(m =>
+        !m.status || ['open', 'unopened', 'paused'].includes(m.status as string),
+      );
       return {
         ticker: ve.externalIdentifier || ve.id,
         title: ve.title,
@@ -34,14 +39,17 @@ export async function GET(req: NextRequest) {
         activeCount: activeMarkets.length,
         competition: undefined,
         markets: activeMarkets.slice(0, 50).map(m => {
-          const o1 = m.outcomes?.[0];
-          const o2 = m.outcomes?.[1];
+          const outcomes = m.venueMarketOutcomes ?? m.outcomes ?? [];
+          const o1 = outcomes[0];
+          const o2 = outcomes[1];
+          const l1 = (o1?.label ?? o1?.name ?? '').trim();
+          const l2 = (o2?.label ?? o2?.name ?? '').trim();
           const yesPrice = o1?.price ?? 0.5;
           const noPrice = o2?.price ?? (1 - yesPrice);
           return {
             ticker: m.id,
             venueMarketId: m.id,
-            title: m.title,
+            title: m.question || m.title || '',
             yesPrice,
             noPrice,
             yesBid: String(yesPrice),
@@ -58,8 +66,8 @@ export async function GET(req: NextRequest) {
             noOutcomeId: o2?.id,
             tickSize: m.tickSize || '0.01',
             venue: m.venue || ve.venue,
-            outcomeName: o1?.name !== 'Yes' ? o1?.name : null,
-            outcome2Name: o2?.name !== 'No' ? o2?.name : null,
+            outcomeName: l1 && l1 !== 'Yes' ? l1 : null,
+            outcome2Name: l2 && l2 !== 'No' ? l2 : null,
           };
         }),
       };

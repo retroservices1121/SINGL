@@ -26,19 +26,21 @@ interface MarketSummary {
 
 async function fetchMarketData(venueMarketId: string): Promise<MarketSummary | null> {
   try {
-    const data = await aggFetch<AggVenueMarket>(`/venue-events/markets/${encodeURIComponent(venueMarketId)}`);
-    const outcomes = data.outcomes || [];
+    const data = await aggFetch<AggVenueMarket>(`/venue-markets/${encodeURIComponent(venueMarketId)}`);
+    const outcomes = data.venueMarketOutcomes ?? data.outcomes ?? [];
     const o1 = outcomes[0];
     const o2 = outcomes[1];
     if (!o1) return null;
 
+    const l1 = (o1.label ?? o1.name ?? '').trim();
+    const l2 = (o2?.label ?? o2?.name ?? '').trim();
     const yesPrice = o1.price ?? 0.5;
     const noPrice = o2?.price ?? (1 - yesPrice);
-    const isStandardYesNo = (o1.name === 'Yes' || o2?.name === 'No');
+    const isStandardYesNo = l1 === 'Yes' && l2 === 'No';
 
     return {
       venueMarketId: data.id,
-      title: data.title,
+      title: data.question || data.title || '',
       description: data.description || '',
       yesPrice: Math.round(yesPrice * 100),
       noPrice: Math.round(noPrice * 100),
@@ -49,8 +51,8 @@ async function fetchMarketData(venueMarketId: string): Promise<MarketSummary | n
       endDate: data.endDate || null,
       active: data.status === 'open',
       closed: data.status === 'closed' || data.status === 'resolved',
-      outcomeName: !isStandardYesNo ? (o1?.name || null) : null,
-      outcome2Name: !isStandardYesNo ? (o2?.name || null) : null,
+      outcomeName: !isStandardYesNo ? (l1 || null) : null,
+      outcome2Name: !isStandardYesNo ? (l2 || null) : null,
       venue: data.venue || null,
     };
   } catch {

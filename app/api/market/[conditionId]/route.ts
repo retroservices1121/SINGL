@@ -11,7 +11,7 @@ export async function GET(
   const { conditionId: venueMarketId } = await params;
 
   try {
-    const data = await aggFetch<AggVenueMarket>(`/venue-events/markets/${encodeURIComponent(venueMarketId)}`);
+    const data = await aggFetch<AggVenueMarket>(`/venue-markets/${encodeURIComponent(venueMarketId)}`);
     const market = mapAggMarket({ id: venueMarketId }, data);
     if (!market) return NextResponse.json({ error: 'No outcome data' }, { status: 404 });
     return NextResponse.json({ market });

@@ -92,12 +92,19 @@ export interface AggVenueEvent {
   markets?: AggVenueMarket[];
 }
 
+// Wire format from AGG /venue-markets, /search?type=markets.
 export interface AggVenueMarket {
   id: string;
-  title: string;
+  // AGG returns `question`; some responses include `title` too. We normalize
+  // to whichever is present.
+  question?: string;
+  title?: string;
   description?: string;
   venue?: string;
   status?: string;
+  // AGG returns outcomes at `venueMarketOutcomes`; our legacy code path
+  // referenced `outcomes`. Support both.
+  venueMarketOutcomes?: AggOutcome[];
   outcomes?: AggOutcome[];
   volume?: number;
   liquidity?: number;
@@ -107,7 +114,9 @@ export interface AggVenueMarket {
 
 export interface AggOutcome {
   id: string;             // venueMarketOutcomeId
-  name: string;
+  // AGG uses `label`; older snippets used `name`. Accept both.
+  label?: string;
+  name?: string;
   price?: number;
   bid?: number;
   ask?: number;
@@ -116,21 +125,28 @@ export interface AggOutcome {
 // Map an AGG VenueMarket into our internal MarketData shape. Kept here so all
 // server routes produce identical output regardless of which AGG endpoint
 // they used to source the data.
+function outcomeLabel(o?: AggOutcome): string {
+  return (o?.label ?? o?.name ?? '').trim();
+}
+
 export function mapAggMarket(ev: { id: string; venue?: string; endDate?: string }, m: AggVenueMarket): import('@/app/types').MarketData | null {
-  const outcomes = m.outcomes || [];
+  const outcomes = (m.venueMarketOutcomes ?? m.outcomes) || [];
   const o1 = outcomes[0];
   const o2 = outcomes[1];
   if (!o1) return null;
 
-  const isStandardYesNo = o1.name === 'Yes' && o2?.name === 'No';
+  const l1 = outcomeLabel(o1);
+  const l2 = outcomeLabel(o2);
+  const isStandardYesNo = l1 === 'Yes' && l2 === 'No';
   const yesPrice = o1.price ?? 0.5;
   const noPrice = o2?.price ?? (1 - yesPrice);
+  const title = m.question || m.title || '';
 
   return {
     id: m.id,
     eventId: ev.id,
     ticker: m.id,
-    title: m.title,
+    title,
     yesPrice,
     noPrice,
     volume: m.volume ?? null,
@@ -143,10 +159,34 @@ export function mapAggMarket(ev: { id: string; venue?: string; endDate?: string 
     yesOutcomeId: o1.id,
     noOutcomeId: o2?.id ?? '',
     tickSize: m.tickSize ?? '0.01',
-    outcomeName: !isStandardYesNo ? (o1.name || null) : null,
-    outcome2Name: !isStandardYesNo ? (o2?.name || null) : null,
+    outcomeName: !isStandardYesNo ? (l1 || null) : null,
+    outcome2Name: !isStandardYesNo ? (l2 || null) : null,
     venue: m.venue || ev.venue,
   };
+}
+
+// AGG's /venue-events/{id} returns the event metadata WITHOUT nested markets.
+// Markets live at /venue-markets?venueEventId=<id>. This helper paginates
+// until exhausted (AGG caps page size around 100).
+export async function getVenueMarketsByEventId(eventId: string): Promise<AggVenueMarket[]> {
+  const out: AggVenueMarket[] = [];
+  let cursor: string | undefined;
+  for (let page = 0; page < 10; page++) { // safety cap
+    let resp: { data?: AggVenueMarket[]; nextCursor?: string | null };
+    try {
+      resp = await aggFetch<{ data?: AggVenueMarket[]; nextCursor?: string | null }>(
+        '/venue-markets',
+        { query: { venueEventId: eventId, limit: 100, ...(cursor ? { cursor } : {}) } },
+      );
+    } catch (err) {
+      console.error(`[getVenueMarketsByEventId] ${eventId}:`, err);
+      break;
+    }
+    for (const m of resp.data || []) out.push(m);
+    if (!resp.nextCursor) break;
+    cursor = resp.nextCursor;
+  }
+  return out;
 }
 
 export async function listVenueEvents(params: {
@@ -210,7 +250,14 @@ export async function listVenueEvents(params: {
 
 export async function getVenueEvent(id: string): Promise<AggVenueEvent | null> {
   try {
-    return await aggFetch<AggVenueEvent>(`/venue-events/${encodeURIComponent(id)}`);
+    const ev = await aggFetch<AggVenueEvent & { venueMarkets?: AggVenueMarket[] }>(
+      `/venue-events/${encodeURIComponent(id)}`,
+    );
+    // Single-event endpoint returns metadata only — fetch markets separately
+    // and normalize onto `markets` for downstream code.
+    const inline = ev.venueMarkets ?? ev.markets;
+    const markets = inline?.length ? inline : await getVenueMarketsByEventId(id);
+    return { ...ev, markets };
   } catch {
     return null;
   }
