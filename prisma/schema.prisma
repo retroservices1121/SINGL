@@ -126,6 +126,11 @@ model PriceSnapshot {
   @@index([eventId, marketTicker, timestamp])
 }
 
+model RedeemedAccessCode {
+  code       String   @id
+  redeemedAt DateTime @default(now())
+}
+
 model AggAccount {
   id            String   @id @default(cuid())
   aggUserId     String   @unique

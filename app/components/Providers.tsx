@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import AccessGate from './AccessGate';
 
 const AggProvider = dynamic(() => import('./AggProvider'), {
   ssr: false,
@@ -17,5 +18,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   if (!mounted) return null;
 
-  return <AggProvider>{children}</AggProvider>;
+  return (
+    <AggProvider>
+      <AccessGate>{children}</AccessGate>
+    </AggProvider>
+  );
 }
