@@ -129,7 +129,7 @@ function outcomeLabel(o?: AggOutcome): string {
   return (o?.label ?? o?.name ?? '').trim();
 }
 
-export function mapAggMarket(ev: { id: string; venue?: string; endDate?: string }, m: AggVenueMarket): import('@/app/types').MarketData | null {
+export function mapAggMarket(ev: { id: string; venue?: string; endDate?: string; title?: string }, m: AggVenueMarket): import('@/app/types').MarketData | null {
   const outcomes = (m.venueMarketOutcomes ?? m.outcomes) || [];
   const o1 = outcomes[0];
   const o2 = outcomes[1];
@@ -172,6 +172,7 @@ export function mapAggMarket(ev: { id: string; venue?: string; endDate?: string 
         price: o.price ?? 0,
       })),
     venue: m.venue || ev.venue,
+    parentEventTitle: ev.title || null,
   };
 }
 

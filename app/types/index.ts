@@ -61,6 +61,10 @@ export interface MarketData {
   outcomes?: MarketOutcome[];
   venue?: AggVenue | string;
   chain?: string;
+  // Title of the AGG parent event this market belongs to. SINGL flattens
+  // many AGG events into one active-event payload, so each market carries
+  // its own parent context for display ("FIFA World Cup 2026 → USA").
+  parentEventTitle?: string | null;
 }
 
 export interface NewsItemData {
