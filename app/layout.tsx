@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import '@agg-build/ui/styles.css';
 import Providers from './components/Providers';
 
 export const metadata: Metadata = {

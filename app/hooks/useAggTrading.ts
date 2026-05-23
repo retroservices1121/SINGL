@@ -61,8 +61,9 @@ interface AggTradingState {
 export function useAggTrading() {
   const { isAuthenticated, user, isLoading } = useAggAuth();
   const client = useAggClient();
+  // Both hooks call user-tier endpoints — gate on auth to avoid 401s on first paint.
   const balanceCtx = useAggBalance();
-  const positionsResult = usePositions();
+  const positionsResult = usePositions({ enabled: isAuthenticated });
   const [state, setState] = useState<AggTradingState>({
     ready: false,
     initializing: false,
