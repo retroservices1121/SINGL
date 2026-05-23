@@ -3,11 +3,17 @@
 import { useEffect, useState, type FormEvent } from 'react';
 
 const STORAGE_KEY = 'agg_access_granted_v1';
+const CODE_KEY = 'agg_access_code_v1';
 
 function readCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
   const match = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)'));
   return match ? decodeURIComponent(match[1]) : null;
+}
+
+export function getStoredAccessCode(): string | null {
+  if (typeof localStorage === 'undefined') return null;
+  try { return localStorage.getItem(CODE_KEY); } catch { return null; }
 }
 
 export default function AccessGate({ children }: { children: React.ReactNode }) {
@@ -53,7 +59,11 @@ export default function AccessGate({ children }: { children: React.ReactNode }) 
         setSubmitting(false);
         return;
       }
-      try { localStorage.setItem(STORAGE_KEY, '1'); } catch {}
+      try {
+        localStorage.setItem(STORAGE_KEY, '1');
+        // Stash the code so AggProvider can hand it to the SDK on auth requests.
+        localStorage.setItem(CODE_KEY, code.trim());
+      } catch {}
       setGranted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Verification failed');
