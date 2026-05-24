@@ -43,12 +43,26 @@ export async function GET(req: Request) {
   // if the call recovers.
   const SPORTS = 'd7iw9fo6tp4nkgws7m3e8naw';
 
+  // For the chart probe we need a real outcome id. Pull the first market
+  // of the FIFA event and use its first outcome.
+  let sampleOutcomeId = '';
+  try {
+    const markets = await fetch(`${baseUrl}/venue-markets?venueEventId=uflqeqhtzei1c97cmwkuedlq&limit=1`, { headers, cache: 'no-store' });
+    const j = await markets.json();
+    sampleOutcomeId = j?.data?.[0]?.venueMarketOutcomes?.[0]?.id || '';
+  } catch { /* leave empty */ }
+  const to = Date.now();
+  const from = to - 7 * 24 * 60 * 60 * 1000;
+
   const results = await Promise.all([
     ping('/search?type=events&q=FIFA&limit=5'),
     ping('/venue-events/uflqeqhtzei1c97cmwkuedlq'),
-    // Sample 2 markets for the FIFA event so we can see exactly which
-    // fields AGG populates (question vs title, outcomes count, venues, etc.)
     ping('/venue-markets?venueEventId=uflqeqhtzei1c97cmwkuedlq&limit=2'),
+    // Chart bar probe — proves whether the chart endpoint returns data for
+    // a real outcome and shows the exact response shape.
+    sampleOutcomeId
+      ? ping(`/charts/bars?venueMarketOutcomeId=${sampleOutcomeId}&resolution=1h&from=${from}&to=${to}`)
+      : Promise.resolve({ path: '/charts/bars', error: 'no sample outcome id available' }),
   ]);
 
   return NextResponse.json({ config, results });

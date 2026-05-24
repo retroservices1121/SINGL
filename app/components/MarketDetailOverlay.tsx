@@ -188,6 +188,11 @@ export default function MarketDetailOverlay() {
         if (outcomeId) {
           const res = await fetch(`/api/agg/charts?outcomeId=${encodeURIComponent(outcomeId)}&fidelity=${fidelity}&range=${timeRange}`);
           const data = await res.json();
+          if (!res.ok) {
+            console.error('[chart] /api/agg/charts error', res.status, data);
+          } else if (!data.bars?.length) {
+            console.warn('[chart] empty bars for outcome', outcomeId, 'range', timeRange, 'response:', data);
+          }
           const points: PricePoint[] = (data.bars || []).map((b: { t: number; p: number }) => ({
             timestamp: new Date(b.t * 1000).toISOString(),
             yesPrice: b.p,
@@ -196,7 +201,8 @@ export default function MarketDetailOverlay() {
         } else {
           setPriceHistory([]);
         }
-      } catch {
+      } catch (err) {
+        console.error('[chart] fetch failed', err);
         setPriceHistory([]);
       }
       setLoading(false);
