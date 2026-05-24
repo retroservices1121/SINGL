@@ -267,7 +267,64 @@ function detectGroup(title: string): string | null {
 }
 
 export function parseFIFAMarkets(markets: MarketData[]): ParsedFIFAMarket[] {
-  return markets.map(m => {
+  const out: ParsedFIFAMarket[] = [];
+
+  for (const m of markets) {
+    // Synthesized multi-outcome cards (id starts with `group:`) have ONE
+    // entry per parent event with country names in `outcomes[]`. Each
+    // outcome IS a per-country sub-market — expand them back so the FIFA
+    // country profiles, group tables, h2h, squads, and pick'em views
+    // get the per-country data they expect. Pre-grouping, this code path
+    // wasn't needed because each country was already its own market.
+    const isGrouped = m.venueMarketId.startsWith('group:') && m.outcomes && m.outcomes.length > 0;
+    if (isGrouped) {
+      // The parent title tells us what the outcomes represent
+      // ("Winner", "Group X Winner", "Make Knockout", etc.).
+      const parentTitle = m.title;
+      const fifaMarketType = detectFIFAMarketType(parentTitle);
+      const round = detectFIFARound(parentTitle);
+      const group = detectGroup(parentTitle);
+
+      for (const o of m.outcomes!) {
+        const countryName = normalizeCountry(o.label);
+        // Synthesize a per-country title so legacy code paths that
+        // surface the question ("Will France win the 2026 FIFA World
+        // Cup?") still render something readable.
+        const synthTitle = fifaMarketType === 'winner'
+          ? `Will ${countryName} win the 2026 FIFA World Cup?`
+          : fifaMarketType === 'group_winner' && group
+          ? `Will ${countryName} win Group ${group}?`
+          : fifaMarketType === 'advancement'
+          ? `Will ${countryName} advance to the knockout stage?`
+          : `${parentTitle} — ${countryName}`;
+
+        out.push({
+          ...m,
+          // Per-outcome identity so downstream code doesn't collide.
+          id: `${m.id}:${o.id}`,
+          venueMarketId: o.childMarketId || `${m.venueMarketId}:${o.id}`,
+          title: synthTitle,
+          outcomeName: countryName,
+          yesPrice: o.price,
+          noPrice: 1 - o.price,
+          yesOutcomeId: o.id,
+          noOutcomeId: o.noId || m.noOutcomeId,
+          venue: o.venue ?? m.venue,
+          image: o.imageUrl ?? m.image,
+          // Drop the outcomes array on the expanded entry so it
+          // renders as a binary market, not another grouped card.
+          outcomes: undefined,
+          countryName,
+          countries: [countryName],
+          round,
+          fifaMarketType,
+          group,
+        });
+      }
+      continue;
+    }
+
+    // Standard per-market path (binary markets, matchups, props).
     const fifaMarketType = detectFIFAMarketType(m.title);
     const round = detectFIFARound(m.title);
     const group = detectGroup(m.title);
@@ -284,8 +341,10 @@ export function parseFIFAMarkets(markets: MarketData[]): ParsedFIFAMarket[] {
       countries = [countryName];
     }
 
-    return { ...m, countryName, countries, round, fifaMarketType, group };
-  });
+    out.push({ ...m, countryName, countries, round, fifaMarketType, group });
+  }
+
+  return out;
 }
 
 export function buildCountryProfiles(parsedMarkets: ParsedFIFAMarket[]): CountryProfile[] {
