@@ -7,11 +7,14 @@ export const dynamic = 'force-dynamic';
 // Proxies AGG GET /charts/bars and normalizes to { bars: [{ t, p }] } so
 // MarketDetailOverlay's chart renders without changes. AGG's bar format
 // is OHLCV ({ t, o, h, l, c, v }) — we expose the close (c) as the price.
+// AGG's /charts/bars expects resolution as a stringified minute count
+// (or "1D" for daily). Mirrors the SDK's mapChartResolution exactly:
+// 1m → "1", 5m → "5", 1h → "60", 1d → "1D".
 const RESOLUTION: Record<string, { res: string; lookbackMs: number }> = {
-  '1d':  { res: '5m', lookbackMs: 24 * 60 * 60 * 1000 },
-  '1w':  { res: '1h', lookbackMs: 7 * 24 * 60 * 60 * 1000 },
-  '1m':  { res: '1h', lookbackMs: 30 * 24 * 60 * 60 * 1000 },
-  'all': { res: '1d', lookbackMs: 365 * 24 * 60 * 60 * 1000 },
+  '1d':  { res: '5',  lookbackMs: 24 * 60 * 60 * 1000 },
+  '1w':  { res: '60', lookbackMs: 7 * 24 * 60 * 60 * 1000 },
+  '1m':  { res: '60', lookbackMs: 30 * 24 * 60 * 60 * 1000 },
+  'all': { res: '1D', lookbackMs: 365 * 24 * 60 * 60 * 1000 },
 };
 
 export async function GET(req: Request) {

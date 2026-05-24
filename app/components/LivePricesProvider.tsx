@@ -21,27 +21,42 @@ type MinimalVenueMarket = {
   }>;
 };
 
-function toVenueMarket(m: MarketData): MinimalVenueMarket {
-  return {
+// Convert one MarketData into the VenueMarket subset the AGG hooks expect.
+// IMPORTANT: synthesized group cards (id starts with `group:`) hold real
+// child markets under `outcomes[].childMarketId`. AGG rejects synthetic
+// `group:xxx` ids with 401 on /midpoints, so we must expand each grouped
+// card into one VenueMarket per child outcome using the REAL underlying
+// venueMarketId.
+function toVenueMarkets(m: MarketData): MinimalVenueMarket[] {
+  const isGrouped = m.venueMarketId.startsWith('group:');
+
+  if (isGrouped && m.outcomes && m.outcomes.length > 0) {
+    return m.outcomes
+      .filter(o => o.childMarketId && o.id)
+      .map(o => ({
+        id: o.childMarketId!,
+        venue: (o.venue ?? m.venue ?? 'polymarket') as string,
+        externalIdentifier: o.childMarketId!,
+        question: o.label,
+        venueMarketOutcomes: [
+          { id: o.id, label: 'Yes', price: o.price, venueMarketId: o.childMarketId! },
+          ...(o.noId
+            ? [{ id: o.noId, label: 'No', price: 1 - o.price, venueMarketId: o.childMarketId! }]
+            : []),
+        ],
+      }));
+  }
+
+  return [{
     id: m.venueMarketId,
-    venue: m.venue || 'polymarket',
+    venue: (m.venue ?? 'polymarket') as string,
     externalIdentifier: m.venueMarketId,
     question: m.title,
     venueMarketOutcomes: [
-      {
-        id: m.yesOutcomeId,
-        label: m.outcomeName || 'Yes',
-        price: m.yesPrice,
-        venueMarketId: m.venueMarketId,
-      },
-      {
-        id: m.noOutcomeId,
-        label: m.outcome2Name || 'No',
-        price: m.noPrice,
-        venueMarketId: m.venueMarketId,
-      },
+      { id: m.yesOutcomeId, label: m.outcomeName || 'Yes', price: m.yesPrice, venueMarketId: m.venueMarketId },
+      { id: m.noOutcomeId, label: m.outcome2Name || 'No', price: m.noPrice, venueMarketId: m.venueMarketId },
     ],
-  };
+  }];
 }
 
 interface LivePricesValue {
@@ -54,7 +69,9 @@ const LivePricesContext = createContext<LivePricesValue>(EMPTY);
 
 export function LivePricesProvider({ markets, children }: { markets: MarketData[]; children: ReactNode }) {
   const venueMarkets = useMemo(
-    () => markets.filter(m => m.yesOutcomeId && m.noOutcomeId).map(toVenueMarket),
+    () => markets
+      .filter(m => m.yesOutcomeId)
+      .flatMap(toVenueMarkets),
     [markets],
   );
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
