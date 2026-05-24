@@ -47,8 +47,12 @@ export default function BuyPanel({ yesOutcomeId, noOutcomeId, yesPriceFallback, 
   const yesCents = Math.round(yesLive * 100);
   const noCents = Math.round(noLive * 100) || (100 - yesCents);
 
-  // Debounced re-quote when amount/side/outcome changes.
+  // Debounced re-quote when amount/side/outcome changes. AGG's
+  // `/execution/quote` rejects unauthenticated callers with a 404, so we
+  // skip the call entirely until the user has signed in — the CTA
+  // ("Sign in to trade") covers the no-auth UX path.
   useEffect(() => {
+    if (!isAuthenticated) { setQuote(null); setQuoting(false); return; }
     if (!outcomeId || amount <= 0) { setQuote(null); return; }
     const seq = ++quoteSeq.current;
     setQuoting(true);
@@ -68,7 +72,7 @@ export default function BuyPanel({ yesOutcomeId, noOutcomeId, yesPriceFallback, 
       }
     }, 250);
     return () => clearTimeout(t);
-  }, [outcomeId, amount, getQuote]);
+  }, [isAuthenticated, outcomeId, amount, getQuote]);
 
   // Clear confirmation when the user changes anything.
   useEffect(() => { setConfirmed(null); }, [outcomeId, amount, side]);

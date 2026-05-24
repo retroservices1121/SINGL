@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTradeStore } from '@/app/store/tradeStore';
-import { useLivePrice, useLivePricesMap } from './LivePricesProvider';
+import { useLivePrice, useLivePricesMap, MarketDetailLivePrices } from './LivePricesProvider';
 import { formatVolume, formatPercent } from '@/app/lib/utils';
 import VenueChip from './VenueChip';
 import BuyPanel from './BuyPanel';
@@ -102,10 +102,11 @@ function PriceChart({ data, height = 220, livePrice }: { data: PricePoint[]; hei
         </g>
       ))}
 
-      {/* X labels */}
+      {/* X labels — index against `plotted` (not `data`) so the trailing
+          live-tail point doesn't off-by-one into undefined. */}
       {xLabelIndices.map(idx => (
         <text key={idx} x={toX(idx)} y={height - 5} textAnchor="middle" fill="var(--secondary)" fontSize="9" fontFamily="JetBrains Mono, monospace">
-          {formatDate(data[idx].timestamp)}
+          {formatDate(plotted[idx].timestamp)}
         </text>
       ))}
 
@@ -145,20 +146,31 @@ function PriceChart({ data, height = 220, livePrice }: { data: PricePoint[]; hei
 }
 
 export default function MarketDetailOverlay() {
-  const { detailOpen, detailMarket, closeDetail, openTrade } = useTradeStore();
+  const { detailOpen, detailMarket } = useTradeStore();
+  // Outer component just gates rendering. Live-price hooks live inside
+  // DetailBody so they read the MarketDetailLivePrices context that
+  // gets injected for the open market's full outcome set.
+  if (!detailOpen || !detailMarket) return null;
+  return (
+    <MarketDetailLivePrices market={detailMarket}>
+      <DetailBody />
+    </MarketDetailLivePrices>
+  );
+}
+
+function DetailBody() {
+  const { detailMarket, closeDetail, openTrade } = useTradeStore();
   const [priceHistory, setPriceHistory] = useState<PricePoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('1w');
-  // Which outcome the chart + (future) buy panel reflect. Defaults to the
-  // first outcome on open; user can switch by tapping a row in the outcomes
-  // list. Falls back to yesOutcomeId for legacy 2-outcome data.
   const [selectedOutcomeId, setSelectedOutcomeId] = useState<string | null>(null);
   const outcomesList = detailMarket?.outcomes ?? [];
   const selectedOutcome = outcomesList.find(o => o.id === selectedOutcomeId)
     ?? outcomesList[0]
     ?? null;
+  // These hooks now read the merged map that includes this market's
+  // children (provided by the wrapping MarketDetailLivePrices).
   const livePrices = useLivePricesMap();
-  // Hook calls must run on every render, before any conditional return.
   const liveYes = useLivePrice(detailMarket?.yesOutcomeId, detailMarket?.yesPrice ?? 0.5);
   const liveNo = useLivePrice(detailMarket?.noOutcomeId, detailMarket?.noPrice ?? (1 - liveYes));
 
@@ -169,7 +181,7 @@ export default function MarketDetailOverlay() {
   }, [detailMarket]);
 
   useEffect(() => {
-    if (!detailOpen || !detailMarket) {
+    if (!detailMarket) {
       setPriceHistory([]);
       return;
     }
@@ -177,13 +189,8 @@ export default function MarketDetailOverlay() {
     const fetchPrices = async () => {
       setLoading(true);
       try {
-        // Fidelity: minutes per data point based on time range
         const fidelityMap: Record<TimeRange, string> = { '1d': '5', '1w': '60', '1m': '360', 'all': '1440' };
         const fidelity = fidelityMap[timeRange];
-
-        // Chart bars come straight from AGG. No DB fallback — pricing
-        // is never persisted on our side. Use the selected outcome so
-        // the chart updates when the user picks a different one.
         const outcomeId = selectedOutcomeId ?? detailMarket.yesOutcomeId;
         if (outcomeId) {
           const res = await fetch(`/api/agg/charts?outcomeId=${encodeURIComponent(outcomeId)}&fidelity=${fidelity}&range=${timeRange}`);
@@ -209,15 +216,13 @@ export default function MarketDetailOverlay() {
     };
 
     fetchPrices();
-  }, [detailOpen, detailMarket, timeRange, selectedOutcomeId]);
+  }, [detailMarket, timeRange, selectedOutcomeId]);
 
-  if (!detailOpen || !detailMarket) return null;
-
+  if (!detailMarket) return null;
   const market = detailMarket;
   const yesCents = Math.round(liveYes * 100);
   const noCents = Math.round(liveNo * 100) || (100 - yesCents);
 
-  // Use team names for game matchups
   const yesLabel = market.outcomeName
     ? market.outcomeName.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts)$/i, '').trim()
     : 'Yes';
@@ -225,22 +230,14 @@ export default function MarketDetailOverlay() {
     ? market.outcome2Name.replace(/\s+(Fighting Illini|Hawkeyes|Boilermakers|Wildcats|Huskies|Blue Devils|Volunteers|Wolverines|Panthers|Bulldogs|Bears|Tigers|Cyclones|Crimson Tide|Spartans|Golden Eagles|Red Raiders|Jayhawks|Cougars|Cavaliers|Badgers|Gators|Hoosiers|Buckeyes|Bruins|Trojans|Gaels|Musketeers|Commodores|Razorbacks|Cornhuskers|Aggies|Longhorns|Mountaineers|Terrapins|Sooners|Cowboys|Beavers|Ducks|Lumberjacks|Rebels|Seminoles|Cardinals|Redbirds|Catamounts)$/i, '').trim()
     : 'No';
 
-  // Clicking a Yes/No button on an outcome row focuses that outcome
-  // in the sidebar (and sets the BuyPanel's side via uncontrolled state).
-  // The actual buy flow lives inside BuyPanel now — no more handoff to
-  // the legacy TradePanel modal from inside the detail view.
   const focusOutcome = (outcomeId: string) => {
     setSelectedOutcomeId(outcomeId);
   };
-  // Legacy hand-off retained for any spots that still call it (none in this file).
   const handleTrade = (_side: 'yes' | 'no') => {
     void openTrade; void closeDetail;
   };
 
   const isMulti = outcomesList.length > 2;
-  // Live % for the selected (or default) outcome — drives the chart header
-  // and the right-side buy panel preview. Falls back to static outcome price
-  // → 0.5 when nothing live yet.
   const selectedPriceLive = selectedOutcome ? (livePrices.get(selectedOutcome.id) ?? selectedOutcome.price ?? 0.5) : liveYes;
   const selectedYesCents = Math.round(selectedPriceLive * 100);
   const selectedNoCents = 100 - selectedYesCents;
