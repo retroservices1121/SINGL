@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { CountryProfile, FIFACountry, GroupData } from '@/app/lib/fifa';
 import { getGroups, WORLD_CUP_COUNTRIES } from '@/app/lib/fifa';
 import { useTradeStore } from '@/app/store/tradeStore';
+import CountryFlag from './CountryFlag';
 
 interface PickEmProps {
   profiles: CountryProfile[];
@@ -77,7 +78,7 @@ function GroupPickCard({
                   isAdv ? 'bg-[var(--yes-bg)] border border-[var(--yes)]' : 'bg-[var(--surface-container-low)] border border-transparent hover:border-[var(--surface-container-highest)]'
                 }`}
               >
-                <span className="text-base">{t.flag}</span>
+                <CountryFlag country={t} className="w-6 h-4" />
                 <span className="text-[11px] font-bold text-[var(--on-surface)] flex-1 text-left truncate">{t.name}</span>
                 {odds !== null && <span className="text-[9px] font-mono text-[var(--secondary)]">{odds}%</span>}
                 {isAdv && <span className="material-symbols-outlined text-sm text-[var(--yes)]">check</span>}
@@ -236,7 +237,7 @@ export default function PickEm({ profiles }: PickEmProps) {
                       : 'bg-[var(--surface-container-lowest)] text-[var(--on-surface)] shadow-ambient hover:scale-[1.02]'
                   }`}
                 >
-                  <span className="text-2xl">{t.flag}</span>
+                  <CountryFlag country={t} className="w-10 h-7" />
                   <div className="flex-1 text-left min-w-0">
                     <div className="text-xs font-bold uppercase tracking-tight truncate">{t.name}</div>
                     {odds !== null && (
@@ -274,7 +275,7 @@ export default function PickEm({ profiles }: PickEmProps) {
                 const c = WORLD_CUP_COUNTRIES.find(ct => ct.name === champion);
                 return c ? (
                   <div className="mt-2">
-                    <span className="text-4xl">{c.flag}</span>
+                    <CountryFlag country={c} className="w-16 h-11" width={80} />
                     <div className="font-heading font-black text-2xl text-[var(--on-surface)] uppercase tracking-tight">{c.name}</div>
                   </div>
                 ) : null;
@@ -291,7 +292,7 @@ export default function PickEm({ profiles }: PickEmProps) {
                     <div className="text-[8px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-1">Grp {g.name}</div>
                     {winnerCountry && (
                       <>
-                        <span className="text-lg">{winnerCountry.flag}</span>
+                        <CountryFlag country={winnerCountry} className="w-7 h-5 mx-auto" />
                         <div className="text-[9px] font-bold text-[var(--on-surface)] truncate">{winnerCountry.name}</div>
                       </>
                     )}
@@ -324,7 +325,7 @@ export default function PickEm({ profiles }: PickEmProps) {
               const c = WORLD_CUP_COUNTRIES.find(ct => ct.name === champion);
               return c ? (
                 <div className="mt-3">
-                  <span className="text-4xl">{c.flag}</span>
+                  <CountryFlag country={c} className="w-16 h-11" width={80} />
                   <div className="font-heading font-black text-2xl text-[var(--on-surface)] uppercase tracking-tight">{c.name}</div>
                   <div className="text-sm text-[var(--secondary)] mt-1">Your champion pick</div>
                 </div>

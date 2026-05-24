@@ -3,6 +3,7 @@ builder = "dockerfile"
 dockerfilePath = "Dockerfile"
 dockerBuildArgs = [
   "NEXT_PUBLIC_AGG_APP_ID",
+  "NEXT_PUBLIC_AGG_API_KEY",
   "NEXT_PUBLIC_AGG_BASE_URL",
   "NEXT_PUBLIC_AGG_WS_URL",
   "NEXT_PUBLIC_AGG_AUTH_REDIRECT",

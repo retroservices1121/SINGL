@@ -112,6 +112,31 @@ export function findCountry(name: string): FIFACountry | null {
     ) || null;
 }
 
+// Convert an ISO 3166-1 alpha-3 (FIFA's codes use alpha-3, e.g. "USA",
+// "FRA") to alpha-2 (e.g. "us", "fr") for flagcdn.com URLs. We could
+// derive it from the emoji codepoints, but Scotland/England use
+// subdivision tag sequences that have no alpha-2; the explicit map
+// also makes the IOC↔ISO mismatches (KSA→sa, GER→de, etc.) safe.
+const ALPHA3_TO_ALPHA2: Record<string, string> = {
+  USA: 'us', MAR: 'ma', SCO: 'gb-sct', PER: 'pe',
+  POR: 'pt', PAR: 'py', SRB: 'rs', HUN: 'hu',
+  ARG: 'ar', EGY: 'eg', IDN: 'id', BIH: 'ba',
+  FRA: 'fr', COL: 'co', KSA: 'sa', AUS: 'au',
+  ESP: 'es', TUR: 'tr', ECU: 'ec', CHN: 'cn',
+  BRA: 'br', ITA: 'it', NGA: 'ng', BOL: 'bo',
+  GER: 'de', URU: 'uy', KOR: 'kr', QAT: 'qa',
+  ENG: 'gb-eng', SEN: 'sn', POL: 'pl', CAN: 'ca',
+  NED: 'nl', JPN: 'jp', CMR: 'cm', SVN: 'si',
+  BEL: 'be', MEX: 'mx', IRN: 'ir', COD: 'cd',
+  CRO: 'hr', DEN: 'dk', GHA: 'gh', CRC: 'cr',
+  SUI: 'ch', AUT: 'at', CHI: 'cl', UZB: 'uz',
+};
+
+export function countryFlagUrl(country: FIFACountry, width: 20 | 40 | 80 | 160 = 40): string {
+  const alpha2 = ALPHA3_TO_ALPHA2[country.code] || country.code.toLowerCase().slice(0, 2);
+  return `https://flagcdn.com/w${width}/${alpha2}.png`;
+}
+
 // ── Group standings ──────────────────────────────────────────────────────────
 
 export interface GroupStanding {

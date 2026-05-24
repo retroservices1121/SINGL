@@ -5,6 +5,7 @@ import { ROUND_LABELS, ROUND_ORDER, CONFEDERATION_COLORS } from '@/app/lib/fifa'
 import { useTradeStore } from '@/app/store/tradeStore';
 import { formatVolume } from '@/app/lib/utils';
 import Sparkline from './Sparkline';
+import CountryFlag from './CountryFlag';
 
 interface CountryCardProps {
   profile: CountryProfile;
@@ -48,7 +49,7 @@ export default function CountryCard({ profile, index, onSelect }: CountryCardPro
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${rankColor}`}>#{index + 1}</span>
-              <span className="text-2xl leading-none">{profile.country.flag}</span>
+              <CountryFlag country={profile.country} className="w-9 h-6" />
               <h4 className="font-heading font-black text-lg text-[var(--on-surface)] uppercase tracking-tight leading-tight truncate">
                 {profile.name}
               </h4>

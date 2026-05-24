@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import type { CountryProfile, MatchFixture, FIFACountry, ParsedFIFAMarket, FIFARound } from '@/app/lib/fifa';
 import { ROUND_LABELS, getKnockoutSchedule } from '@/app/lib/fifa';
 import { useTradeStore } from '@/app/store/tradeStore';
+import CountryFlag from './CountryFlag';
 
 type KnockoutRound = 'R32' | 'R16' | 'QF' | 'SF' | 'FINAL';
 const KNOCKOUT_ROUNDS: KnockoutRound[] = ['R32', 'R16', 'QF', 'SF', 'FINAL'];
@@ -67,7 +68,7 @@ function MatchCard({ fixture, profiles, featured }: { fixture: MatchFixture; pro
         <div className="flex items-center gap-2 min-w-0">
           {country ? (
             <>
-              <span className={`${featured ? 'text-xl' : 'text-base'} shrink-0`}>{country.flag}</span>
+              <CountryFlag country={country} className={`${featured ? 'w-8 h-5' : 'w-6 h-4'} shrink-0`} />
               <div className="min-w-0">
                 <span className={`font-heading font-black uppercase tracking-tight truncate ${featured ? 'text-sm' : 'text-[11px]'} text-[var(--on-surface)]`}>
                   {country.name}
@@ -135,7 +136,7 @@ function FinalCard({ fixture, profiles }: { fixture: MatchFixture; profiles: Cou
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-[var(--primary-container)]/20 rounded-full blur-2xl" />
           <span className="material-symbols-outlined text-4xl text-[var(--primary-container)] mb-2">emoji_events</span>
           <div className="flex items-center justify-center gap-2 mb-1">
-            <span className="text-2xl">{topTeam.country.flag}</span>
+            <CountryFlag country={topTeam.country} className="w-10 h-7" />
             <h3 className="font-heading font-black text-2xl uppercase tracking-tight text-white">{topTeam.name}</h3>
           </div>
           <span className="text-[10px] font-bold bg-white/10 px-2 py-0.5 rounded text-white">
@@ -182,7 +183,7 @@ function PathToFinal({ profiles }: { profiles: CountryProfile[] }) {
               selectedTeam?.name === team.name ? 'bg-[var(--primary-container)] text-white' : 'bg-[var(--surface-container-low)] text-[var(--secondary)] hover:text-[var(--on-surface)]'
             }`}
           >
-            <span className="text-sm">{team.country.flag}</span>
+            <CountryFlag country={team.country} className="w-5 h-3.5" />
             {team.name}
           </button>
         ))}
@@ -191,7 +192,7 @@ function PathToFinal({ profiles }: { profiles: CountryProfile[] }) {
       {selectedTeam && (
         <div className="space-y-3">
           <div className="flex items-center gap-3 pb-3 border-b border-[var(--surface-container-high)]">
-            <span className="text-3xl">{selectedTeam.country.flag}</span>
+            <CountryFlag country={selectedTeam.country} className="w-12 h-8" width={80} />
             <div>
               <h5 className="font-heading font-black text-lg uppercase tracking-tight text-[var(--on-surface)]">{selectedTeam.name}</h5>
               <div className="flex items-center gap-2">

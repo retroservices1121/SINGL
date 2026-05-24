@@ -5,6 +5,7 @@ import type { MarketData } from '@/app/types';
 import type { PlayerInfo } from '@/app/lib/fifa';
 import { KEY_PLAYERS, findCountry, CONFEDERATION_COLORS } from '@/app/lib/fifa';
 import { useTradeStore } from '@/app/store/tradeStore';
+import CountryFlag from './CountryFlag';
 
 interface CountryStatsPanelProps {
   countryName: string;
@@ -39,7 +40,7 @@ export default function CountryStatsPanel({ countryName, championshipOdds, champ
         {/* Header */}
         <div className="sticky top-0 bg-[var(--surface-container-lowest)] border-b border-[var(--surface-container)] px-6 py-4 flex items-start justify-between gap-4 z-10">
           <div className="flex items-center gap-3 min-w-0">
-            {country && <span className="text-3xl">{country.flag}</span>}
+            {country && <CountryFlag country={country} className="w-12 h-8" width={80} />}
             <div className="min-w-0">
               <h2 className="font-heading font-black text-xl uppercase tracking-tight text-[var(--on-surface)] leading-tight truncate">
                 {countryName}

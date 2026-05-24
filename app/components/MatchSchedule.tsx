@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { CountryProfile, MatchFixture, FIFARound } from '@/app/lib/fifa';
 import { getFullSchedule, ROUND_LABELS, WORLD_CUP_COUNTRIES } from '@/app/lib/fifa';
 import { useTradeStore } from '@/app/store/tradeStore';
+import CountryFlag from './CountryFlag';
 
 interface MatchScheduleProps {
   profiles: CountryProfile[];
@@ -92,7 +93,7 @@ function MatchRow({ fixture, profiles }: { fixture: MatchFixture; profiles: Coun
         <span className="text-[11px] font-bold text-[var(--on-surface)] truncate text-right">
           {fixture.home ? fixture.home.name : fixture.homeLabel}
         </span>
-        {fixture.home && <span className="text-base shrink-0">{fixture.home.flag}</span>}
+        {fixture.home && <CountryFlag country={fixture.home} className="w-6 h-4 shrink-0" />}
       </div>
 
       {/* VS */}
@@ -100,7 +101,7 @@ function MatchRow({ fixture, profiles }: { fixture: MatchFixture; profiles: Coun
 
       {/* Away */}
       <div className="flex items-center gap-1.5 flex-1 min-w-0">
-        {fixture.away && <span className="text-base shrink-0">{fixture.away.flag}</span>}
+        {fixture.away && <CountryFlag country={fixture.away} className="w-6 h-4 shrink-0" />}
         <span className="text-[11px] font-bold text-[var(--on-surface)] truncate">
           {fixture.away ? fixture.away.name : fixture.awayLabel}
         </span>

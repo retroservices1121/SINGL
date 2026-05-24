@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import type { ParsedFIFAMarket, AwardCandidate } from '@/app/lib/fifa';
 import { GOLDEN_BOOT_FAVORITES } from '@/app/lib/fifa';
 import { useTradeStore } from '@/app/store/tradeStore';
+import CountryFlag from './CountryFlag';
 
 interface GoldenBootTrackerProps {
   markets: ParsedFIFAMarket[];
@@ -88,7 +89,7 @@ export default function GoldenBootTracker({ markets }: GoldenBootTrackerProps) {
                   <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-400">Favorite</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-3xl">{topCandidate.country.flag}</span>
+                  <CountryFlag country={topCandidate.country} className="w-12 h-8" width={80} />
                   <div className="flex-1">
                     <h4 className="font-heading font-black text-xl uppercase tracking-tight">{topCandidate.name}</h4>
                     <div className="flex items-center gap-2 mt-0.5">
@@ -140,7 +141,7 @@ export default function GoldenBootTracker({ markets }: GoldenBootTrackerProps) {
                   {i + 1}
                 </span>
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-sm shrink-0">{c.country.flag}</span>
+                  <CountryFlag country={c.country} className="w-5 h-3.5 shrink-0" />
                   <span className="text-[11px] font-bold text-[var(--on-surface)] truncate">{c.name}</span>
                 </div>
                 <span className="text-[10px] text-[var(--secondary)] truncate">{c.club}</span>

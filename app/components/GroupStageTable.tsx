@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import type { CountryProfile, GroupData, GroupStanding } from '@/app/lib/fifa';
 import { useTradeStore } from '@/app/store/tradeStore';
+import CountryFlag from './CountryFlag';
 
 interface GroupStageTableProps {
   groups: GroupData[];
@@ -82,7 +83,7 @@ function GroupCard({
               }}
             >
               <div className="flex items-center gap-1.5 min-w-0">
-                <span className="text-base leading-none shrink-0">{standing.country.flag}</span>
+                <CountryFlag country={standing.country} className="w-6 h-4 shrink-0" />
                 <span className="text-[11px] font-bold text-[var(--on-surface)] truncate">
                   {standing.country.name}
                 </span>

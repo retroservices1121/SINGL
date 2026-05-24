@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import type { CountryProfile, PlayerInfo } from '@/app/lib/fifa';
 import { KEY_PLAYERS, WORLD_CUP_COUNTRIES } from '@/app/lib/fifa';
+import CountryFlag from './CountryFlag';
 
 interface SquadRosterProps {
   profiles: CountryProfile[];
@@ -104,7 +105,7 @@ export default function SquadRoster({ profiles }: SquadRosterProps) {
               selected === c.name ? 'bg-[var(--primary-container)] text-white shadow-lg' : 'bg-[var(--surface-container-high)] text-[var(--secondary)] hover:bg-[var(--surface-container-highest)]'
             }`}
           >
-            <span className="text-sm">{c.flag}</span>{c.code}
+            <CountryFlag country={c} className="w-5 h-3.5" />{c.code}
           </button>
         ))}
       </div>
@@ -113,7 +114,7 @@ export default function SquadRoster({ profiles }: SquadRosterProps) {
       {selectedCountry && (
         <div className="bg-[var(--surface-container-lowest)] rounded-xl shadow-ambient p-5 mb-4">
           <div className="flex items-center gap-4">
-            <span className="text-4xl">{selectedCountry.flag}</span>
+            <CountryFlag country={selectedCountry} className="w-16 h-11" width={80} />
             <div className="flex-1">
               <h2 className="font-heading font-black text-xl text-[var(--on-surface)] uppercase tracking-tight">{selectedCountry.name}</h2>
               <div className="flex items-center gap-3 mt-1 flex-wrap">

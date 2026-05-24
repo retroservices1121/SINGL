@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import type { CountryProfile, PlayerInfo } from '@/app/lib/fifa';
 import { WORLD_CUP_COUNTRIES, KEY_PLAYERS, CONFEDERATION_COLORS } from '@/app/lib/fifa';
 import { useTradeStore } from '@/app/store/tradeStore';
+import CountryFlag from './CountryFlag';
 
 interface HeadToHeadProps {
   profiles: CountryProfile[];
@@ -103,7 +104,7 @@ export default function HeadToHead({ profiles }: HeadToHeadProps) {
           {/* Flags & names */}
           <div className="flex items-center justify-between px-6 py-5 bg-[var(--on-surface)]">
             <div className="text-center flex-1">
-              <div className="text-4xl mb-2">{leftProfile.country.flag}</div>
+              <div className="mb-2"><CountryFlag country={leftProfile.country} className="w-16 h-11" width={80} /></div>
               <h4 className="font-heading font-black text-lg text-white uppercase tracking-tight">{leftProfile.name}</h4>
               <div className="flex items-center justify-center gap-1 mt-1">
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: CONFEDERATION_COLORS[leftProfile.country.confederation] }} />
@@ -114,7 +115,7 @@ export default function HeadToHead({ profiles }: HeadToHeadProps) {
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">vs</span>
             </div>
             <div className="text-center flex-1">
-              <div className="text-4xl mb-2">{rightProfile.country.flag}</div>
+              <div className="mb-2"><CountryFlag country={rightProfile.country} className="w-16 h-11" width={80} /></div>
               <h4 className="font-heading font-black text-lg text-white uppercase tracking-tight">{rightProfile.name}</h4>
               <div className="flex items-center justify-center gap-1 mt-1">
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: CONFEDERATION_COLORS[rightProfile.country.confederation] }} />
