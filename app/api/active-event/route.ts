@@ -5,6 +5,15 @@ import type { MarketData, MarketOutcome } from '@/app/types';
 
 export const dynamic = 'force-dynamic';
 
+// In-process TTL cache. The full /api/active-event response is shared by
+// every visitor, and the client polls every 15s anyway — caching at this
+// edge collapses N concurrent loads into one upstream fan-out and makes
+// repeat refreshes instant. Trade-off: stale-by-up-to-CACHE_TTL_MS for
+// fresh markets, but pricing is live via WS so that doesn't matter.
+const CACHE_TTL_MS = 15_000;
+let cached: { ts: number; payload: unknown } | null = null;
+let inflight: Promise<unknown> | null = null;
+
 // AGG returns most multi-outcome events as N binary "Will X win?" markets
 // (negRisk pattern), one per country. To present them as AGG's own UI
 // does — ONE card titled "2026 FIFA World Cup Winner" with all country
@@ -96,9 +105,9 @@ function groupMarketsByParentEvent(markets: MarketData[]): MarketData[] {
   return out;
 }
 
-export async function GET() {
+async function buildPayload(): Promise<unknown> {
   const config = await prisma.siteConfig.findUnique({ where: { key: 'activeEventSlug' } });
-  if (!config) return NextResponse.json({ event: null });
+  if (!config) return { event: null };
 
   const event = await prisma.event.findUnique({
     where: { slug: config.value },
@@ -109,7 +118,7 @@ export async function GET() {
       tiktoks: { orderBy: { fetchedAt: 'desc' }, take: 8 },
     },
   });
-  if (!event) return NextResponse.json({ event: null });
+  if (!event) return { event: null };
 
   let markets: MarketData[] = [];
   try {
@@ -117,7 +126,7 @@ export async function GET() {
       const { data: venueEvents } = await listVenueEvents({
         searchTerms: event.searchTerms,
         status: 'open',
-        limit: 100,
+        limit: 25, // 25 per term is plenty for typical sports/election sweeps
       });
       const seen = new Set<string>();
       for (const ve of venueEvents) {
@@ -140,12 +149,27 @@ export async function GET() {
 
   const totalVolume = grouped.reduce((sum, m) => sum + (m.volume || 0), 0);
 
-  return NextResponse.json({
+  return {
     event: {
       ...event,
       markets: grouped,
       volume: totalVolume || event.volume,
       liquidity: event.liquidity || 0,
     },
-  });
+  };
+}
+
+export async function GET() {
+  // Serve from cache when fresh.
+  if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
+    return NextResponse.json(cached.payload);
+  }
+  // Coalesce concurrent requests so a refresh-storm only hits AGG once.
+  if (!inflight) {
+    inflight = buildPayload()
+      .then(payload => { cached = { ts: Date.now(), payload }; return payload; })
+      .finally(() => { inflight = null; });
+  }
+  const payload = await inflight;
+  return NextResponse.json(payload);
 }

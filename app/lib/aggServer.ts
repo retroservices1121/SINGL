@@ -193,21 +193,19 @@ export function mapAggMarket(ev: { id: string; venue?: string; endDate?: string;
 // until exhausted (AGG caps page size around 100).
 export async function getVenueMarketsByEventId(eventId: string): Promise<AggVenueMarket[]> {
   const out: AggVenueMarket[] = [];
-  let cursor: string | undefined;
-  for (let page = 0; page < 10; page++) { // safety cap
-    let resp: { data?: AggVenueMarket[]; nextCursor?: string | null };
-    try {
-      resp = await aggFetch<{ data?: AggVenueMarket[]; nextCursor?: string | null }>(
-        '/venue-markets',
-        { query: { venueEventId: eventId, limit: 100, ...(cursor ? { cursor } : {}) } },
-      );
-    } catch (err) {
-      console.error(`[getVenueMarketsByEventId] ${eventId}:`, err);
-      break;
-    }
+  // Single 100-market page is enough for every prediction-market event
+  // we've seen (FIFA Winner has 32 outcomes, biggest other groups are
+  // similar). Skip pagination — extra pages were costing 5–10s per page
+  // on slow events and contributing the bulk of the 30s page-refresh
+  // latency. Callers that genuinely need more can paginate themselves.
+  try {
+    const resp = await aggFetch<{ data?: AggVenueMarket[]; nextCursor?: string | null }>(
+      '/venue-markets',
+      { query: { venueEventId: eventId, limit: 100 } },
+    );
     for (const m of resp.data || []) out.push(m);
-    if (!resp.nextCursor) break;
-    cursor = resp.nextCursor;
+  } catch (err) {
+    console.error(`[getVenueMarketsByEventId] ${eventId}:`, err);
   }
   return out;
 }
@@ -258,14 +256,14 @@ export async function listVenueEvents(params: {
       continue;
     }
 
-    for (const ev of brief.data || []) {
-      if (seen.has(ev.id)) continue;
-      // Enrich with the full event payload (which includes nested markets).
-      // Falls back to the bare /search result if the single-event lookup
-      // also errors so the caller at least sees the event title/metadata.
-      const full = await getVenueEvent(ev.id);
-      seen.set(ev.id, full ?? ev);
-    }
+    // Enrich every NEW event in parallel — sequential awaits here were
+    // the dominant cost in active-event refresh (100 events × ~200ms =
+    // 20s+). Promise.all collapses to ~1 roundtrip latency.
+    const newOnes = (brief.data || []).filter(ev => !seen.has(ev.id));
+    const fulls = await Promise.all(
+      newOnes.map(ev => getVenueEvent(ev.id).then(f => f ?? ev).catch(() => ev)),
+    );
+    for (const f of fulls) seen.set(f.id, f);
   }
 
   return { data: [...seen.values()] };
