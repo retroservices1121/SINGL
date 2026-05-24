@@ -134,15 +134,23 @@ function outcomeLabel(o?: AggOutcome): string {
 
 export function mapAggMarket(ev: { id: string; venue?: string; endDate?: string; title?: string }, m: AggVenueMarket): import('@/app/types').MarketData | null {
   const outcomes = (m.venueMarketOutcomes ?? m.outcomes) || [];
-  const o1 = outcomes[0];
-  const o2 = outcomes[1];
-  if (!o1) return null;
+  if (outcomes.length === 0) return null;
 
-  const l1 = outcomeLabel(o1);
-  const l2 = outcomeLabel(o2);
-  const isStandardYesNo = l1 === 'Yes' && l2 === 'No';
-  const yesPrice = o1.price ?? 0.5;
-  const noPrice = o2?.price ?? (1 - yesPrice);
+  // CRITICAL: AGG returns outcomes in arbitrary order. Diagnostic showed
+  // [{label:'No',price:0.82},{label:'Yes',price:0.18}] for France. Index
+  // 0 ≠ Yes side. Look up by label and fall back to positional order
+  // only when labels aren't standard Yes/No (e.g. team-vs-team markets).
+  const yesByLabel = outcomes.find(o => outcomeLabel(o).toLowerCase() === 'yes');
+  const noByLabel  = outcomes.find(o => outcomeLabel(o).toLowerCase() === 'no');
+  const yesSide = yesByLabel ?? outcomes[0];
+  const noSide  = noByLabel  ?? outcomes.find(o => o.id !== yesSide.id) ?? outcomes[1];
+  if (!yesSide) return null;
+
+  const yesLabel = outcomeLabel(yesSide);
+  const noLabel = outcomeLabel(noSide);
+  const isStandardYesNo = yesLabel.toLowerCase() === 'yes' && noLabel.toLowerCase() === 'no';
+  const yesPrice = yesSide.price ?? 0.5;
+  const noPrice = noSide?.price ?? (1 - yesPrice);
   const title = m.question || m.title || '';
 
   return {
@@ -159,11 +167,11 @@ export function mapAggMarket(ev: { id: string; venue?: string; endDate?: string;
     closeTime: m.endDate ?? ev.endDate ?? null,
     expirationTime: m.endDate ?? ev.endDate ?? null,
     venueMarketId: m.id,
-    yesOutcomeId: o1.id,
-    noOutcomeId: o2?.id ?? '',
+    yesOutcomeId: yesSide.id,
+    noOutcomeId: noSide?.id ?? '',
     tickSize: m.tickSize ?? '0.01',
-    outcomeName: !isStandardYesNo ? (l1 || null) : null,
-    outcome2Name: !isStandardYesNo ? (l2 || null) : null,
+    outcomeName: !isStandardYesNo ? (yesLabel || null) : null,
+    outcome2Name: !isStandardYesNo ? (noLabel || null) : null,
     // Preserve the full outcomes list for multi-outcome markets (e.g.
     // "Nation to Reach Final" with 32 country outcomes). MarketCard /
     // detail overlay can iterate over this when length > 2.
