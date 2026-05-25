@@ -25,11 +25,17 @@ export function getAggClient(): AggClient {
     baseUrl: BASE_URL,
     wsUrl: WS_URL,
     ...(PUBLIC_API_KEY ? { apiKey: PUBLIC_API_KEY } : {}),
+    // AGG's access codes are SINGLE-USE. With the default
+    // authDelivery="body", refresh tokens live only in memory and are
+    // lost on page reload — so each cold-start tries a fresh signIn
+    // which burns a new code. Switching to "cookie-refresh" makes AGG
+    // set an HttpOnly refresh-token cookie that survives reload, and
+    // the SDK silently refreshes on cold start without needing a code.
+    authDelivery: 'cookie-refresh',
     auth: {
-      // AGG enforces its own early-access gate on auth endpoints. We reuse
-      // the code the user already submitted at our SINGL gate (same list
-      // of codes AGG issued us). Without this, signIn returns 400
-      // `EARLY_ACCESS_CODE_REQUIRED`.
+      // Still required on the very first sign-in (no refresh cookie yet).
+      // After that, the cookie path takes over and the code isn't needed
+      // again until the cookie expires.
       getEarlyAccessCode: () => getStoredAccessCode(),
     },
   });
