@@ -2,8 +2,12 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
-import WalletButton from './WalletButton';
+import { usePathname, useRouter } from 'next/navigation';
+import { ConnectButton } from '@agg-build/auth';
+import {
+  requestAggDepositModalOpen,
+  requestAggWithdrawModalOpen,
+} from '@agg-build/ui';
 
 // Only routes that exist today. Phase 2 will re-add News, Videos,
 // Countries, Groups, Schedule, Bracket, Pick'em as their own routes
@@ -18,6 +22,7 @@ const PRIMARY_NAV: { href: string; label: string }[] = [
 // is consistent across the whole app.
 export default function SinglNav() {
   const pathname = usePathname();
+  const router = useRouter();
   return (
     <nav className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-[var(--surface-container)]">
       <div className="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto gap-6">
@@ -44,8 +49,18 @@ export default function SinglNav() {
             );
           })}
         </div>
+        {/* AGG's ConnectButton auto-renders an auth chooser (Google, Email,
+            SIWE, SIWS — whatever's registered in AggProvider's methods
+            array) when signed out, and a profile/balance menu when signed
+            in. Deposit/Withdraw clicks dispatch AGG's modal-open events
+            which the SDK handles. */}
         <div className="shrink-0">
-          <WalletButton />
+          <ConnectButton
+            onDepositClick={() => requestAggDepositModalOpen()}
+            onWithdrawClick={() => requestAggWithdrawModalOpen()}
+            onProfileClick={() => router.push('/profile')}
+            onProfileCardClick={() => router.push('/profile')}
+          />
         </div>
       </div>
     </nav>
