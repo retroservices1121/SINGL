@@ -79,7 +79,17 @@ export default function HomeClient() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Same grid template AGG's own EventList uses internally:
+          auto-fill columns with a 360px minimum. Inline style bypasses
+          both Tailwind builds (ours + @agg-build/ui's) so the rule
+          ships regardless of which scan picks up arbitrary classes. */}
+      <div
+        style={{
+          display: 'grid',
+          gap: '1rem',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(360px, 100%), 1fr))',
+        }}
+      >
         {events.map(ev => (
           <EventListItem
             key={ev.id}
@@ -87,6 +97,10 @@ export default function HomeClient() {
             href={`/event/${ev.id}`}
             onEventClick={onEventClick}
             getMarketHref={getMarketHref}
+            // Match AGG's own EventList — let each card fill its grid
+            // cell so they line up edge-to-edge instead of inheriting
+            // some narrower default width.
+            classNames={{ root: 'w-full min-w-0 max-w-none' }}
           />
         ))}
       </div>
