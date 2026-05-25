@@ -63,6 +63,15 @@ export async function GET(req: Request) {
     sampleOutcomeId
       ? ping(`/charts/bars?venueMarketOutcomeId=${sampleOutcomeId}&resolution=1h&from=${from}&to=${to}`)
       : Promise.resolve({ path: '/charts/bars', error: 'no sample outcome id available' }),
+    // Re-run the exact URL AGG's HomePage fires when the user clicks "All"
+    // venue tab inside the Sports category — this is the call that returns
+    // the "Something went wrong" UI on the live site.
+    ping(`/venue-events?categoryIds=${SPORTS}&status=open&sortBy=volume24hr&sortDir=desc&limit=50&endDateFrom=${new Date().toISOString()}`),
+    // Same call WITHOUT the volume24hr sort, in case that sort field is
+    // the trigger for the failure.
+    ping(`/venue-events?categoryIds=${SPORTS}&status=open&limit=50`),
+    // And without any filter at all to see baseline behavior.
+    ping('/venue-events?limit=5'),
   ]);
 
   return NextResponse.json({ config, results });
