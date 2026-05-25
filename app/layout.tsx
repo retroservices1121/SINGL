@@ -37,7 +37,12 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased">
+      {/* `agg-root partner-theme` activates AGG's CSS variable block in
+          globals.css. Required for any drop-in AGG component (Connect
+          Button, Place Order, etc.) to pick up our brand colors. Our
+          own components also read the bound --primary / --secondary
+          / --outline tokens, so the whole app stays in sync. */}
+      <body className="antialiased agg-root partner-theme">
         <Providers>
           {children}
         </Providers>

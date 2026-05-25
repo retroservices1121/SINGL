@@ -1,8 +1,55 @@
 @import "tailwindcss";
 
+/* ──────────────────────────────────────────────────────────────────────
+   AGG partner theme — copied verbatim from AGG's Partner Theme Studio
+   export. Keep this block 1:1 with the dashboard so AGG components
+   (Connect Button, Place Order, Orderbook, Deposit/Withdraw, etc.)
+   inherit our brand when we drop them in later. The class is bound
+   to <body> in app/layout.tsx.
+
+   Dark mode block is included for free — toggle by adding `dark`
+   to <html> or `dark`/`light` to <body class="agg-root partner-theme">.
+   ────────────────────────────────────────────────────────────────── */
+.agg-root.partner-theme {
+  --agg-color-primary: #fc6404;
+  --agg-color-primary-hover: #fc741d;
+  --agg-color-secondary: #f9f9ff;
+  --agg-color-secondary-hover: #efeff5;
+  --agg-color-border: #e1e2ea;
+  --agg-color-foreground: #565e74;
+  --agg-color-muted-foreground: #9fa4b3;
+  --agg-color-on-primary: #000000;
+  --agg-color-success: #22c55e;
+  --agg-color-warning: #f59e0b;
+  --agg-color-error: #ef4444;
+  --agg-color-overlay: #000000;
+}
+
+:where(.dark .agg-root.partner-theme:not(.light), .agg-root.partner-theme.dark) {
+  --agg-color-primary: #fc6404;
+  --agg-color-primary-hover: #fc741d;
+  --agg-color-secondary: #0a0a0e;
+  --agg-color-secondary-hover: #16161a;
+  --agg-color-border: #2e2e31;
+  --agg-color-foreground: #fafafa;
+  --agg-color-muted-foreground: #8e8e90;
+  --agg-color-on-primary: #000000;
+  --agg-color-success: #22c55e;
+  --agg-color-warning: #f59e0b;
+  --agg-color-error: #ef4444;
+  --agg-color-overlay: #000000;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   SINGL tokens — colors that overlap AGG's palette are bound to AGG's
+   values so our custom UI matches AGG components automatically. The
+   Material-3 surface ladder is kept because AGG only ships 2 surface
+   tones (secondary / secondary-hover) and our cards/tabs use more.
+   Names kept stable — no component edits needed.
+   ────────────────────────────────────────────────────────────────── */
 :root {
-  /* Clinical Kineticism palette */
-  --surface: #F9F9FF;
+  /* Surfaces — top of ladder aligns with AGG's secondary */
+  --surface: #f9f9ff;                 /* = --agg-color-secondary */
   --surface-dim: #CFdAF2;
   --surface-container: #E7EEFF;
   --surface-container-low: #F0F3FF;
@@ -15,21 +62,24 @@
   --on-surface-variant: #5A4136;
   --on-background: #111C2D;
 
+  /* Primary — single-source from AGG's brand orange */
   --primary: #A04100;
-  --primary-container: #FF6B00;
+  --primary-container: #fc6404;       /* = --agg-color-primary */
   --primary-fixed: #FFDBCC;
   --primary-fixed-dim: #FFB693;
 
-  --secondary: #565E74;
+  /* Body text / muted — matches AGG foreground & muted */
+  --secondary: #565e74;               /* = --agg-color-foreground */
   --secondary-container: #DAE2FD;
 
   --tertiary: #0062A1;
   --tertiary-container: #059EFF;
 
-  --outline: #8E7164;
-  --outline-variant: #E2BFB0;
+  /* Borders — bound to AGG */
+  --outline: #9fa4b3;                 /* = --agg-color-muted-foreground */
+  --outline-variant: #e1e2ea;         /* = --agg-color-border */
 
-  --error: #BA1A1A;
+  --error: #ef4444;                   /* = --agg-color-error */
 
   /* Semantic aliases (backward compat) */
   --cream: var(--surface);
@@ -41,9 +91,11 @@
   --text-dim: var(--outline);
   --orange: var(--primary-container);
   --orange-lt: var(--primary-fixed);
-  --yes: #0AAE6F;
+
+  /* Trading sides — bound to AGG success/error */
+  --yes: #22c55e;                     /* = --agg-color-success */
   --yes-bg: #E8F8F0;
-  --no: #E84855;
+  --no: #ef4444;                      /* = --agg-color-error */
   --no-bg: #FDE8EA;
 }
 
