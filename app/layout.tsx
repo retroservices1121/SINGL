@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
+// AGG's stylesheet must come FIRST so our globals.css can override the
+// rules that previously stomped our layout (card widths, video sizes,
+// country flag image rules). With both loaded, later wins in cascade.
+import '@agg-build/ui/styles.css';
 import './globals.css';
-// @agg-build/ui/styles.css ships a full Tailwind v4 build at root scope —
-// importing it stomps on our globals (card widths, video sizes, country
-// flag image rules). We only use AGG hooks, never their UI components,
-// so the missing-styles warning at runtime is informational and safe to
-// ignore.
 import Providers from './components/Providers';
 
 export const metadata: Metadata = {
