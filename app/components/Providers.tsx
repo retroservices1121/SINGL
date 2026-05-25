@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import AccessGate from './AccessGate';
+// AccessGate intentionally not imported — the SINGL early-access gate
+// is disabled for now. To re-enable, import AccessGate and wrap the
+// children with <AccessGate>{children}</AccessGate>. Also turn the
+// "Require early access code" setting back on in the AGG dashboard.
 
 const AggProvider = dynamic(() => import('./AggProvider'), {
   ssr: false,
@@ -18,9 +21,5 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   if (!mounted) return null;
 
-  return (
-    <AggProvider>
-      <AccessGate>{children}</AccessGate>
-    </AggProvider>
-  );
+  return <AggProvider>{children}</AggProvider>;
 }
