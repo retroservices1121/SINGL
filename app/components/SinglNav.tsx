@@ -5,15 +5,11 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import WalletButton from './WalletButton';
 
+// Only routes that exist today. Phase 2 will re-add News, Videos,
+// Countries, Groups, Schedule, Bracket, Pick'em as their own routes
+// once we extract them from the FIFA EventPage tabs.
 const PRIMARY_NAV: { href: string; label: string }[] = [
   { href: '/', label: 'Trade' },
-  { href: '/news', label: 'News' },
-  { href: '/videos', label: 'Videos' },
-  { href: '/countries', label: 'Countries' },
-  { href: '/groups', label: 'Groups' },
-  { href: '/schedule', label: 'Schedule' },
-  { href: '/bracket', label: 'Bracket' },
-  { href: '/pickem', label: "Pick'em" },
   { href: '/profile', label: 'Portfolio' },
 ];
 
