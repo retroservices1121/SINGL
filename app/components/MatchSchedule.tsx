@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { CountryProfile, MatchFixture, FIFARound } from '@/app/lib/fifa';
 import { getFullSchedule, ROUND_LABELS, WORLD_CUP_COUNTRIES } from '@/app/lib/fifa';
-import { useTradeStore } from '@/app/store/tradeStore';
+import { useRouter } from 'next/navigation';
 import CountryFlag from './CountryFlag';
 
 interface MatchScheduleProps {
@@ -65,18 +65,42 @@ function formatDateHeader(dateStr: string): string {
 }
 
 function MatchRow({ fixture, profiles }: { fixture: MatchFixture; profiles: CountryProfile[] }) {
-  const openTrade = useTradeStore(s => s.openTrade);
+  const router = useRouter();
 
   const homeProfile = fixture.home ? profiles.find(p => p.country.code === fixture.home!.code) : null;
   const awayProfile = fixture.away ? profiles.find(p => p.country.code === fixture.away!.code) : null;
+  // Surface the actual side we'd preselect on the AGG event page so the
+  // user lands on a known team's market, not a roll of the dice between
+  // home vs away. Prefer home's market when both exist.
   const market = homeProfile?.championshipMarket || awayProfile?.championshipMarket;
+  // Real tradable market = the championship market AND its odds aren't
+  // the AGG no-liquidity 0.5 placeholder. Matches that consist entirely
+  // of "no-market" countries become non-interactive so the arrow doesn't
+  // tease a click that goes nowhere.
+  const EPS = 0.001;
+  const realChampOdds =
+    (homeProfile?.championshipOdds != null && Math.abs(homeProfile.championshipOdds - 0.5) > EPS)
+      ? homeProfile.championshipOdds
+      : (awayProfile?.championshipOdds != null && Math.abs(awayProfile.championshipOdds - 0.5) > EPS)
+        ? awayProfile.championshipOdds
+        : null;
+  const tradable = market != null && realChampOdds != null;
+
+  const handleClick = () => {
+    if (!tradable || !market?.eventId) return;
+    const params = new URLSearchParams();
+    if (market.venueMarketId) params.set('market', market.venueMarketId);
+    if (market.yesOutcomeId) params.set('outcome', market.yesOutcomeId);
+    const qs = params.toString();
+    router.push(`/event/${market.eventId}${qs ? `?${qs}` : ''}`);
+  };
 
   return (
     <div
       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
         isToday(fixture.date) ? 'bg-[var(--primary-fixed)]' : 'bg-[var(--surface-container-lowest)] hover:bg-[var(--surface-container-low)]'
-      } ${market ? 'cursor-pointer' : ''}`}
-      onClick={() => market && openTrade(market, 'yes')}
+      } ${tradable ? 'cursor-pointer' : 'opacity-70'}`}
+      onClick={handleClick}
     >
       {/* Match number */}
       <span className="text-[9px] font-bold text-[var(--secondary)] bg-[var(--surface-container-high)] px-1.5 py-0.5 rounded shrink-0">
@@ -119,8 +143,12 @@ function MatchRow({ fixture, profiles }: { fixture: MatchFixture; profiles: Coun
         <Countdown date={fixture.date} time={fixture.time} />
       </div>
 
-      {/* Trade arrow */}
-      {market && (
+      {/* Trade arrow — appears only on rows that actually route to a
+          tradable AGG market. Matches without a real championship
+          market on either side stay arrow-less (and are dimmed to 70%
+          opacity above) so the affordance is consistent: arrow == click
+          opens AGG's place-order panel. */}
+      {tradable && (
         <span className="material-symbols-outlined text-[12px] text-[var(--secondary)] shrink-0">arrow_forward</span>
       )}
     </div>
