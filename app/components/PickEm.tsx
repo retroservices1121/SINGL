@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { CountryProfile, FIFACountry, GroupData } from '@/app/lib/fifa';
 import { getGroups, WORLD_CUP_COUNTRIES } from '@/app/lib/fifa';
-import { useTradeStore } from '@/app/store/tradeStore';
 import CountryFlag from './CountryFlag';
 
 interface PickEmProps {
@@ -19,9 +18,16 @@ interface GroupPick {
 
 const SITE_URL = 'https://singl.market';
 
+// Returns the country's implied championship % from the underlying
+// market — but only when there's a real, tradable market. AGG's
+// no-liquidity 0.5 placeholder shouldn't render as "50% to win the
+// World Cup" because that's not a real prediction.
+const EPS = 0.001;
 function getProfileOdds(name: string, profiles: CountryProfile[]): number | null {
   const p = profiles.find(pr => pr.name === name);
-  return p?.championshipOdds ? Math.round(p.championshipOdds * 100) : null;
+  if (!p?.championshipOdds) return null;
+  if (Math.abs(p.championshipOdds - 0.5) <= EPS) return null;
+  return Math.round(p.championshipOdds * 100);
 }
 
 function GroupPickCard({
@@ -102,7 +108,6 @@ function GroupPickCard({
 }
 
 export default function PickEm({ profiles }: PickEmProps) {
-  const openTrade = useTradeStore(s => s.openTrade);
   const groups = useMemo(() => getGroups(), []);
   const [step, setStep] = useState<Step>(1);
   const [groupPicks, setGroupPicks] = useState<Record<string, GroupPick>>({});
@@ -178,6 +183,9 @@ export default function PickEm({ profiles }: PickEmProps) {
         <span className="material-symbols-outlined text-4xl text-[var(--primary-container)] mb-2">emoji_events</span>
         <h2 className="font-heading font-black text-2xl text-white uppercase tracking-tight">Pick&apos;em Challenge</h2>
         <p className="text-sm text-slate-400 mt-1">Predict the World Cup &mdash; Free to play</p>
+        <p className="text-[10px] text-slate-500 mt-2 max-w-md mx-auto leading-relaxed">
+          Picks save to this browser only. No server submission, no scoring — yet. Share your champion on X to lock it in publicly.
+        </p>
       </div>
 
       {/* Step indicator */}
@@ -345,20 +353,27 @@ export default function PickEm({ profiles }: PickEmProps) {
             </div>
           </div>
 
-          {/* CTA to real markets */}
+          {/* CTA to real markets — route through AGG's place-order panel */}
           <div className="bg-[var(--primary-fixed)] rounded-xl p-5 text-center border border-[var(--primary-container)]">
             <h4 className="font-heading font-black text-sm text-[var(--primary)] uppercase tracking-tight mb-1">Want to put money on it?</h4>
-            <p className="text-xs text-[var(--secondary)] mb-3">Trade real prediction markets on Polymarket</p>
+            <p className="text-xs text-[var(--secondary)] mb-3">Trade your champion pick on AGG</p>
             {(() => {
               const champProfile = profiles.find(p => p.name === champion);
-              return champProfile?.championshipMarket ? (
-                <button
-                  onClick={() => openTrade(champProfile.championshipMarket!, 'yes')}
-                  className="px-6 py-2.5 bg-[var(--primary-container)] text-white rounded-lg text-xs font-bold uppercase tracking-widest cursor-pointer hover:brightness-110 transition-all"
+              const m = champProfile?.championshipMarket;
+              if (!m?.eventId) return null;
+              const params = new URLSearchParams();
+              if (m.venueMarketId) params.set('market', m.venueMarketId);
+              if (m.yesOutcomeId) params.set('outcome', m.yesOutcomeId);
+              const qs = params.toString();
+              const href = `/event/${m.eventId}${qs ? `?${qs}` : ''}`;
+              return (
+                <a
+                  href={href}
+                  className="inline-block px-6 py-2.5 bg-[var(--primary-container)] text-white rounded-lg text-xs font-bold uppercase tracking-widest cursor-pointer hover:brightness-110 transition-all no-underline"
                 >
                   Trade {champion} to Win
-                </button>
-              ) : null;
+                </a>
+              );
             })()}
           </div>
 

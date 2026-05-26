@@ -1,10 +1,20 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { CountryProfile, PlayerInfo } from '@/app/lib/fifa';
-import { WORLD_CUP_COUNTRIES, KEY_PLAYERS, CONFEDERATION_COLORS } from '@/app/lib/fifa';
-import { useTradeStore } from '@/app/store/tradeStore';
+import { useRouter } from 'next/navigation';
+import type { CountryProfile, PlayerInfo, ParsedFIFAMarket } from '@/app/lib/fifa';
+import { KEY_PLAYERS, CONFEDERATION_COLORS } from '@/app/lib/fifa';
 import CountryFlag from './CountryFlag';
+
+// Same epsilon test we use on /countries and /schedule to drop AGG's
+// no-liquidity 0.5 placeholder. H2H selectors should only offer
+// countries that have a real, tradable championship market.
+const EPS = 0.001;
+function hasRealMarket(p: CountryProfile): boolean {
+  return p.championshipMarket !== null
+    && p.championshipOdds !== null
+    && Math.abs(p.championshipOdds - 0.5) > EPS;
+}
 
 interface HeadToHeadProps {
   profiles: CountryProfile[];
@@ -37,21 +47,27 @@ function ComparisonBar({ label, leftVal, rightVal, leftLabel, rightLabel, lowerI
 }
 
 export default function HeadToHead({ profiles }: HeadToHeadProps) {
-  const openTrade = useTradeStore(s => s.openTrade);
+  const router = useRouter();
 
-  // Default to top 2 by championship odds
-  const sorted = useMemo(() => [...profiles].sort((a, b) => (b.championshipOdds || 0) - (a.championshipOdds || 0)), [profiles]);
-  const [leftName, setLeftName] = useState(sorted[0]?.name || '');
-  const [rightName, setRightName] = useState(sorted[1]?.name || '');
+  // Only offer countries with real markets in the dropdowns — otherwise
+  // the comparison renders a championship % that's actually the AGG
+  // no-liquidity placeholder.
+  const realProfiles = useMemo(
+    () => profiles.filter(hasRealMarket).sort((a, b) => (b.championshipOdds || 0) - (a.championshipOdds || 0)),
+    [profiles],
+  );
 
-  const leftProfile = profiles.find(p => p.name === leftName) || null;
-  const rightProfile = profiles.find(p => p.name === rightName) || null;
+  const [leftName, setLeftName] = useState(realProfiles[0]?.name || '');
+  const [rightName, setRightName] = useState(realProfiles[1]?.name || '');
+
+  const leftProfile = realProfiles.find(p => p.name === leftName) || null;
+  const rightProfile = realProfiles.find(p => p.name === rightName) || null;
 
   const leftPlayers = leftName ? (KEY_PLAYERS[leftName] || []) : [];
   const rightPlayers = rightName ? (KEY_PLAYERS[rightName] || []) : [];
 
   // Find matchup market between the two
-  const matchupMarket = useMemo(() => {
+  const matchupMarket = useMemo<ParsedFIFAMarket | null>(() => {
     if (!leftProfile || !rightProfile) return null;
     for (const m of [...leftProfile.markets, ...rightProfile.markets]) {
       if (m.fifaMarketType !== 'matchup') continue;
@@ -61,15 +77,30 @@ export default function HeadToHead({ profiles }: HeadToHeadProps) {
     return null;
   }, [leftProfile, rightProfile, leftName, rightName]);
 
-  const selectOptions = useMemo(() => {
-    // Profiles first (have market data), then remaining WC countries
-    const profileNames = new Set(profiles.map(p => p.name));
-    const remaining = WORLD_CUP_COUNTRIES.filter(c => !profileNames.has(c.name));
-    return [
-      ...profiles.map(p => ({ name: p.name, flag: p.country.flag })),
-      ...remaining.map(c => ({ name: c.name, flag: c.flag })),
-    ];
-  }, [profiles]);
+  const selectOptions = useMemo(
+    () => realProfiles.map(p => ({ name: p.name, flag: p.country.flag })),
+    [realProfiles],
+  );
+
+  // Helper used by every Trade button — route through AGG's place-order
+  // panel by deep-linking with market + outcome preselected, same as
+  // CountryCard / Schedule. No more legacy tradeStore.openTrade.
+  const goToTrade = (market: ParsedFIFAMarket | null, outcomeId?: string) => {
+    if (!market?.eventId) return;
+    const params = new URLSearchParams();
+    if (market.venueMarketId) params.set('market', market.venueMarketId);
+    if (outcomeId) params.set('outcome', outcomeId);
+    const qs = params.toString();
+    router.push(`/event/${market.eventId}${qs ? `?${qs}` : ''}`);
+  };
+
+  if (realProfiles.length < 2) {
+    return (
+      <div className="py-32 text-center text-sm text-[var(--secondary)]">
+        Not enough countries have a tradable market yet to compare.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -227,13 +258,13 @@ export default function HeadToHead({ profiles }: HeadToHeadProps) {
               <div className="text-xs font-bold text-[var(--on-surface)] text-center mb-3">{matchupMarket.title}</div>
               <div className="flex gap-3">
                 <button
-                  onClick={() => openTrade(matchupMarket, 'yes')}
+                  onClick={() => goToTrade(matchupMarket, matchupMarket.yesOutcomeId)}
                   className="flex-1 py-2.5 text-xs font-bold rounded-md bg-[var(--yes-bg)] text-[var(--yes)] hover:bg-[var(--yes)] hover:text-white transition-colors cursor-pointer"
                 >
                   {leftName} {Math.round(matchupMarket.yesPrice * 100)}c
                 </button>
                 <button
-                  onClick={() => openTrade(matchupMarket, 'no')}
+                  onClick={() => goToTrade(matchupMarket, matchupMarket.noOutcomeId)}
                   className="flex-1 py-2.5 text-xs font-bold rounded-md bg-[var(--no-bg)] text-[var(--no)] hover:bg-[var(--no)] hover:text-white transition-colors cursor-pointer"
                 >
                   {rightName} {Math.round(matchupMarket.noPrice * 100)}c
@@ -242,17 +273,17 @@ export default function HeadToHead({ profiles }: HeadToHeadProps) {
             </div>
           )}
 
-          {/* Trade buttons */}
+          {/* Trade buttons — route through AGG */}
           <div className="flex gap-3 px-6 py-4">
             <button
-              onClick={() => leftProfile.championshipMarket && openTrade(leftProfile.championshipMarket, 'yes')}
+              onClick={() => goToTrade(leftProfile.championshipMarket, leftProfile.championshipMarket?.yesOutcomeId)}
               disabled={!leftProfile.championshipMarket}
               className="flex-1 py-2.5 text-xs font-bold uppercase tracking-widest rounded-md bg-[var(--yes)] text-white hover:brightness-110 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Trade {leftName}
             </button>
             <button
-              onClick={() => rightProfile.championshipMarket && openTrade(rightProfile.championshipMarket, 'yes')}
+              onClick={() => goToTrade(rightProfile.championshipMarket, rightProfile.championshipMarket?.yesOutcomeId)}
               disabled={!rightProfile.championshipMarket}
               className="flex-1 py-2.5 text-xs font-bold uppercase tracking-widest rounded-md bg-[var(--yes)] text-white hover:brightness-110 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
