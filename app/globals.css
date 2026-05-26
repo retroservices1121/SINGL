@@ -23,6 +23,15 @@
   --agg-color-warning: #f59e0b;
   --agg-color-error: #ef4444;
   --agg-color-overlay: #000000;
+  /* AGG's default :root theme hardcodes a blue gradient for buttons,
+     tabs, and CTAs (--agg-gradient-brand: linear-gradient(90deg,
+     #536dfe, #758afe)). The Partner Theme Studio export doesn't
+     override these — so every Deposit/Edit/Positions/Closed/Active/
+     Activity surface that paints with the brand gradient stays blue
+     even after we re-skin --agg-color-primary. Pin the gradients to
+     our orange brand. */
+  --agg-gradient-brand: linear-gradient(90deg, #fc6404, #fe9943);
+  --agg-gradient-brand-hover: linear-gradient(90deg, #fc741d, #fea65a);
 }
 
 :where(.dark .agg-root.partner-theme:not(.light), .agg-root.partner-theme.dark) {
@@ -38,6 +47,8 @@
   --agg-color-warning: #f59e0b;
   --agg-color-error: #ef4444;
   --agg-color-overlay: #000000;
+  --agg-gradient-brand: linear-gradient(90deg, #fc6404, #fe9943);
+  --agg-gradient-brand-hover: linear-gradient(90deg, #fc741d, #fea65a);
 }
 
 /* ──────────────────────────────────────────────────────────────────────
@@ -197,8 +208,14 @@ body {
    (only inside .agg-root). Drop this block if AGG ever fixes their
    CSS scoping so both builds can coexist cleanly.
    ────────────────────────────────────────────────────────────────── */
-.agg-root [class*="rounded-agg-"].border,
-.agg-root [class*="rounded-agg-"][class~="border"] {
+/* Card root classes AGG uses (Base/Card primitive emits
+   "rounded-agg-xl border border-agg-separator"). The .border-agg-
+   separator selector targets the actual card root directly without
+   needing to match the rounded-* attribute substring — more reliable
+   on wider viewports where some sub-pixel/cascade quirk was dropping
+   the right border on our setup. */
+.agg-root .border-agg-separator,
+.agg-root [class*="rounded-agg-"].border {
   border-top:    1px solid var(--agg-color-border) !important;
   border-right:  1px solid var(--agg-color-border) !important;
   border-bottom: 1px solid var(--agg-color-border) !important;
