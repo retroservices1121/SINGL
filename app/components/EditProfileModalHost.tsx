@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ProfileModal } from '@agg-build/ui';
-import { useAggAuth, useAggClient } from '@agg-build/hooks';
+import { useAggAuth, useAggAuthContext, useAggClient } from '@agg-build/hooks';
 
 // Fired from anywhere in the app (UserProfilePage's onEditProfile,
 // ConnectButton's onProfileClick, a future Settings link, etc.) to
@@ -22,6 +22,12 @@ export default function EditProfileModalHost() {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const { user } = useAggAuth();
+  // Auth context exposes signIn/setSession etc. After updateUser
+  // mutates server-side, we need to refresh the cached profile so
+  // every place that reads useAggAuth() (nav, profile page, edit
+  // modal itself) renders the new username + avatar without a hard
+  // reload.
+  const authCtx = useAggAuthContext() as unknown as Record<string, unknown>;
   const client = useAggClient();
 
   useEffect(() => {
@@ -58,6 +64,23 @@ export default function EditProfileModalHost() {
       if (data.avatarFile) payload.confirmAvatar = true;
       if (Object.keys(payload).length > 0) {
         await client.updateUser(payload);
+        // updateUser sets client.currentUser internally and calls
+        // notifyListeners, but the React auth context cache can lag
+        // by a render cycle. Pull the freshly-server-stored profile
+        // and feed it back through setSession so every useAggAuth()
+        // consumer (nav, profile page, this modal) re-renders with
+        // the new values without a manual reload.
+        const fresh = await client.getCurrentUser();
+        // The SDK exposes setSession on the client; safe to call with
+        // existing tokens since access/refresh are internal — passing
+        // user only is enough to broadcast a session update.
+        const setSession = (authCtx?.setSession as
+          | ((session: { accessToken: string; user?: typeof fresh }) => Promise<unknown>)
+          | undefined);
+        const accessToken = (client as unknown as { accessToken?: string }).accessToken;
+        if (setSession && accessToken) {
+          await setSession({ accessToken, user: fresh });
+        }
       }
       setOpen(false);
     } catch (err) {
