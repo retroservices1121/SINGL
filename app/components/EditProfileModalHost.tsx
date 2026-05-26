@@ -43,51 +43,30 @@ export default function EditProfileModalHost() {
   const avatarPreview = (userAny?.avatarUrl as string | undefined) ?? null;
   const email = (userAny?.email as string | undefined) ?? null;
 
-  const onSave = async (data: { username?: string; avatarFile?: File; avatarPreview?: string }) => {
+  // ProfileModal already calls client.updateUser + the presigned
+  // avatar upload internally — it owns validation and its own error
+  // UI ("username must be ≥ 3 chars" etc.). Our onSave fires *after*
+  // a successful save, so all we need to do here is refresh the auth
+  // context so the nav / profile page / modal pick up the new values
+  // without a hard reload. Previously we duplicated the API call,
+  // which raced the modal and clobbered its error rendering.
+  const onSave = async (_data: { username?: string; avatarFile?: File; avatarPreview?: string }) => {
     if (saving) return;
     setSaving(true);
     try {
-      // Upload avatar first (if changed) so the confirmAvatar flag has
-      // a freshly-staged asset to point at.
-      if (data.avatarFile) {
-        const { uploadUrl } = await client.createAvatarUploadUrl(data.avatarFile.type);
-        const put = await fetch(uploadUrl, {
-          method: 'PUT',
-          headers: { 'Content-Type': data.avatarFile.type },
-          body: data.avatarFile,
-        });
-        if (!put.ok) throw new Error(`Avatar upload failed: ${put.status}`);
+      const fresh = await client.getCurrentUser();
+      const setSession = authCtx?.setSession as
+        | ((session: { accessToken: string; user?: typeof fresh }) => Promise<unknown>)
+        | undefined;
+      const accessToken = (client as unknown as { accessToken?: string }).accessToken;
+      if (setSession && accessToken) {
+        await setSession({ accessToken, user: fresh });
       }
-
-      const payload: { username?: string; confirmAvatar?: true } = {};
-      if (data.username && data.username !== username) payload.username = data.username;
-      if (data.avatarFile) payload.confirmAvatar = true;
-      if (Object.keys(payload).length > 0) {
-        await client.updateUser(payload);
-        // updateUser sets client.currentUser internally and calls
-        // notifyListeners, but the React auth context cache can lag
-        // by a render cycle. Pull the freshly-server-stored profile
-        // and feed it back through setSession so every useAggAuth()
-        // consumer (nav, profile page, this modal) re-renders with
-        // the new values without a manual reload.
-        const fresh = await client.getCurrentUser();
-        // The SDK exposes setSession on the client; safe to call with
-        // existing tokens since access/refresh are internal — passing
-        // user only is enough to broadcast a session update.
-        const setSession = (authCtx?.setSession as
-          | ((session: { accessToken: string; user?: typeof fresh }) => Promise<unknown>)
-          | undefined);
-        const accessToken = (client as unknown as { accessToken?: string }).accessToken;
-        if (setSession && accessToken) {
-          await setSession({ accessToken, user: fresh });
-        }
-      }
-      setOpen(false);
     } catch (err) {
-      console.error('[profile] save failed', err);
-      // Leave the modal open so the user can retry.
+      console.warn('[profile] post-save refresh failed', err);
     } finally {
       setSaving(false);
+      setOpen(false);
     }
   };
 
