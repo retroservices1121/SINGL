@@ -1,10 +1,11 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import type { MarketData } from '@/app/types';
 import type { PlayerInfo } from '@/app/lib/fifa';
 import { KEY_PLAYERS, findCountry, CONFEDERATION_COLORS } from '@/app/lib/fifa';
-import { useTradeStore } from '@/app/store/tradeStore';
+import { useLivePrice } from './LivePricesProvider';
 import CountryFlag from './CountryFlag';
 
 interface CountryStatsPanelProps {
@@ -22,13 +23,29 @@ const POS_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 export default function CountryStatsPanel({ countryName, championshipOdds, championshipMarket, onClose }: CountryStatsPanelProps) {
-  const openTrade = useTradeStore(s => s.openTrade);
+  const router = useRouter();
   const country = useMemo(() => findCountry(countryName), [countryName]);
   const players = KEY_PLAYERS[countryName] || [];
   const confColor = country ? CONFEDERATION_COLORS[country.confederation] || '#666' : '#666';
 
+  // Live midpoint via AGG (falls back to the static championshipOdds
+  // until the WS feed lands). Whatever the user sees is the same number
+  // the home + event pages show, sourced from the underlying market.
+  const liveYes = useLivePrice(championshipMarket?.yesOutcomeId, championshipOdds ?? 0.5);
+
+  // Sends the buy through AGG's smart routing by deep-linking into the
+  // event page with the relevant market + outcome preselected. <EventMarketPage>
+  // (defaultMarketId + defaultOutcomeId props) handles the rest — quote,
+  // routing, sign, execute.
   const handleTrade = (side: 'yes' | 'no') => {
-    if (championshipMarket) { onClose(); openTrade(championshipMarket, side); }
+    if (!championshipMarket?.eventId) return;
+    const outcomeId = side === 'yes' ? championshipMarket.yesOutcomeId : championshipMarket.noOutcomeId;
+    onClose();
+    const params = new URLSearchParams();
+    if (championshipMarket.venueMarketId) params.set('market', championshipMarket.venueMarketId);
+    if (outcomeId) params.set('outcome', outcomeId);
+    const qs = params.toString();
+    router.push(`/event/${championshipMarket.eventId}${qs ? `?${qs}` : ''}`);
   };
 
   return (
@@ -66,14 +83,16 @@ export default function CountryStatsPanel({ countryName, championshipOdds, champ
         </div>
 
         <div className="px-6 py-4">
-          {/* Championship odds */}
+          {/* Championship odds — live midpoint from AGG */}
           {championshipOdds !== null && (
             <div className="bg-[var(--surface-container-low)] rounded-lg p-3 mb-4 text-center">
               <div className="text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-0.5">World Cup Winner Odds</div>
               <div className="text-3xl font-black font-heading text-[var(--primary-container)]">
-                {Math.round(championshipOdds * 100)}%
+                {Math.round(liveYes * 100)}%
               </div>
-              <div className="text-[10px] text-[var(--secondary)] mt-0.5">via Polymarket</div>
+              <div className="text-[10px] text-[var(--secondary)] mt-0.5">
+                Live · {championshipMarket?.venue || 'aggregated'}
+              </div>
             </div>
           )}
 

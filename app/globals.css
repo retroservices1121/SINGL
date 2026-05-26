@@ -191,6 +191,27 @@ body {
   50% { opacity: 0.4; }
 }
 
+/* Auto-fill card grid utilities. Use these instead of Tailwind
+   responsive grid-cols-1/sm:grid-cols-2/lg:grid-cols-3 etc — those
+   responsive classes aren't always generated in our build (two
+   Tailwind v4 bundles, separate scanning). These inline utilities
+   render reliably regardless of which build picks them up. */
+.grid-auto-cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+}
+.grid-auto-cards-lg {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr));
+}
+.grid-auto-cards-sm {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
+}
+
 /* ──────────────────────────────────────────────────────────────────────
    AGG card 4-sided border restore.
 

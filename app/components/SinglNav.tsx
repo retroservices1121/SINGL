@@ -16,7 +16,6 @@ import {
 const PRIMARY_NAV: { href: string; label: string }[] = [
   { href: '/', label: 'Trade' },
   { href: '/news', label: 'News' },
-  { href: '/videos', label: 'Videos' },
   { href: '/countries', label: 'Countries' },
   { href: '/groups', label: 'Groups' },
   { href: '/schedule', label: 'Schedule' },

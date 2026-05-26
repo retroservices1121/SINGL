@@ -6,6 +6,7 @@ import { useTradeStore } from '@/app/store/tradeStore';
 import { formatVolume } from '@/app/lib/utils';
 import Sparkline from './Sparkline';
 import CountryFlag from './CountryFlag';
+import { useLivePrice } from './LivePricesProvider';
 
 interface CountryCardProps {
   profile: CountryProfile;
@@ -15,7 +16,15 @@ interface CountryCardProps {
 
 export default function CountryCard({ profile, index, onSelect }: CountryCardProps) {
   const openTrade = useTradeStore(s => s.openTrade);
-  const champOdds = profile.championshipOdds ? Math.round(profile.championshipOdds * 100) : null;
+  // Live midpoint from AGG (falls back to the parse-time price until
+  // WS pushes a tick). Whatever shows on the card matches what /event
+  // and / would show for the same outcome — sourced from the
+  // underlying market, never a guess.
+  const liveYesRaw = useLivePrice(
+    profile.championshipMarket?.yesOutcomeId,
+    profile.championshipOdds ?? 0,
+  );
+  const champOdds = liveYesRaw > 0 ? Math.round(liveYesRaw * 100) : null;
   const groupWinOdds = profile.groupWinOdds ? Math.round(profile.groupWinOdds * 100) : null;
   const totalVolume = profile.markets.reduce((sum, m) => sum + (m.volume || 0), 0);
 

@@ -202,7 +202,7 @@ export default function PickEm({ profiles }: PickEmProps) {
           <div className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">
             Pick 2 teams to advance from each group. Tap &quot;1st&quot; to pick the group winner.
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid-auto-cards">
             {groups.map(g => (
               <GroupPickCard key={g.name} group={g} pick={groupPicks[g.name] || null} onPick={handleGroupPick} profiles={profiles} />
             ))}
