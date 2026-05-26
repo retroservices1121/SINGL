@@ -13,7 +13,9 @@ import {
   createEmailAuthMethod,
 } from '@agg-build/auth';
 import { useSiweAuthMethod } from '@agg-build/auth/siwe';
-import { useSiwsAuthMethod } from '@agg-build/auth/siws';
+// SIWS (Solana sign-in) requires a @solana/wallet-adapter-react
+// WalletProvider in the tree. Skipped until we wire the Solana
+// adapter — including it without the provider crashes the app.
 import { getAggClient, AGG_APP_ID } from '@/app/lib/agg';
 
 const WC_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '';
@@ -36,16 +38,14 @@ const queryClient = new QueryClient();
 
 function AuthMethods({ children }: { children: React.ReactNode }) {
   const siwe = useSiweAuthMethod({ statement: 'Sign in to SINGL' });
-  const siws = useSiwsAuthMethod({ statement: 'Sign in to SINGL' });
   const methods = useMemo(
     () => [
       siwe,
-      siws,
       createGoogleAuthMethod({ redirectUrl: AUTH_REDIRECT }),
       createTwitterAuthMethod({ redirectUrl: AUTH_REDIRECT }),
       createEmailAuthMethod({ redirectUrl: AUTH_REDIRECT }),
     ],
-    [siwe, siws],
+    [siwe],
   );
   return <AggAuthProvider methods={methods}>{children}</AggAuthProvider>;
 }
