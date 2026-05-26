@@ -8,14 +8,14 @@ import Providers from './components/Providers';
 
 export const metadata: Metadata = {
   title: 'SINGL by Spredd Markets | Prediction Markets',
-  description: 'Trade prediction markets on Polymarket. Deep-dive into single events with real-time markets, news, and social coverage.',
+  description: 'Trade prediction markets at the best price. Deep-dive into single events with real-time markets and news.',
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
   },
   openGraph: {
     title: 'SINGL by Spredd Markets | Prediction Markets',
-    description: 'Trade prediction markets on Polymarket. Deep-dive into single events with real-time markets, news, and social coverage.',
+    description: 'Trade prediction markets at the best price. Deep-dive into single events with real-time markets and news.',
   },
 };
 
