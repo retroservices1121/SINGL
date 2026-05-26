@@ -12,6 +12,11 @@ const AggProvider = dynamic(() => import('./AggProvider'), {
   loading: () => null,
 });
 
+const AggModals = dynamic(() => import('./AggModals'), {
+  ssr: false,
+  loading: () => null,
+});
+
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
@@ -21,5 +26,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   if (!mounted) return null;
 
-  return <AggProvider>{children}</AggProvider>;
+  return (
+    <AggProvider>
+      {children}
+      {/* AGG deposit/withdraw modals listen for window events fired by
+          <ConnectButton> and <UserProfilePage>. Must be inside AggProvider
+          so they can read the auth context. */}
+      <AggModals />
+    </AggProvider>
+  );
 }
