@@ -9,11 +9,21 @@ import {
   requestAggWithdrawModalOpen,
 } from '@agg-build/ui';
 
-// Only routes that exist today. Phase 2 will re-add News, Videos,
-// Countries, Groups, Schedule, Bracket, Pick'em as their own routes
-// once we extract them from the FIFA EventPage tabs.
+// Top-level routes. Order matches the visual priority: Trade first,
+// then context (News/Videos), then FIFA-specific surfaces, then
+// Portfolio. The bar is horizontally scrollable on narrow viewports
+// (overflow-x-auto on the wrapper) so it never breaks the layout.
 const PRIMARY_NAV: { href: string; label: string }[] = [
   { href: '/', label: 'Trade' },
+  { href: '/news', label: 'News' },
+  { href: '/videos', label: 'Videos' },
+  { href: '/countries', label: 'Countries' },
+  { href: '/groups', label: 'Groups' },
+  { href: '/schedule', label: 'Schedule' },
+  { href: '/bracket', label: 'Bracket' },
+  { href: '/h2h', label: 'H2H' },
+  { href: '/squads', label: 'Squads' },
+  { href: '/pickem', label: "Pick'em" },
   { href: '/profile', label: 'Portfolio' },
 ];
 
