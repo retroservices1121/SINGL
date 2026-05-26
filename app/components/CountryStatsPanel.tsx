@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import type { MarketData } from '@/app/types';
 import type { PlayerInfo } from '@/app/lib/fifa';
 import { KEY_PLAYERS, findCountry, CONFEDERATION_COLORS } from '@/app/lib/fifa';
-import { useLivePrice } from './LivePricesProvider';
 import CountryFlag from './CountryFlag';
 
 interface CountryStatsPanelProps {
@@ -27,11 +26,6 @@ export default function CountryStatsPanel({ countryName, championshipOdds, champ
   const country = useMemo(() => findCountry(countryName), [countryName]);
   const players = KEY_PLAYERS[countryName] || [];
   const confColor = country ? CONFEDERATION_COLORS[country.confederation] || '#666' : '#666';
-
-  // Live midpoint via AGG (falls back to the static championshipOdds
-  // until the WS feed lands). Whatever the user sees is the same number
-  // the home + event pages show, sourced from the underlying market.
-  const liveYes = useLivePrice(championshipMarket?.yesOutcomeId, championshipOdds ?? 0.5);
 
   // Sends the buy through AGG's smart routing by deep-linking into the
   // event page with the relevant market + outcome preselected. <EventMarketPage>
@@ -83,15 +77,15 @@ export default function CountryStatsPanel({ countryName, championshipOdds, champ
         </div>
 
         <div className="px-6 py-4">
-          {/* Championship odds — live midpoint from AGG */}
+          {/* Championship odds — read from the parsed market (same value
+              /event/[id] shows on first paint). Buying takes the user
+              into AGG's place-order panel where the smart-routed quote
+              shows the actual best-price-across-venues. */}
           {championshipOdds !== null && (
             <div className="bg-[var(--surface-container-low)] rounded-lg p-3 mb-4 text-center">
               <div className="text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-0.5">World Cup Winner Odds</div>
               <div className="text-3xl font-black font-heading text-[var(--primary-container)]">
-                {Math.round(liveYes * 100)}%
-              </div>
-              <div className="text-[10px] text-[var(--secondary)] mt-0.5">
-                Live · {championshipMarket?.venue || 'aggregated'}
+                {Math.round(championshipOdds * 100)}%
               </div>
             </div>
           )}

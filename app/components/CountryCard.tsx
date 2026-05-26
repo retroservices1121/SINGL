@@ -1,12 +1,11 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import type { CountryProfile } from '@/app/lib/fifa';
 import { ROUND_LABELS, ROUND_ORDER, CONFEDERATION_COLORS } from '@/app/lib/fifa';
-import { useTradeStore } from '@/app/store/tradeStore';
 import { formatVolume } from '@/app/lib/utils';
 import Sparkline from './Sparkline';
 import CountryFlag from './CountryFlag';
-import { useLivePrice } from './LivePricesProvider';
 
 interface CountryCardProps {
   profile: CountryProfile;
@@ -15,17 +14,30 @@ interface CountryCardProps {
 }
 
 export default function CountryCard({ profile, index, onSelect }: CountryCardProps) {
-  const openTrade = useTradeStore(s => s.openTrade);
-  // Live midpoint from AGG (falls back to the parse-time price until
-  // WS pushes a tick). Whatever shows on the card matches what /event
-  // and / would show for the same outcome — sourced from the
-  // underlying market, never a guess.
-  const liveYesRaw = useLivePrice(
-    profile.championshipMarket?.yesOutcomeId,
-    profile.championshipOdds ?? 0,
-  );
-  const champOdds = liveYesRaw > 0 ? Math.round(liveYesRaw * 100) : null;
+  const router = useRouter();
+  // Use the price the parsed FIFA market actually carries. We tried
+  // overlaying AGG midpoints here earlier but the WS handler returned
+  // 0.5 placeholders for outcomes it hadn't seeded yet, which made
+  // every country look 50/50. The static price from /api/active-event
+  // is the same number /event/[id] shows on first paint — accurate,
+  // ~15s polling cadence.
+  const champOdds = profile.championshipOdds ? Math.round(profile.championshipOdds * 100) : null;
   const groupWinOdds = profile.groupWinOdds ? Math.round(profile.groupWinOdds * 100) : null;
+
+  // Deep-link buys into AGG's place-order panel (same as the home and
+  // stats-panel paths). EventClient reads `market` + `outcome` from
+  // the URL and feeds them to <EventMarketPage> as defaultMarketId /
+  // defaultOutcomeId — AGG handles routing/sign/execute from there.
+  const goToTrade = (side: 'yes' | 'no') => {
+    const m = profile.championshipMarket;
+    if (!m?.eventId) return;
+    const outcomeId = side === 'yes' ? m.yesOutcomeId : m.noOutcomeId;
+    const params = new URLSearchParams();
+    if (m.venueMarketId) params.set('market', m.venueMarketId);
+    if (outcomeId) params.set('outcome', outcomeId);
+    const qs = params.toString();
+    router.push(`/event/${m.eventId}${qs ? `?${qs}` : ''}`);
+  };
   const totalVolume = profile.markets.reduce((sum, m) => sum + (m.volume || 0), 0);
 
   const roundBreakdown = profile.markets
@@ -120,17 +132,17 @@ export default function CountryCard({ profile, index, onSelect }: CountryCardPro
           )}
         </div>
 
-        {/* Trade buttons */}
+        {/* Trade buttons — route through AGG's place-order panel */}
         {profile.championshipMarket && (
           <div className="flex gap-2 mt-auto">
             <button
-              onClick={(e) => { e.stopPropagation(); openTrade(profile.championshipMarket!, 'yes'); }}
+              onClick={(e) => { e.stopPropagation(); goToTrade('yes'); }}
               className="flex-1 py-2.5 text-xs font-bold rounded-md bg-[var(--yes-bg)] text-[var(--yes)] hover:bg-[var(--yes)] hover:text-white transition-colors cursor-pointer"
             >
               Buy Yes {champOdds}c
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); openTrade(profile.championshipMarket!, 'no'); }}
+              onClick={(e) => { e.stopPropagation(); goToTrade('no'); }}
               className="flex-1 py-2.5 text-xs font-bold rounded-md bg-[var(--no-bg)] text-[var(--no)] hover:bg-[var(--no)] hover:text-white transition-colors cursor-pointer"
             >
               Buy No
