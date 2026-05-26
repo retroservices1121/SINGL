@@ -9,18 +9,17 @@ interface TikTokFeedProps {
 export default function TikTokFeed({ tiktoks }: TikTokFeedProps) {
   if (tiktoks.length === 0) return null;
 
+  // Auto-fill grid — TikToks are vertical (9:16) so we use a narrower
+  // tile minimum (180px) to keep them readable while fitting plenty on
+  // wide screens. NewsClient supplies the section heading above.
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-4">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-dim)]">
-          TikTok
-        </h3>
-        <span className="text-xs font-bold text-[var(--orange)] bg-[var(--orange-lt)] px-2 py-0.5 rounded-full">
-          {tiktoks.length}
-        </span>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+    <div
+      style={{
+        display: 'grid',
+        gap: '0.75rem',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(min(180px, 100%), 1fr))',
+      }}
+    >
         {tiktoks.map((tt, i) => (
           <a
             key={tt.id || i}
@@ -84,7 +83,6 @@ export default function TikTokFeed({ tiktoks }: TikTokFeedProps) {
             </div>
           </a>
         ))}
-      </div>
     </div>
   );
 }
