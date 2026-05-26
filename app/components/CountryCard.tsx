@@ -15,13 +15,19 @@ interface CountryCardProps {
 
 export default function CountryCard({ profile, index, onSelect }: CountryCardProps) {
   const router = useRouter();
-  // Use the price the parsed FIFA market actually carries. We tried
-  // overlaying AGG midpoints here earlier but the WS handler returned
-  // 0.5 placeholders for outcomes it hadn't seeded yet, which made
-  // every country look 50/50. The static price from /api/active-event
-  // is the same number /event/[id] shows on first paint — accurate,
-  // ~15s polling cadence.
-  const champOdds = profile.championshipOdds ? Math.round(profile.championshipOdds * 100) : null;
+  // A 0.5 championship price means the market exists in AGG but has
+  // no liquidity (no trades / no resting orders). Treat that as "no
+  // market" rather than showing a misleading 50% odds — the country
+  // still appears in the grid (bottom rows, alphabetical) so groups /
+  // schedule lookups stay complete.
+  const EPS = 0.001;
+  const hasRealMarket =
+    profile.championshipMarket !== null
+    && profile.championshipOdds !== null
+    && Math.abs(profile.championshipOdds - 0.5) > EPS;
+  const champOdds = hasRealMarket && profile.championshipOdds
+    ? Math.round(profile.championshipOdds * 100)
+    : null;
   const groupWinOdds = profile.groupWinOdds ? Math.round(profile.groupWinOdds * 100) : null;
 
   // Deep-link buys into AGG's place-order panel (same as the home and
@@ -54,7 +60,9 @@ export default function CountryCard({ profile, index, onSelect }: CountryCardPro
 
   return (
     <div
-      className="bg-[var(--surface-container-lowest)] rounded-xl shadow-ambient hover:scale-[1.02] transition-all duration-300 flex flex-col overflow-hidden cursor-pointer"
+      className={`bg-[var(--surface-container-lowest)] rounded-xl shadow-ambient hover:scale-[1.02] transition-all duration-300 flex flex-col overflow-hidden cursor-pointer ${
+        hasRealMarket ? '' : 'opacity-60 hover:opacity-100'
+      }`}
       style={{ animationDelay: `${index * 30}ms` }}
       onClick={() => onSelect?.(profile)}
     >
@@ -92,12 +100,18 @@ export default function CountryCard({ profile, index, onSelect }: CountryCardPro
           )}
         </div>
 
-        {/* Main odds */}
+        {/* Main odds — or a "no market yet" placeholder for countries
+            without a real championship market on any AGG venue. */}
         <div className="flex gap-3 mb-3">
-          {champOdds !== null && (
+          {champOdds !== null ? (
             <div className="flex-1 bg-[var(--surface-container-low)] rounded-lg p-2.5 text-center relative">
               <div className="text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-0.5">Win World Cup</div>
               <div className="text-2xl font-black font-heading text-[var(--on-surface)]">{champOdds}%</div>
+            </div>
+          ) : (
+            <div className="flex-1 bg-[var(--surface-container-low)] rounded-lg p-2.5 text-center">
+              <div className="text-[9px] font-bold text-[var(--secondary)] uppercase tracking-widest mb-0.5">Win World Cup</div>
+              <div className="text-xs font-bold text-[var(--secondary)] italic">No market yet</div>
             </div>
           )}
           {groupWinOdds !== null && (
@@ -132,8 +146,10 @@ export default function CountryCard({ profile, index, onSelect }: CountryCardPro
           )}
         </div>
 
-        {/* Trade buttons — route through AGG's place-order panel */}
-        {profile.championshipMarket && (
+        {/* Trade buttons — only when a real, traded market exists.
+            Without that, AGG would route into an empty book and the
+            quote would error or be at the 50% placeholder. */}
+        {hasRealMarket && (
           <div className="flex gap-2 mt-auto">
             <button
               onClick={(e) => { e.stopPropagation(); goToTrade('yes'); }}

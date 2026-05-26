@@ -425,9 +425,32 @@ export function buildCountryProfiles(parsedMarkets: ParsedFIFAMarket[]): Country
     }
   }
 
+  // Sort: countries with a *real* championship market first (sorted by
+  // odds DESC), then everything else at the bottom (alphabetical so
+  // group/schedule consumers still get a stable order).
+  //
+  // "Real market" = has a championshipMarket AND championshipOdds is
+  // meaningfully different from 0.5. Markets with no trades / no
+  // liquidity default to the 50% placeholder on AGG, so treating 0.5
+  // as "not a real outcome" keeps phantom rows from sitting at the top
+  // of the countries page. A 0.001 epsilon catches both 0.5 exactly
+  // and tiny float drift around it.
+  const EPS = 0.001;
+  const hasRealMarket = (p: CountryProfile) =>
+    p.championshipMarket !== null
+    && p.championshipOdds !== null
+    && Math.abs(p.championshipOdds - 0.5) > EPS;
+
   return Array.from(countryMap.values())
     .filter(p => p.championshipOdds !== null || p.markets.length > 0)
-    .sort((a, b) => (b.championshipOdds || 0) - (a.championshipOdds || 0));
+    .sort((a, b) => {
+      const aReal = hasRealMarket(a);
+      const bReal = hasRealMarket(b);
+      if (aReal && !bReal) return -1;
+      if (!aReal && bReal) return 1;
+      if (aReal && bReal) return (b.championshipOdds || 0) - (a.championshipOdds || 0);
+      return a.name.localeCompare(b.name);
+    });
 }
 
 // Enrich group standings with market odds
