@@ -6,6 +6,7 @@ import { mainnet, polygon, base } from 'wagmi/chains';
 import { injected, walletConnect } from 'wagmi/connectors';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AggProvider as AggHooksProvider } from '@agg-build/hooks';
+import { ToastProvider } from '@agg-build/ui';
 import {
   AggAuthProvider,
   createGoogleAuthMethod,
@@ -71,7 +72,13 @@ export default function AggProvider({ children }: { children: React.ReactNode })
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <AggHooksProvider client={client}>
-          <AuthMethods>{children}</AuthMethods>
+          {/* ToastProvider surfaces AGG's internal validation /
+              save errors (e.g. ProfileModal's "username must be ≥ 3
+              chars") as visible toasts. Without it, those errors fall
+              through to console.error and the user sees nothing. */}
+          <ToastProvider>
+            <AuthMethods>{children}</AuthMethods>
+          </ToastProvider>
         </AggHooksProvider>
       </QueryClientProvider>
     </WagmiProvider>
