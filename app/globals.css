@@ -179,3 +179,28 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
+
+/* ──────────────────────────────────────────────────────────────────────
+   AGG card 4-sided border restore.
+
+   We ship two Tailwind v4 builds in this app — @agg-build/ui's bundle
+   and our own globals — and their preflight + utility class output
+   conflict in the cascade. The visible symptom: AGG card-shaped
+   containers (EventListItem, Market Rules panel, etc.) render with top,
+   left, and bottom borders but the right border drops out. The .border
+   and .border-r utilities are technically in AGG's bundle but something
+   in our cascade is wiping border-right specifically.
+
+   Defensive fix: any AGG-themed element that uses AGG's rounded utility
+   AND has a border class gets all 4 sides re-asserted at high
+   specificity. !important is heavy-handed but the scope is narrow
+   (only inside .agg-root). Drop this block if AGG ever fixes their
+   CSS scoping so both builds can coexist cleanly.
+   ────────────────────────────────────────────────────────────────── */
+.agg-root [class*="rounded-agg-"].border,
+.agg-root [class*="rounded-agg-"][class~="border"] {
+  border-top:    1px solid var(--agg-color-border) !important;
+  border-right:  1px solid var(--agg-color-border) !important;
+  border-bottom: 1px solid var(--agg-color-border) !important;
+  border-left:   1px solid var(--agg-color-border) !important;
+}
