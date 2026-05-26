@@ -8,6 +8,7 @@ import {
   requestAggDepositModalOpen,
   requestAggWithdrawModalOpen,
 } from '@agg-build/ui';
+import { requestEditProfileOpen } from './EditProfileModalHost';
 
 // Top-level routes. Order matches the visual priority: Trade first,
 // then context (News/Videos), then FIFA-specific surfaces, then
@@ -23,7 +24,7 @@ const PRIMARY_NAV: { href: string; label: string }[] = [
   { href: '/h2h', label: 'H2H' },
   { href: '/squads', label: 'Squads' },
   { href: '/pickem', label: "Pick'em" },
-  { href: '/profile', label: 'Portfolio' },
+  { href: '/profile', label: 'Profile' },
 ];
 
 // Single source of truth for the top nav. AGG pages mount with
@@ -67,7 +68,11 @@ export default function SinglNav() {
           <ConnectButton
             onDepositClick={() => requestAggDepositModalOpen()}
             onWithdrawClick={() => requestAggWithdrawModalOpen()}
-            onProfileClick={() => router.push('/profile')}
+            // Profile card (the row at the top of the menu) goes to
+            // /profile; the explicit "Profile" / Edit row opens the
+            // ProfileModal so users can change username + avatar
+            // without leaving the page.
+            onProfileClick={() => requestEditProfileOpen()}
             onProfileCardClick={() => router.push('/profile')}
           />
         </div>

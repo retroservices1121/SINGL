@@ -17,6 +17,11 @@ const AggModals = dynamic(() => import('./AggModals'), {
   loading: () => null,
 });
 
+const EditProfileModalHost = dynamic(() => import('./EditProfileModalHost'), {
+  ssr: false,
+  loading: () => null,
+});
+
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
@@ -33,6 +38,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           <ConnectButton> and <UserProfilePage>. Must be inside AggProvider
           so they can read the auth context. */}
       <AggModals />
+      {/* Edit-profile modal listens for the singl:edit-profile-open
+          event. Fires from ConnectButton's profile menu and from the
+          Edit button inside UserProfilePage. */}
+      <EditProfileModalHost />
     </AggProvider>
   );
 }

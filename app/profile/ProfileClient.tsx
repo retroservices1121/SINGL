@@ -7,6 +7,7 @@ import {
   requestAggWithdrawModalOpen,
 } from '@agg-build/ui';
 import { useAggAuth } from '@agg-build/hooks';
+import { requestEditProfileOpen } from '@/app/components/EditProfileModalHost';
 
 // AGG's <UserProfilePage> is a (mostly) self-driving component — when
 // props are omitted, it resolves the current user, balance, positions,
@@ -44,7 +45,7 @@ export default function ProfileClient() {
     <UserProfilePage
       onDeposit={() => requestAggDepositModalOpen()}
       onWithdraw={() => requestAggWithdrawModalOpen()}
-      onEditProfile={() => router.push('/profile')}
+      onEditProfile={() => requestEditProfileOpen()}
       getPositionHref={(p) => (p.eventId ? `/event/${p.eventId}` : '#')}
       onPositionClick={(p) => {
         if (p.eventId) router.push(`/event/${p.eventId}`);

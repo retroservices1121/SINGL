@@ -4,8 +4,8 @@ import ProfileClient from './ProfileClient';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'Portfolio | SINGL by Spredd Markets',
-  description: 'View your prediction market positions and portfolio performance.',
+  title: 'Profile | SINGL by Spredd Markets',
+  description: 'View your prediction market positions, balances, and activity.',
 };
 
 export default function ProfilePage() {
