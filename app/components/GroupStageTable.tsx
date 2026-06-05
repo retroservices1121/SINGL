@@ -103,7 +103,7 @@ function GroupCard({
                   title="Odds to win the World Cup"
                   className={`shrink-0 text-[8px] font-bold px-1 py-0.5 rounded ${
                     champLabel != null
-                      ? 'bg-[var(--primary-container)] text-[var(--on-primary-container)]'
+                      ? 'bg-[var(--primary-fixed)] text-[var(--primary)]'
                       : 'bg-[var(--surface-container-high)] text-[var(--secondary)]'
                   }`}
                 >
