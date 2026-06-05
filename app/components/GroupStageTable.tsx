@@ -68,6 +68,18 @@ function GroupCard({
               ? Math.round(profile.groupAdvancementOdds * 100)
               : null;
 
+          // Price to win the World Cup (championship "winner" market).
+          // Skip the 0.5 placeholder that AGG uses for no-liquidity markets.
+          const champOdds = profile?.championshipOdds != null
+            && Math.abs(profile.championshipOdds - 0.5) > 0.001
+            ? profile.championshipOdds
+            : null;
+          const champLabel = champOdds == null
+            ? null
+            : champOdds < 0.005
+              ? '<1%'
+              : `${Math.round(champOdds * 100)}%`;
+
           return (
             <div
               key={standing.country.code}
@@ -87,8 +99,15 @@ function GroupCard({
                 <span className="text-[11px] font-bold text-[var(--on-surface)] truncate">
                   {standing.country.name}
                 </span>
-                <span className="shrink-0 text-[8px] font-bold px-1 py-0.5 rounded bg-[var(--surface-container-high)] text-[var(--secondary)]">
-                  {standing.country.fifaRanking}
+                <span
+                  title="Odds to win the World Cup"
+                  className={`shrink-0 text-[8px] font-bold px-1 py-0.5 rounded ${
+                    champLabel != null
+                      ? 'bg-[var(--primary-container)] text-[var(--on-primary-container)]'
+                      : 'bg-[var(--surface-container-high)] text-[var(--secondary)]'
+                  }`}
+                >
+                  {champLabel ?? '--'}
                 </span>
               </div>
               <span className="text-[10px] font-bold text-[var(--on-surface)] text-center font-mono">{standing.won}</span>
