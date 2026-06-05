@@ -277,8 +277,32 @@ function detectFIFARound(title: string): FIFARound | null {
 
 function detectFIFAMarketType(title: string): FIFAMarketType {
   const t = title.toLowerCase();
-  if (t.includes('win') && (t.includes('world cup') || t.includes('fifa') || t.includes('tournament'))) return 'winner';
-  if (t.includes('win group') || t.includes('top of group')) return 'group_winner';
+
+  // Group-stage winner ("Win Group A", "Group A Winner", "Top of Group").
+  // Checked first so a "Group A Winner — World Cup" title isn't mistaken
+  // for the outright champion market below.
+  if (t.includes('win group') || t.includes('top of group') || (t.includes('group') && t.includes('winner'))) {
+    return 'group_winner';
+  }
+
+  // Prop questions that mention "champion"/"winner" but are NOT the outright
+  // market (e.g. "Unbeaten Champion?", "First time winner", "Winless Team?").
+  const isWinnerProp = t.includes('unbeaten') || t.includes('first time')
+    || t.includes('first-time') || t.includes('winless');
+
+  // Outright tournament winner / champion. Covers the question form
+  // ("Will France win the 2026 FIFA World Cup?"), the "to win" form, and
+  // bare market titles like "Outright Winner" / "World Cup Winner" /
+  // "...Champion" that carry no country in the title.
+  if (!isWinnerProp && (
+    t.includes('outright winner')
+    || (t.includes('world cup') && (t.includes('win') || t.includes('champion')))
+    || ((t.includes('fifa') || t.includes('tournament')) && (t.includes('win') || t.includes('champion')))
+    || t.includes('lift the trophy')
+  )) {
+    return 'winner';
+  }
+
   if (t.includes('advance') || t.includes('qualify') || t.includes('knockout') || t.includes('make the')) return 'advancement';
   if (t.includes(' vs')) return 'matchup';
   if (t.includes('golden boot') || t.includes('top scorer') || t.includes('most goals') || t.includes('golden glove') || t.includes('golden ball') || t.includes('best young')) return 'top_scorer';
