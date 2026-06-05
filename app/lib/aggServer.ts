@@ -251,7 +251,11 @@ export async function listVenueEvents(params: {
   if (terms.length === 0) return { data: [] };
 
   const categoryIds = params.categoryIds ?? (DEFAULT_CATEGORY_IDS.length ? DEFAULT_CATEGORY_IDS : undefined);
-  const perTermLimit = params.limit ?? 25;
+  // AGG's /search caps page size around 100 and errors above it — a larger
+  // limit makes EVERY term fail and silently returns zero events. Clamp
+  // defensively so no caller can break the feed. Breadth comes from
+  // multiple search terms (deduped by event id), not an oversized page.
+  const perTermLimit = Math.min(params.limit ?? 25, 100);
 
   const seen = new Map<string, AggVenueEvent>();
 

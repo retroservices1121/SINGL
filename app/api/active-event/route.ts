@@ -143,12 +143,13 @@ async function buildPayload(): Promise<unknown> {
         searchTerms: event.searchTerms,
         status: 'open',
         // SINGL is a hyperfocus single-event platform — we want to surface
-        // EVERY market for the active event, not a sample. 250 events per
-        // term comfortably covers a full World Cup slate (winner, group
-        // winners, advancement, matchups, golden boot, props). Cost is
-        // hidden from users by the stale-while-revalidate cache below and
-        // bounded by mapPool concurrency in listVenueEvents.
-        limit: 250,
+        // EVERY market for the active event, not a sample. AGG's /search
+        // caps page size at 100 (above it, every term errors and the feed
+        // goes empty), so breadth comes from the multiple search terms
+        // configured on the event, deduped by event id — not an oversized
+        // page. Cost is hidden by the stale-while-revalidate cache below
+        // and bounded by mapPool concurrency in listVenueEvents.
+        limit: 100,
       });
       const seen = new Set<string>();
       for (const ve of venueEvents) {
