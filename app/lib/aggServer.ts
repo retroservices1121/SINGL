@@ -210,6 +210,22 @@ export async function getVenueMarketsByEventId(eventId: string): Promise<AggVenu
   return out;
 }
 
+// Run `fn` over `items` with at most `limit` in flight at once. Used to
+// enrich many events without firing hundreds of simultaneous AGG calls
+// (which AGG rate-limits and which blow out cold-load latency).
+async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let next = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const idx = next++;
+      results[idx] = await fn(items[idx]);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
 export async function listVenueEvents(params: {
   search?: string;
   searchTerms?: string[];
@@ -260,8 +276,8 @@ export async function listVenueEvents(params: {
     // the dominant cost in active-event refresh (100 events × ~200ms =
     // 20s+). Promise.all collapses to ~1 roundtrip latency.
     const newOnes = (brief.data || []).filter(ev => !seen.has(ev.id));
-    const fulls = await Promise.all(
-      newOnes.map(ev => getVenueEvent(ev.id).then(f => f ?? ev).catch(() => ev)),
+    const fulls = await mapPool(newOnes, 12, ev =>
+      getVenueEvent(ev.id).then(f => f ?? ev).catch(() => ev),
     );
     for (const f of fulls) seen.set(f.id, f);
   }

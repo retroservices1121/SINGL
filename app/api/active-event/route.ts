@@ -10,9 +10,25 @@ export const dynamic = 'force-dynamic';
 // edge collapses N concurrent loads into one upstream fan-out and makes
 // repeat refreshes instant. Trade-off: stale-by-up-to-CACHE_TTL_MS for
 // fresh markets, but pricing is live via WS so that doesn't matter.
-const CACHE_TTL_MS = 15_000;
+const CACHE_TTL_MS = 60_000;
 let cached: { ts: number; payload: unknown } | null = null;
 let inflight: Promise<unknown> | null = null;
+
+// Kick off a rebuild that refreshes the cache, coalescing concurrent
+// callers so a refresh-storm only hits AGG once.
+function refresh(): Promise<unknown> {
+  if (!inflight) {
+    inflight = buildPayload()
+      .then(payload => { cached = { ts: Date.now(), payload }; return payload; })
+      .catch(err => {
+        // Keep serving the last good payload if a refresh fails.
+        console.error('[active-event] refresh failed:', err);
+        return cached?.payload ?? { event: null };
+      })
+      .finally(() => { inflight = null; });
+  }
+  return inflight;
+}
 
 // AGG returns most multi-outcome events as N binary "Will X win?" markets
 // (negRisk pattern), one per country. To present them as AGG's own UI
@@ -126,7 +142,13 @@ async function buildPayload(): Promise<unknown> {
       const { data: venueEvents } = await listVenueEvents({
         searchTerms: event.searchTerms,
         status: 'open',
-        limit: 25, // 25 per term is plenty for typical sports/election sweeps
+        // SINGL is a hyperfocus single-event platform — we want to surface
+        // EVERY market for the active event, not a sample. 250 events per
+        // term comfortably covers a full World Cup slate (winner, group
+        // winners, advancement, matchups, golden boot, props). Cost is
+        // hidden from users by the stale-while-revalidate cache below and
+        // bounded by mapPool concurrency in listVenueEvents.
+        limit: 250,
       });
       const seen = new Set<string>();
       for (const ve of venueEvents) {
@@ -160,16 +182,14 @@ async function buildPayload(): Promise<unknown> {
 }
 
 export async function GET() {
-  // Serve from cache when fresh.
-  if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
+  // Stale-while-revalidate: once we have ANY cached payload, always serve
+  // it instantly. If it's gone stale, refresh in the background so the
+  // next request gets fresh data — but this request never waits on the
+  // AGG fan-out. Only the very first (cold) load blocks.
+  if (cached) {
+    if (Date.now() - cached.ts >= CACHE_TTL_MS) void refresh();
     return NextResponse.json(cached.payload);
   }
-  // Coalesce concurrent requests so a refresh-storm only hits AGG once.
-  if (!inflight) {
-    inflight = buildPayload()
-      .then(payload => { cached = { ts: Date.now(), payload }; return payload; })
-      .finally(() => { inflight = null; });
-  }
-  const payload = await inflight;
+  const payload = await refresh();
   return NextResponse.json(payload);
 }
