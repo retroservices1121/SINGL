@@ -13,80 +13,80 @@ export interface FIFACountry {
   aliases: string[];
 }
 
-// Official 2026 World Cup groups (based on draw)
-// NOTE: Some teams TBD via playoffs — using projected qualifiers
+// Official 2026 World Cup groups — Final Draw, Washington D.C., Dec 5 2025
+// FIFA rankings as of June 2026 (used for default sort / standings tiebreak).
 export const WORLD_CUP_COUNTRIES: FIFACountry[] = [
   // Group A
-  { name: 'USA', code: 'USA', flag: '\u{1F1FA}\u{1F1F8}', group: 'A', confederation: 'CONCACAF', fifaRanking: 11, aliases: ['united states', 'us', 'usa', 'usmnt', 'america'] },
-  { name: 'Morocco', code: 'MAR', flag: '\u{1F1F2}\u{1F1E6}', group: 'A', confederation: 'CAF', fifaRanking: 14, aliases: ['morocco', 'maroc'] },
-  { name: 'Scotland', code: 'SCO', flag: '\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}', group: 'A', confederation: 'UEFA', fifaRanking: 39, aliases: ['scotland'] },
-  { name: 'Peru', code: 'PER', flag: '\u{1F1F5}\u{1F1EA}', group: 'A', confederation: 'CONMEBOL', fifaRanking: 32, aliases: ['peru'] },
+  { name: 'Mexico', code: 'MEX', flag: '\u{1F1F2}\u{1F1FD}', group: 'A', confederation: 'CONCACAF', fifaRanking: 15, aliases: ['mexico', 'el tri'] },
+  { name: 'South Africa', code: 'RSA', flag: '\u{1F1FF}\u{1F1E6}', group: 'A', confederation: 'CAF', fifaRanking: 61, aliases: ['south africa', 'bafana bafana', 'rsa'] },
+  { name: 'South Korea', code: 'KOR', flag: '\u{1F1F0}\u{1F1F7}', group: 'A', confederation: 'AFC', fifaRanking: 22, aliases: ['south korea', 'korea', 'korea republic'] },
+  { name: 'Czechia', code: 'CZE', flag: '\u{1F1E8}\u{1F1FF}', group: 'A', confederation: 'UEFA', fifaRanking: 41, aliases: ['czechia', 'czech republic', 'czech'] },
 
   // Group B
-  { name: 'Portugal', code: 'POR', flag: '\u{1F1F5}\u{1F1F9}', group: 'B', confederation: 'UEFA', fifaRanking: 6, aliases: ['portugal'] },
-  { name: 'Paraguay', code: 'PAR', flag: '\u{1F1F5}\u{1F1FE}', group: 'B', confederation: 'CONMEBOL', fifaRanking: 58, aliases: ['paraguay'] },
-  { name: 'Serbia', code: 'SRB', flag: '\u{1F1F7}\u{1F1F8}', group: 'B', confederation: 'UEFA', fifaRanking: 33, aliases: ['serbia'] },
-  { name: 'Hungary', code: 'HUN', flag: '\u{1F1ED}\u{1F1FA}', group: 'B', confederation: 'UEFA', fifaRanking: 30, aliases: ['hungary'] },
+  { name: 'Canada', code: 'CAN', flag: '\u{1F1E8}\u{1F1E6}', group: 'B', confederation: 'CONCACAF', fifaRanking: 27, aliases: ['canada'] },
+  { name: 'Bosnia and Herzegovina', code: 'BIH', flag: '\u{1F1E7}\u{1F1E6}', group: 'B', confederation: 'UEFA', fifaRanking: 64, aliases: ['bosnia', 'bosnia and herzegovina', 'bosnia & herzegovina', 'bih'] },
+  { name: 'Qatar', code: 'QAT', flag: '\u{1F1F6}\u{1F1E6}', group: 'B', confederation: 'AFC', fifaRanking: 51, aliases: ['qatar'] },
+  { name: 'Switzerland', code: 'SUI', flag: '\u{1F1E8}\u{1F1ED}', group: 'B', confederation: 'UEFA', fifaRanking: 17, aliases: ['switzerland', 'suisse', 'schweiz'] },
 
   // Group C
-  { name: 'Argentina', code: 'ARG', flag: '\u{1F1E6}\u{1F1F7}', group: 'C', confederation: 'CONMEBOL', fifaRanking: 1, aliases: ['argentina'] },
-  { name: 'Egypt', code: 'EGY', flag: '\u{1F1EA}\u{1F1EC}', group: 'C', confederation: 'CAF', fifaRanking: 37, aliases: ['egypt'] },
-  { name: 'Indonesia', code: 'IDN', flag: '\u{1F1EE}\u{1F1E9}', group: 'C', confederation: 'AFC', fifaRanking: 89, aliases: ['indonesia'] },
-  { name: 'Bosnia and Herzegovina', code: 'BIH', flag: '\u{1F1E7}\u{1F1E6}', group: 'C', confederation: 'UEFA', fifaRanking: 56, aliases: ['bosnia', 'bosnia and herzegovina', 'bosnia & herzegovina', 'bih'] },
+  { name: 'Brazil', code: 'BRA', flag: '\u{1F1E7}\u{1F1F7}', group: 'C', confederation: 'CONMEBOL', fifaRanking: 5, aliases: ['brazil', 'brasil', 'selecao'] },
+  { name: 'Morocco', code: 'MAR', flag: '\u{1F1F2}\u{1F1E6}', group: 'C', confederation: 'CAF', fifaRanking: 11, aliases: ['morocco', 'maroc'] },
+  { name: 'Haiti', code: 'HAI', flag: '\u{1F1ED}\u{1F1F9}', group: 'C', confederation: 'CONCACAF', fifaRanking: 84, aliases: ['haiti'] },
+  { name: 'Scotland', code: 'SCO', flag: '\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}', group: 'C', confederation: 'UEFA', fifaRanking: 36, aliases: ['scotland'] },
 
   // Group D
-  { name: 'France', code: 'FRA', flag: '\u{1F1EB}\u{1F1F7}', group: 'D', confederation: 'UEFA', fifaRanking: 2, aliases: ['france', 'les bleus'] },
-  { name: 'Colombia', code: 'COL', flag: '\u{1F1E8}\u{1F1F4}', group: 'D', confederation: 'CONMEBOL', fifaRanking: 12, aliases: ['colombia'] },
-  { name: 'Saudi Arabia', code: 'KSA', flag: '\u{1F1F8}\u{1F1E6}', group: 'D', confederation: 'AFC', fifaRanking: 60, aliases: ['saudi arabia', 'saudi', 'ksa'] },
-  { name: 'Australia', code: 'AUS', flag: '\u{1F1E6}\u{1F1FA}', group: 'D', confederation: 'AFC', fifaRanking: 24, aliases: ['australia', 'socceroos'] },
+  { name: 'USA', code: 'USA', flag: '\u{1F1FA}\u{1F1F8}', group: 'D', confederation: 'CONCACAF', fifaRanking: 14, aliases: ['united states', 'us', 'usa', 'usmnt', 'america'] },
+  { name: 'Paraguay', code: 'PAR', flag: '\u{1F1F5}\u{1F1FE}', group: 'D', confederation: 'CONMEBOL', fifaRanking: 39, aliases: ['paraguay'] },
+  { name: 'Australia', code: 'AUS', flag: '\u{1F1E6}\u{1F1FA}', group: 'D', confederation: 'AFC', fifaRanking: 26, aliases: ['australia', 'socceroos'] },
+  { name: 'Turkey', code: 'TUR', flag: '\u{1F1F9}\u{1F1F7}', group: 'D', confederation: 'UEFA', fifaRanking: 22, aliases: ['turkey', 'turkiye'] },
 
   // Group E
-  { name: 'Spain', code: 'ESP', flag: '\u{1F1EA}\u{1F1F8}', group: 'E', confederation: 'UEFA', fifaRanking: 3, aliases: ['spain', 'espana', 'la roja'] },
-  { name: 'Turkey', code: 'TUR', flag: '\u{1F1F9}\u{1F1F7}', group: 'E', confederation: 'UEFA', fifaRanking: 26, aliases: ['turkey', 'turkiye'] },
-  { name: 'Ecuador', code: 'ECU', flag: '\u{1F1EA}\u{1F1E8}', group: 'E', confederation: 'CONMEBOL', fifaRanking: 28, aliases: ['ecuador'] },
-  { name: 'China', code: 'CHN', flag: '\u{1F1E8}\u{1F1F3}', group: 'E', confederation: 'AFC', fifaRanking: 91, aliases: ['china', 'china pr'] },
+  { name: 'Germany', code: 'GER', flag: '\u{1F1E9}\u{1F1EA}', group: 'E', confederation: 'UEFA', fifaRanking: 9, aliases: ['germany', 'deutschland'] },
+  { name: 'Curacao', code: 'CUW', flag: '\u{1F1E8}\u{1F1FC}', group: 'E', confederation: 'CONCACAF', fifaRanking: 82, aliases: ['curacao', 'curaçao'] },
+  { name: 'Ivory Coast', code: 'CIV', flag: '\u{1F1E8}\u{1F1EE}', group: 'E', confederation: 'CAF', fifaRanking: 42, aliases: ['ivory coast', "cote d'ivoire", 'cote divoire'] },
+  { name: 'Ecuador', code: 'ECU', flag: '\u{1F1EA}\u{1F1E8}', group: 'E', confederation: 'CONMEBOL', fifaRanking: 23, aliases: ['ecuador'] },
 
   // Group F
-  { name: 'Brazil', code: 'BRA', flag: '\u{1F1E7}\u{1F1F7}', group: 'F', confederation: 'CONMEBOL', fifaRanking: 5, aliases: ['brazil', 'brasil', 'selecao'] },
-  { name: 'Italy', code: 'ITA', flag: '\u{1F1EE}\u{1F1F9}', group: 'F', confederation: 'UEFA', fifaRanking: 4, aliases: ['italy', 'italia', 'azzurri'] },
-  { name: 'Nigeria', code: 'NGA', flag: '\u{1F1F3}\u{1F1EC}', group: 'F', confederation: 'CAF', fifaRanking: 36, aliases: ['nigeria', 'super eagles'] },
-  { name: 'Bolivia', code: 'BOL', flag: '\u{1F1E7}\u{1F1F4}', group: 'F', confederation: 'CONMEBOL', fifaRanking: 82, aliases: ['bolivia'] },
+  { name: 'Netherlands', code: 'NED', flag: '\u{1F1F3}\u{1F1F1}', group: 'F', confederation: 'UEFA', fifaRanking: 7, aliases: ['netherlands', 'holland', 'dutch', 'oranje'] },
+  { name: 'Japan', code: 'JPN', flag: '\u{1F1EF}\u{1F1F5}', group: 'F', confederation: 'AFC', fifaRanking: 18, aliases: ['japan'] },
+  { name: 'Sweden', code: 'SWE', flag: '\u{1F1F8}\u{1F1EA}', group: 'F', confederation: 'UEFA', fifaRanking: 38, aliases: ['sweden'] },
+  { name: 'Tunisia', code: 'TUN', flag: '\u{1F1F9}\u{1F1F3}', group: 'F', confederation: 'CAF', fifaRanking: 40, aliases: ['tunisia'] },
 
   // Group G
-  { name: 'Germany', code: 'GER', flag: '\u{1F1E9}\u{1F1EA}', group: 'G', confederation: 'UEFA', fifaRanking: 8, aliases: ['germany', 'deutschland'] },
-  { name: 'Uruguay', code: 'URU', flag: '\u{1F1FA}\u{1F1FE}', group: 'G', confederation: 'CONMEBOL', fifaRanking: 9, aliases: ['uruguay'] },
-  { name: 'South Korea', code: 'KOR', flag: '\u{1F1F0}\u{1F1F7}', group: 'G', confederation: 'AFC', fifaRanking: 22, aliases: ['south korea', 'korea', 'korea republic'] },
-  { name: 'Qatar', code: 'QAT', flag: '\u{1F1F6}\u{1F1E6}', group: 'G', confederation: 'AFC', fifaRanking: 44, aliases: ['qatar'] },
+  { name: 'Belgium', code: 'BEL', flag: '\u{1F1E7}\u{1F1EA}', group: 'G', confederation: 'UEFA', fifaRanking: 8, aliases: ['belgium', 'red devils'] },
+  { name: 'Egypt', code: 'EGY', flag: '\u{1F1EA}\u{1F1EC}', group: 'G', confederation: 'CAF', fifaRanking: 34, aliases: ['egypt'] },
+  { name: 'Iran', code: 'IRN', flag: '\u{1F1EE}\u{1F1F7}', group: 'G', confederation: 'AFC', fifaRanking: 20, aliases: ['iran'] },
+  { name: 'New Zealand', code: 'NZL', flag: '\u{1F1F3}\u{1F1FF}', group: 'G', confederation: 'OFC', fifaRanking: 86, aliases: ['new zealand', 'all whites'] },
 
   // Group H
-  { name: 'England', code: 'ENG', flag: '\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}', group: 'H', confederation: 'UEFA', fifaRanking: 7, aliases: ['england', 'three lions'] },
-  { name: 'Senegal', code: 'SEN', flag: '\u{1F1F8}\u{1F1F3}', group: 'H', confederation: 'CAF', fifaRanking: 20, aliases: ['senegal'] },
-  { name: 'Poland', code: 'POL', flag: '\u{1F1F5}\u{1F1F1}', group: 'H', confederation: 'UEFA', fifaRanking: 25, aliases: ['poland', 'polska'] },
-  { name: 'Canada', code: 'CAN', flag: '\u{1F1E8}\u{1F1E6}', group: 'H', confederation: 'CONCACAF', fifaRanking: 41, aliases: ['canada'] },
+  { name: 'Spain', code: 'ESP', flag: '\u{1F1EA}\u{1F1F8}', group: 'H', confederation: 'UEFA', fifaRanking: 1, aliases: ['spain', 'espana', 'la roja'] },
+  { name: 'Cape Verde', code: 'CPV', flag: '\u{1F1E8}\u{1F1FB}', group: 'H', confederation: 'CAF', fifaRanking: 68, aliases: ['cape verde', 'cabo verde'] },
+  { name: 'Saudi Arabia', code: 'KSA', flag: '\u{1F1F8}\u{1F1E6}', group: 'H', confederation: 'AFC', fifaRanking: 60, aliases: ['saudi arabia', 'saudi', 'ksa'] },
+  { name: 'Uruguay', code: 'URU', flag: '\u{1F1FA}\u{1F1FE}', group: 'H', confederation: 'CONMEBOL', fifaRanking: 16, aliases: ['uruguay'] },
 
   // Group I
-  { name: 'Netherlands', code: 'NED', flag: '\u{1F1F3}\u{1F1F1}', group: 'I', confederation: 'UEFA', fifaRanking: 10, aliases: ['netherlands', 'holland', 'dutch', 'oranje'] },
-  { name: 'Japan', code: 'JPN', flag: '\u{1F1EF}\u{1F1F5}', group: 'I', confederation: 'AFC', fifaRanking: 15, aliases: ['japan'] },
-  { name: 'Cameroon', code: 'CMR', flag: '\u{1F1E8}\u{1F1F2}', group: 'I', confederation: 'CAF', fifaRanking: 49, aliases: ['cameroon'] },
-  { name: 'Slovenia', code: 'SVN', flag: '\u{1F1F8}\u{1F1EE}', group: 'I', confederation: 'UEFA', fifaRanking: 53, aliases: ['slovenia'] },
+  { name: 'France', code: 'FRA', flag: '\u{1F1EB}\u{1F1F7}', group: 'I', confederation: 'UEFA', fifaRanking: 3, aliases: ['france', 'les bleus'] },
+  { name: 'Senegal', code: 'SEN', flag: '\u{1F1F8}\u{1F1F3}', group: 'I', confederation: 'CAF', fifaRanking: 19, aliases: ['senegal'] },
+  { name: 'Iraq', code: 'IRQ', flag: '\u{1F1EE}\u{1F1F6}', group: 'I', confederation: 'AFC', fifaRanking: 57, aliases: ['iraq'] },
+  { name: 'Norway', code: 'NOR', flag: '\u{1F1F3}\u{1F1F4}', group: 'I', confederation: 'UEFA', fifaRanking: 29, aliases: ['norway'] },
 
   // Group J
-  { name: 'Belgium', code: 'BEL', flag: '\u{1F1E7}\u{1F1EA}', group: 'J', confederation: 'UEFA', fifaRanking: 13, aliases: ['belgium', 'red devils'] },
-  { name: 'Mexico', code: 'MEX', flag: '\u{1F1F2}\u{1F1FD}', group: 'J', confederation: 'CONCACAF', fifaRanking: 16, aliases: ['mexico', 'el tri'] },
-  { name: 'Iran', code: 'IRN', flag: '\u{1F1EE}\u{1F1F7}', group: 'J', confederation: 'AFC', fifaRanking: 21, aliases: ['iran'] },
-  { name: 'DR Congo', code: 'COD', flag: '\u{1F1E8}\u{1F1E9}', group: 'J', confederation: 'CAF', fifaRanking: 55, aliases: ['dr congo', 'congo', 'democratic republic of congo'] },
+  { name: 'Argentina', code: 'ARG', flag: '\u{1F1E6}\u{1F1F7}', group: 'J', confederation: 'CONMEBOL', fifaRanking: 2, aliases: ['argentina'] },
+  { name: 'Algeria', code: 'ALG', flag: '\u{1F1E9}\u{1F1FF}', group: 'J', confederation: 'CAF', fifaRanking: 35, aliases: ['algeria'] },
+  { name: 'Austria', code: 'AUT', flag: '\u{1F1E6}\u{1F1F9}', group: 'J', confederation: 'UEFA', fifaRanking: 24, aliases: ['austria'] },
+  { name: 'Jordan', code: 'JOR', flag: '\u{1F1EF}\u{1F1F4}', group: 'J', confederation: 'AFC', fifaRanking: 66, aliases: ['jordan'] },
 
   // Group K
-  { name: 'Croatia', code: 'CRO', flag: '\u{1F1ED}\u{1F1F7}', group: 'K', confederation: 'UEFA', fifaRanking: 17, aliases: ['croatia', 'hrvatska'] },
-  { name: 'Denmark', code: 'DEN', flag: '\u{1F1E9}\u{1F1F0}', group: 'K', confederation: 'UEFA', fifaRanking: 18, aliases: ['denmark'] },
-  { name: 'Ghana', code: 'GHA', flag: '\u{1F1EC}\u{1F1ED}', group: 'K', confederation: 'CAF', fifaRanking: 61, aliases: ['ghana', 'black stars'] },
-  { name: 'Costa Rica', code: 'CRC', flag: '\u{1F1E8}\u{1F1F7}', group: 'K', confederation: 'CONCACAF', fifaRanking: 52, aliases: ['costa rica'] },
+  { name: 'Portugal', code: 'POR', flag: '\u{1F1F5}\u{1F1F9}', group: 'K', confederation: 'UEFA', fifaRanking: 6, aliases: ['portugal'] },
+  { name: 'DR Congo', code: 'COD', flag: '\u{1F1E8}\u{1F1E9}', group: 'K', confederation: 'CAF', fifaRanking: 45, aliases: ['dr congo', 'congo', 'democratic republic of congo'] },
+  { name: 'Uzbekistan', code: 'UZB', flag: '\u{1F1FA}\u{1F1FF}', group: 'K', confederation: 'AFC', fifaRanking: 50, aliases: ['uzbekistan'] },
+  { name: 'Colombia', code: 'COL', flag: '\u{1F1E8}\u{1F1F4}', group: 'K', confederation: 'CONMEBOL', fifaRanking: 13, aliases: ['colombia'] },
 
   // Group L
-  { name: 'Switzerland', code: 'SUI', flag: '\u{1F1E8}\u{1F1ED}', group: 'L', confederation: 'UEFA', fifaRanking: 19, aliases: ['switzerland', 'suisse', 'schweiz'] },
-  { name: 'Austria', code: 'AUT', flag: '\u{1F1E6}\u{1F1F9}', group: 'L', confederation: 'UEFA', fifaRanking: 23, aliases: ['austria'] },
-  { name: 'Chile', code: 'CHI', flag: '\u{1F1E8}\u{1F1F1}', group: 'L', confederation: 'CONMEBOL', fifaRanking: 27, aliases: ['chile', 'la roja'] },
-  { name: 'Uzbekistan', code: 'UZB', flag: '\u{1F1FA}\u{1F1FF}', group: 'L', confederation: 'AFC', fifaRanking: 64, aliases: ['uzbekistan'] },
+  { name: 'England', code: 'ENG', flag: '\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}', group: 'L', confederation: 'UEFA', fifaRanking: 4, aliases: ['england', 'three lions'] },
+  { name: 'Croatia', code: 'CRO', flag: '\u{1F1ED}\u{1F1F7}', group: 'L', confederation: 'UEFA', fifaRanking: 10, aliases: ['croatia', 'hrvatska'] },
+  { name: 'Ghana', code: 'GHA', flag: '\u{1F1EC}\u{1F1ED}', group: 'L', confederation: 'CAF', fifaRanking: 72, aliases: ['ghana', 'black stars'] },
+  { name: 'Panama', code: 'PAN', flag: '\u{1F1F5}\u{1F1E6}', group: 'L', confederation: 'CONCACAF', fifaRanking: 30, aliases: ['panama'] },
 ];
 
 // Build lookup maps
@@ -118,18 +118,18 @@ export function findCountry(name: string): FIFACountry | null {
 // subdivision tag sequences that have no alpha-2; the explicit map
 // also makes the IOC↔ISO mismatches (KSA→sa, GER→de, etc.) safe.
 const ALPHA3_TO_ALPHA2: Record<string, string> = {
-  USA: 'us', MAR: 'ma', SCO: 'gb-sct', PER: 'pe',
-  POR: 'pt', PAR: 'py', SRB: 'rs', HUN: 'hu',
-  ARG: 'ar', EGY: 'eg', IDN: 'id', BIH: 'ba',
-  FRA: 'fr', COL: 'co', KSA: 'sa', AUS: 'au',
-  ESP: 'es', TUR: 'tr', ECU: 'ec', CHN: 'cn',
-  BRA: 'br', ITA: 'it', NGA: 'ng', BOL: 'bo',
-  GER: 'de', URU: 'uy', KOR: 'kr', QAT: 'qa',
-  ENG: 'gb-eng', SEN: 'sn', POL: 'pl', CAN: 'ca',
-  NED: 'nl', JPN: 'jp', CMR: 'cm', SVN: 'si',
-  BEL: 'be', MEX: 'mx', IRN: 'ir', COD: 'cd',
-  CRO: 'hr', DEN: 'dk', GHA: 'gh', CRC: 'cr',
-  SUI: 'ch', AUT: 'at', CHI: 'cl', UZB: 'uz',
+  MEX: 'mx', RSA: 'za', KOR: 'kr', CZE: 'cz',
+  CAN: 'ca', BIH: 'ba', QAT: 'qa', SUI: 'ch',
+  BRA: 'br', MAR: 'ma', HAI: 'ht', SCO: 'gb-sct',
+  USA: 'us', PAR: 'py', AUS: 'au', TUR: 'tr',
+  GER: 'de', CUW: 'cw', CIV: 'ci', ECU: 'ec',
+  NED: 'nl', JPN: 'jp', SWE: 'se', TUN: 'tn',
+  BEL: 'be', EGY: 'eg', IRN: 'ir', NZL: 'nz',
+  ESP: 'es', CPV: 'cv', KSA: 'sa', URU: 'uy',
+  FRA: 'fr', SEN: 'sn', IRQ: 'iq', NOR: 'no',
+  ARG: 'ar', ALG: 'dz', AUT: 'at', JOR: 'jo',
+  POR: 'pt', COD: 'cd', UZB: 'uz', COL: 'co',
+  ENG: 'gb-eng', CRO: 'hr', GHA: 'gh', PAN: 'pa',
 };
 
 export function countryFlagUrl(country: FIFACountry, width: 20 | 40 | 80 | 160 = 40): string {
@@ -648,7 +648,7 @@ export interface AwardCandidate {
 
 export const GOLDEN_BOOT_FAVORITES: AwardCandidate[] = [
   { name: 'Kylian Mbappe', country: findCountry('France')!, club: 'Real Madrid', position: 'FW', goals: 0, assists: 0, minutesPlayed: 0, marketOdds: null },
-  { name: 'Erling Haaland', country: findCountry('Germany')! /* Norway didn't qualify, using as placeholder */, club: 'Manchester City', position: 'FW', goals: 0, assists: 0, minutesPlayed: 0, marketOdds: null },
+  { name: 'Erling Haaland', country: findCountry('Norway')!, club: 'Manchester City', position: 'FW', goals: 0, assists: 0, minutesPlayed: 0, marketOdds: null },
   { name: 'Lionel Messi', country: findCountry('Argentina')!, club: 'Inter Miami', position: 'FW', goals: 0, assists: 0, minutesPlayed: 0, marketOdds: null },
   { name: 'Vinicius Jr', country: findCountry('Brazil')!, club: 'Real Madrid', position: 'FW', goals: 0, assists: 0, minutesPlayed: 0, marketOdds: null },
   { name: 'Harry Kane', country: findCountry('England')!, club: 'Bayern Munich', position: 'FW', goals: 0, assists: 0, minutesPlayed: 0, marketOdds: null },
@@ -728,13 +728,6 @@ export const KEY_PLAYERS: Record<string, PlayerInfo[]> = {
     { name: 'Frenkie de Jong', position: 'MF', club: 'Barcelona', age: 29, caps: 55, goals: 3 },
     { name: 'Xavi Simons', position: 'MF', club: 'RB Leipzig', age: 23, caps: 25, goals: 5 },
     { name: 'Bart Verbruggen', position: 'GK', club: 'Brighton', age: 23, caps: 15, goals: 0 },
-  ],
-  'Italy': [
-    { name: 'Federico Chiesa', position: 'FW', club: 'Liverpool', age: 28, caps: 55, goals: 10, isStar: true },
-    { name: 'Nicolo Barella', position: 'MF', club: 'Inter Milan', age: 29, caps: 60, goals: 10 },
-    { name: 'Sandro Tonali', position: 'MF', club: 'Newcastle', age: 26, caps: 30, goals: 2 },
-    { name: 'Alessandro Bastoni', position: 'DF', club: 'Inter Milan', age: 27, caps: 30, goals: 2 },
-    { name: 'Gianluigi Donnarumma', position: 'GK', club: 'PSG', age: 27, caps: 70, goals: 0, isCaptain: true },
   ],
   'USA': [
     { name: 'Christian Pulisic', position: 'FW', club: 'AC Milan', age: 27, caps: 75, goals: 30, isCaptain: true, isStar: true },

@@ -74,11 +74,14 @@ function GroupCard({
             && Math.abs(profile.championshipOdds - 0.5) > 0.001
             ? profile.championshipOdds
             : null;
-          const champLabel = champOdds == null
+          // Show the live market price as cents (a $1 contract priced at
+          // its win probability), e.g. 0.15 -> "15¢".
+          const champCents = champOdds == null ? null : champOdds * 100;
+          const champLabel = champCents == null
             ? null
-            : champOdds < 0.005
-              ? '<1%'
-              : `${Math.round(champOdds * 100)}%`;
+            : champCents < 1
+              ? `${champCents.toFixed(1)}¢`
+              : `${Math.round(champCents)}¢`;
 
           return (
             <div
