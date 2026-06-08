@@ -37,11 +37,13 @@ export default function SinglNav() {
   const router = useRouter();
   return (
     <nav className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-[var(--surface-container)]">
-      <div className="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto gap-6">
+      <div className="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto gap-4">
         <Link href="/" className="shrink-0">
           <Image src="/singls-logo.png" alt="SINGL" width={160} height={50} priority className="h-9 w-auto" />
         </Link>
-        <div className="hidden md:flex gap-5 overflow-x-auto">
+        {/* min-w-0 lets the row shrink inside the flex; scrollbar hidden so a
+            tight fit (e.g. with the wallet connected) never shows a bar. */}
+        <div className="hidden md:flex items-center gap-3 min-w-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {PRIMARY_NAV.map(item => {
             const active = item.href === '/'
               ? pathname === '/'
@@ -50,7 +52,7 @@ export default function SinglNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`whitespace-nowrap text-sm font-bold uppercase tracking-tight transition-colors ${
+                className={`whitespace-nowrap text-xs font-bold uppercase tracking-tight transition-colors ${
                   active
                     ? 'text-[var(--primary-container)] border-b-2 border-[var(--primary-container)] pb-1'
                     : 'text-[var(--secondary)] hover:text-[var(--primary-container)]'

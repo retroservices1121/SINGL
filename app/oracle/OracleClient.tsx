@@ -7,7 +7,7 @@ import Spinner from '@/app/components/ui/Spinner';
 import CountryFlag from '@/app/components/CountryFlag';
 import { findCountry } from '@/app/lib/fifa';
 import { useOracleIdentity } from '@/app/hooks/useOracleIdentity';
-import { SPRDD_ADDRESS, DRAW } from '@/app/lib/oracle';
+import { DRAW } from '@/app/lib/oracle';
 
 interface PlayerStats {
   totalPoints: number;
@@ -40,7 +40,8 @@ interface OracleMatch {
   yourPick: string | null;
 }
 
-const SPRDD_BUY_URL = `https://app.uniswap.org/swap?chain=base&outputCurrency=${SPRDD_ADDRESS}`;
+// Canonical token page on Virtuals (virtualAgentId 23167) — handles the buy flow.
+const SPRDD_BUY_URL = 'https://app.virtuals.io/virtuals/23167';
 
 function fmtTokens(raw: string): string {
   try {
