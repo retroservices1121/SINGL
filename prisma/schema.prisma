@@ -146,3 +146,148 @@ model UserProfile {
   @@index([referralCode])
   @@index([referredBy])
 }
+
+// ── SPREDD Oracle (World Cup pick'em game) ───────────────────────────────────
+// The daily-prediction game layered on the FIFA event. Players make match
+// picks + a bracket, earn points (streak × hold-to-multiply), rank on the
+// leaderboard, and accrue vested SPRDD rewards funded by the daily buyback.
+
+model OraclePlayer {
+  id            String   @id @default(cuid())
+  aggUserId     String   @unique
+  walletAddress String?
+  displayName   String?
+  avatarUrl     String?
+
+  // Cached aggregates (kept in step by the settle/rewards crons) so the
+  // leaderboard is a single indexed read, not a live aggregation.
+  totalPoints   Int      @default(0)
+  currentStreak Int      @default(0) // consecutive settled days with >=1 correct
+  bestStreak    Int      @default(0)
+  lastStreakDay String?  // ISO date of the most recent day folded into the streak
+
+  // Hold-to-multiply: last on-chain SPRDD balance and the multiplier it buys.
+  sprddBalance    String   @default("0")   // raw token units (18 decimals)
+  multiplierBps   Int      @default(10000) // 10000 = 1.00x
+  balanceSyncedAt DateTime?
+
+  // Mutex for the claim flow: held while a claim is mid-flight so two concurrent
+  // requests can't both reserve the same vested balance. Cleared on completion.
+  claimLockedAt DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  matchPicks    MatchPick[]
+  bracket       BracketPick?
+  ledger        PointsLedger[]
+  rewards       RewardAllocation[]
+  claims        OracleClaim[]
+
+  @@index([totalPoints])
+  @@index([walletAddress])
+}
+
+// One row per claim attempt — audit trail + idempotency for on-chain payouts.
+model OracleClaim {
+  id        String   @id @default(cuid())
+  playerId  String
+  player    OraclePlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  wallet    String   // recipient (the player's connected wallet at claim time)
+  amountRaw String   // raw SPRDD reserved for this claim
+  status    String   @default("pending") // pending | confirmed | failed
+  txHash    String?
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([playerId])
+  @@index([status])
+}
+
+model MatchPick {
+  id            String   @id @default(cuid())
+  playerId      String
+  player        OraclePlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  matchId       String   // ESPN event id (settlement source of truth)
+  matchDate     String   // ISO date (YYYY-MM-DD, ET) for daily grouping/streaks
+  pick          String   // predicted outcome: home/away team name, or "DRAW"
+
+  settled       Boolean  @default(false)
+  correct       Boolean?
+  result        String?  // actual outcome recorded at settlement
+  awardedPoints Int      @default(0) // base × hold multiplier, at settle time
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([playerId, matchId])
+  @@index([matchDate])
+  @@index([settled])
+}
+
+model BracketPick {
+  id         String   @id @default(cuid())
+  playerId   String   @unique
+  player     OraclePlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  groupPicks Json     // { "A": { advancing: [n1,n2], winner: n }, ... }
+  champion   String
+  settled    Boolean  @default(false)
+  points     Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model PointsLedger {
+  id        String   @id @default(cuid())
+  playerId  String
+  player    OraclePlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  kind      String   // match | streak_bonus | bracket | champion
+  refId     String?  // matchId / day / "bracket"
+  points    Int
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([playerId])
+  @@index([refId])
+}
+
+model RewardAllocation {
+  id          String   @id @default(cuid())
+  playerId    String
+  player      OraclePlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  periodKey   String   // "2026-06-15" (daily) | "group-stage" | "final"
+  pointsShare Int      // points the player earned in the period
+  sprddAmount String   @default("0") // raw SPRDD allocated once the buyback fills
+  vestStart   DateTime
+  vestEnd     DateTime
+  claimedRaw  String   @default("0") // raw SPRDD already claimed
+  txHash      String?  // payout / claim tx
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([playerId, periodKey])
+  @@index([periodKey])
+}
+
+// One row per reward period: the USD budget spent, the buyback fill, and the
+// total points it is split across. The rewards cron writes this; the team
+// fills in the realized SPRDD once the on-chain buy executes.
+model RewardPeriod {
+  id          String   @id @default(cuid())
+  periodKey   String   @unique // "2026-06-15" | "group-stage" | "final"
+  kind        String   @default("daily")
+  usdBudget   Float    @default(0)
+  totalPoints Int      @default(0)
+  sprddBought String   @default("0") // raw SPRDD acquired by the buyback
+  buybackTx   String?
+  finalized   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model OracleConfig {
+  id    String @id @default("singleton")
+  key   String @unique
+  value String
+}

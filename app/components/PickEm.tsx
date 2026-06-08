@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { CountryProfile, FIFACountry, GroupData } from '@/app/lib/fifa';
 import { getGroups, WORLD_CUP_COUNTRIES } from '@/app/lib/fifa';
 import CountryFlag from './CountryFlag';
+import { useOracleIdentity } from '@/app/hooks/useOracleIdentity';
 
 interface PickEmProps {
   profiles: CountryProfile[];
@@ -109,12 +110,15 @@ function GroupPickCard({
 
 export default function PickEm({ profiles }: PickEmProps) {
   const groups = useMemo(() => getGroups(), []);
+  const { aggUserId, walletAddress } = useOracleIdentity();
   const [step, setStep] = useState<Step>(1);
   const [groupPicks, setGroupPicks] = useState<Record<string, GroupPick>>({});
   const [champion, setChampion] = useState<string>('');
   const [submitted, setSubmitted] = useState(false);
+  const [locked, setLocked] = useState(false);
 
-  // Load from localStorage
+  // Load from localStorage (instant), then hydrate from the server if signed in
+  // so a player's bracket follows them across devices and counts for points.
   useEffect(() => {
     try {
       const saved = localStorage.getItem('singl-pickem');
@@ -126,6 +130,21 @@ export default function PickEm({ profiles }: PickEmProps) {
       }
     } catch {}
   }, []);
+
+  useEffect(() => {
+    if (!aggUserId) return;
+    fetch(`/api/oracle/bracket?aggUserId=${aggUserId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.locked) setLocked(true);
+        if (data.bracket) {
+          setGroupPicks(data.bracket.groupPicks || {});
+          setChampion(data.bracket.champion || '');
+          setSubmitted(true);
+        }
+      })
+      .catch(() => {});
+  }, [aggUserId]);
 
   // Save to localStorage
   useEffect(() => {
@@ -159,6 +178,15 @@ export default function PickEm({ profiles }: PickEmProps) {
 
   const handleSubmit = () => {
     setSubmitted(true);
+    // Persist to the server when signed in so the bracket settles for points
+    // (correct group winners + champion) after the group stage / final.
+    if (aggUserId) {
+      fetch('/api/oracle/bracket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ aggUserId, walletAddress, groupPicks, champion }),
+      }).catch(() => {});
+    }
   };
 
   const shareOnX = () => {
@@ -184,7 +212,8 @@ export default function PickEm({ profiles }: PickEmProps) {
         <h2 className="font-heading font-black text-2xl text-white uppercase tracking-tight">Pick&apos;em Challenge</h2>
         <p className="text-sm text-slate-400 mt-1">Predict the World Cup &mdash; Free to play</p>
         <p className="text-[10px] text-slate-500 mt-2 max-w-md mx-auto leading-relaxed">
-          Picks save to this browser only. No server submission, no scoring — yet. Share your champion on X to lock it in publicly.
+          Signed in? Your bracket is saved and scored — correct group winners (+25) and champion (+200) earn points toward
+          the SPREDD Oracle leaderboard and $SPRDD rewards. Locks at kickoff June 11.
         </p>
       </div>
 
@@ -377,11 +406,18 @@ export default function PickEm({ profiles }: PickEmProps) {
             })()}
           </div>
 
-          {/* Leaderboard teaser */}
-          <div className="bg-[var(--surface-container-lowest)] rounded-xl shadow-ambient p-6 text-center">
-            <span className="material-symbols-outlined text-2xl text-[var(--secondary)] mb-2">leaderboard</span>
-            <h4 className="font-heading font-black text-sm text-[var(--on-surface)] uppercase tracking-tight">Leaderboard Coming Soon</h4>
-            <p className="text-[10px] text-[var(--secondary)] mt-1">Compete against other SINGL users</p>
+          {/* Daily game + leaderboard cross-links */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <a href="/oracle" className="bg-[var(--surface-container-lowest)] rounded-xl shadow-ambient p-6 text-center no-underline hover:scale-[1.01] transition-all">
+              <span className="material-symbols-outlined text-2xl text-[var(--primary-container)] mb-2">sports_soccer</span>
+              <h4 className="font-heading font-black text-sm text-[var(--on-surface)] uppercase tracking-tight">Play Daily Pick&apos;em</h4>
+              <p className="text-[10px] text-[var(--secondary)] mt-1">Predict every match · build a streak · earn $SPRDD</p>
+            </a>
+            <a href="/leaderboard" className="bg-[var(--surface-container-lowest)] rounded-xl shadow-ambient p-6 text-center no-underline hover:scale-[1.01] transition-all">
+              <span className="material-symbols-outlined text-2xl text-[var(--secondary)] mb-2">leaderboard</span>
+              <h4 className="font-heading font-black text-sm text-[var(--on-surface)] uppercase tracking-tight">Oracle Leaderboard</h4>
+              <p className="text-[10px] text-[var(--secondary)] mt-1">Ranked by points · top callers win the jackpot</p>
+            </a>
           </div>
         </div>
       )}

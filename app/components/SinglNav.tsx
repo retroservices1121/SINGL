@@ -23,7 +23,9 @@ const PRIMARY_NAV: { href: string; label: string }[] = [
   { href: '/bracket', label: 'Bracket' },
   { href: '/h2h', label: 'H2H' },
   { href: '/squads', label: 'Squads' },
+  { href: '/oracle', label: 'Oracle' },
   { href: '/pickem', label: "Pick'em" },
+  { href: '/leaderboard', label: 'Ranks' },
   { href: '/profile', label: 'Profile' },
 ];
 

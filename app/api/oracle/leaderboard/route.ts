@@ -4,10 +4,9 @@ import { holdLabelForBps } from '@/app/lib/oracle';
 
 export const dynamic = 'force-dynamic';
 
-// Leaderboard is now the SPREDD Oracle points board (the volume-based board is
-// blocked on the AGG trade-event webhook — see the migration plan, Risks #1).
-// Ranks players by cumulative game points; the settle cron keeps `totalPoints`
-// current so this is a single indexed read.
+// GET /api/oracle/leaderboard?limit=100 — players ranked by points. Reads the
+// cached `totalPoints` aggregate (kept current by the settle cron), so it's a
+// single indexed scan even with thousands of players.
 export async function GET(req: NextRequest) {
   const limit = Math.min(500, parseInt(req.nextUrl.searchParams.get('limit') || '100', 10));
 
@@ -31,7 +30,7 @@ export async function GET(req: NextRequest) {
     rank: i + 1,
     aggUserId: p.aggUserId,
     walletAddress: p.walletAddress,
-    name: p.displayName || (p.walletAddress ? `${p.walletAddress.slice(0, 6)}…${p.walletAddress.slice(-4)}` : 'Anon'),
+    displayName: p.displayName || (p.walletAddress ? `${p.walletAddress.slice(0, 6)}…${p.walletAddress.slice(-4)}` : 'Anon'),
     avatarUrl: p.avatarUrl,
     points: p.totalPoints,
     streak: p.currentStreak,
