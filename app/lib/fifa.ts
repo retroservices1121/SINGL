@@ -285,28 +285,52 @@ function detectFIFAMarketType(title: string): FIFAMarketType {
     return 'group_winner';
   }
 
-  // Prop questions that mention "champion"/"winner" but are NOT the outright
-  // market (e.g. "Unbeaten Champion?", "First time winner", "Winless Team?").
-  const isWinnerProp = t.includes('unbeaten') || t.includes('first time')
-    || t.includes('first-time') || t.includes('winless');
+  // Individual / award markets ("Golden Boot", "Golden Glove", "Young
+  // Player Award", "Fair Play Award", "Player of the Tournament"). These
+  // each name a "winner" but are NOT the championship — keep them out of
+  // the 'winner' bucket so they don't set bogus 100% championship odds
+  // for every nation.
+  if (t.includes('golden boot') || t.includes('golden glove') || t.includes('golden ball')
+    || t.includes('top scorer') || t.includes('most goals') || t.includes('young player')
+    || t.includes('best young') || t.includes('player of') || t.includes('fair play')
+    || t.includes('award') || t.includes('mvp')) {
+    return 'top_scorer';
+  }
+
+  // Novelty / prop questions that mention "champion"/"winner" but aren't
+  // the outright winner ("Unbeaten Champion?", "First time winner",
+  // "Group of Champion", "Which continent...", "...ranked top 10",
+  // plus the classic stat props).
+  if (t.includes('unbeaten') || t.includes('first time') || t.includes('first-time')
+    || t.includes('winless') || t.includes('never') || t.includes('ranked')
+    || t.includes('group of') || t.includes('continent') || t.includes('third-place')
+    || t.includes('third place') || t.includes('total goals') || t.includes('cards')
+    || t.includes('penalty') || t.includes('own goal') || t.includes('hat trick')) {
+    return 'prop';
+  }
+
+  // Non-FIFA "World Cup" / "Winner" markets that AGG's fuzzy search drags
+  // in from other sports (cricket, MLS, baseball, hockey, basketball,
+  // esports). Don't let them map onto football nations.
+  if (t.includes('icc') || t.includes('t20') || t.includes('cricket')
+    || t.includes('world series') || t.includes('mls') || t.includes('nba')
+    || t.includes('nhl') || t.includes('esports')) {
+    return 'unknown';
+  }
 
   // Outright tournament winner / champion. Covers the question form
   // ("Will France win the 2026 FIFA World Cup?"), the "to win" form, and
   // bare market titles like "Outright Winner" / "World Cup Winner" /
   // "...Champion" that carry no country in the title.
-  if (!isWinnerProp && (
-    t.includes('outright winner')
+  if (t.includes('outright winner')
     || (t.includes('world cup') && (t.includes('win') || t.includes('champion')))
     || ((t.includes('fifa') || t.includes('tournament')) && (t.includes('win') || t.includes('champion')))
-    || t.includes('lift the trophy')
-  )) {
+    || t.includes('lift the trophy')) {
     return 'winner';
   }
 
   if (t.includes('advance') || t.includes('qualify') || t.includes('knockout') || t.includes('make the')) return 'advancement';
   if (t.includes(' vs')) return 'matchup';
-  if (t.includes('golden boot') || t.includes('top scorer') || t.includes('most goals') || t.includes('golden glove') || t.includes('golden ball') || t.includes('best young')) return 'top_scorer';
-  if (t.includes('total goals') || t.includes('cards') || t.includes('penalty') || t.includes('own goal') || t.includes('hat trick')) return 'prop';
   return 'unknown';
 }
 
@@ -396,6 +420,13 @@ export function parseFIFAMarkets(markets: MarketData[]): ParsedFIFAMarket[] {
   return out;
 }
 
+// A tradeable price sits strictly inside (0,1) and away from the 0.5
+// no-liquidity placeholder. Extremes (>=0.99 / <=0.01) on AGG almost
+// always mean an untraded multi-outcome leg, not a real ~certain market,
+// so we treat them as "no price" for the country/group odds views.
+const isLivePrice = (p: number | null | undefined): boolean =>
+  p != null && p > 0.01 && p < 0.99 && Math.abs(p - 0.5) > 0.001;
+
 export function buildCountryProfiles(parsedMarkets: ParsedFIFAMarket[]): CountryProfile[] {
   const countryMap = new Map<string, CountryProfile>();
 
@@ -422,17 +453,29 @@ export function buildCountryProfiles(parsedMarkets: ParsedFIFAMarket[]): Country
       const profile = countryMap.get(country.name)!;
       profile.markets.push(m);
 
-      if (m.fifaMarketType === 'winner') {
-        profile.championshipOdds = m.yesPrice;
-        profile.championshipMarket = m;
+      // No-liquidity markets default to placeholder prices on AGG (0.5 for
+      // binaries, or extremes like 0.999/0.001 for negRisk legs). Skip
+      // those so they don't surface as bogus 100%/0% odds. When several
+      // venues quote the same market, keep the strongest live price.
+      const live = isLivePrice(m.yesPrice);
+
+      if (m.fifaMarketType === 'winner' && live) {
+        if (profile.championshipOdds == null || m.yesPrice > profile.championshipOdds) {
+          profile.championshipOdds = m.yesPrice;
+          profile.championshipMarket = m;
+        }
       }
 
-      if (m.fifaMarketType === 'group_winner') {
-        profile.groupWinOdds = m.yesPrice;
+      if (m.fifaMarketType === 'group_winner' && live) {
+        if (profile.groupWinOdds == null || m.yesPrice > profile.groupWinOdds) {
+          profile.groupWinOdds = m.yesPrice;
+        }
       }
 
-      if (m.fifaMarketType === 'advancement') {
-        profile.groupAdvancementOdds = m.yesPrice;
+      if (m.fifaMarketType === 'advancement' && live) {
+        if (profile.groupAdvancementOdds == null || m.yesPrice > profile.groupAdvancementOdds) {
+          profile.groupAdvancementOdds = m.yesPrice;
+        }
         const roundOrder: Record<string, number> = { GROUP: 1, R32: 2, R16: 3, QF: 4, SF: 5, FINAL: 6, WINNER: 7 };
         const existing = profile.currentRound ? roundOrder[profile.currentRound] || 0 : 0;
         const incoming = m.round ? roundOrder[m.round] || 0 : 0;
