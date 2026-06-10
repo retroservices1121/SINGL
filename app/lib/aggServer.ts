@@ -213,7 +213,7 @@ export async function getVenueMarketsByEventId(eventId: string): Promise<AggVenu
 // Run `fn` over `items` with at most `limit` in flight at once. Used to
 // enrich many events without firing hundreds of simultaneous AGG calls
 // (which AGG rate-limits and which blow out cold-load latency).
-async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+export async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
   const results: R[] = new Array(items.length);
   let next = 0;
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {

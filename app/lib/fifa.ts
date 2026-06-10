@@ -188,6 +188,31 @@ export function getGroups(): GroupData[] {
     }));
 }
 
+// Every group is a round-robin, so the six pairings within each group ARE
+// the real group-stage matches (regardless of fixture order/date). This
+// enumerates all 72 so we can look up each match's market on AGG by team
+// names — match markets are titled "Team A vs Team B", not "World Cup …".
+export interface GroupMatchup { group: string; home: FIFACountry; away: FIFACountry; }
+export function getGroupMatchups(): GroupMatchup[] {
+  const out: GroupMatchup[] = [];
+  for (const g of getGroups()) {
+    const teams = g.standings.map(s => s.country);
+    for (let i = 0; i < teams.length; i++) {
+      for (let j = i + 1; j < teams.length; j++) {
+        out.push({ group: g.name, home: teams[i], away: teams[j] });
+      }
+    }
+  }
+  return out;
+}
+
+// Does a free-text title refer to this country (name or any alias)?
+export function titleMentionsCountry(title: string, c: FIFACountry): boolean {
+  const t = title.toLowerCase();
+  if (t.includes(c.name.toLowerCase())) return true;
+  return c.aliases.some(a => a.length >= 3 && t.includes(a.toLowerCase()));
+}
+
 // ── Market parsing (FIFA-specific) ───────────────────────────────────────────
 
 export type FIFAMarketType = 'winner' | 'group_winner' | 'advancement' | 'matchup' | 'top_scorer' | 'prop' | 'unknown';

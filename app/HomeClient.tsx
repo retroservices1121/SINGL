@@ -5,6 +5,7 @@ import { EventListItem } from '@agg-build/ui';
 import { useRouter } from 'next/navigation';
 import type { VenueEvent, VenueEventWithMarkets, VenueMarket, VenueMarketOutcome } from '@agg-build/sdk';
 import Spinner from './components/ui/Spinner';
+import MatchMarkets from './components/MatchMarkets';
 
 // FIFA-curated home — dodges AGG's broken /venue-events listing
 // endpoint by using two known-good endpoints instead:
@@ -91,6 +92,10 @@ export default function HomeClient() {
           </p>
         </div>
       </header>
+
+      {/* Individual-game markets (Team vs Team), discovered by matchup
+          since AGG titles them by team name, not "World Cup". */}
+      <MatchMarkets />
 
       {/* Same grid template AGG's own EventList uses internally:
           auto-fill columns with a 360px minimum. Inline style bypasses
