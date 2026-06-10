@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { listVenueEvents, mapAggMarket, mapPool, type AggVenueEvent } from '@/app/lib/aggServer';
-import { getGroupMatchups, titleMentionsCountry, countryFlagUrl, type FIFACountry } from '@/app/lib/fifa';
+import { searchEventsBrief, getVenueEvent, mapAggMarket, mapPool, type AggVenueEvent } from '@/app/lib/aggServer';
+import { getGroupMatchups, titleMentionsCountry, countryFlagUrl, type FIFACountry, type GroupMatchup } from '@/app/lib/fifa';
 
 export const dynamic = 'force-dynamic';
 // Cold build fans out one search per group pairing (72). Allow headroom so
@@ -67,26 +67,31 @@ function eventScore(ev: AggVenueEvent): number {
 async function buildPayload(): Promise<{ matches: MatchMarket[] }> {
   const matchups = getGroupMatchups();
 
-  const found = await mapPool(matchups, 8, async (mu): Promise<MatchMarket | null> => {
-    try {
-      const { data: events } = await listVenueEvents({
-        search: `${mu.home.name} vs ${mu.away.name}`,
-        status: 'open',
-        limit: 6,
-      });
-      // Keep only events that name BOTH teams (a real head-to-head) and
-      // have a market closing in the tournament window (not a past friendly).
-      const candidates = events.filter(ev =>
-        ev.title
-        && titleMentionsCountry(ev.title, mu.home)
-        && titleMentionsCountry(ev.title, mu.away)
-        && (ev.markets || []).some(m => (m.endDate || '') >= '2026-06-10'),
-      );
-      if (candidates.length === 0) return null;
+  // Phase 1 — cheap: one title-only search per pairing, keep just the
+  // events that name BOTH teams. No market enrichment yet, so the 72
+  // mostly-miss lookups stay fast.
+  const hits = await mapPool(matchups, 10, async (mu): Promise<{ mu: GroupMatchup; ev: AggVenueEvent } | null> => {
+    const events = await searchEventsBrief(`${mu.home.name} vs ${mu.away.name}`, 6);
+    const candidates = events.filter(ev =>
+      ev.title
+      && titleMentionsCountry(ev.title, mu.home)
+      && titleMentionsCountry(ev.title, mu.away),
+    );
+    if (candidates.length === 0) return null;
+    candidates.sort((a, b) => eventScore(b) - eventScore(a));
+    return { mu, ev: candidates[0] };
+  });
 
-      candidates.sort((a, b) => eventScore(b) - eventScore(a));
-      const ev = candidates[0];
-      const mapped = (ev.markets || []).map(m => mapAggMarket(ev, m)).filter(Boolean);
+  // Phase 2 — enrich only the survivors (today: the opener) to read markets.
+  const matches = await mapPool(hits.filter(Boolean) as { mu: GroupMatchup; ev: AggVenueEvent }[], 8,
+    async ({ mu, ev }): Promise<MatchMarket | null> => {
+      const full = await getVenueEvent(ev.id);
+      const markets = full?.markets || [];
+      // Only surface a market that closes within the tournament window —
+      // filters out a stale friendly that happened to match the names.
+      if (!markets.some(m => (m.endDate || '') >= '2026-06-10')) return null;
+
+      const mapped = markets.map(m => mapAggMarket(full!, m)).filter(Boolean);
       const closeTime = mapped
         .map(m => m!.closeTime)
         .filter((t): t is string => !!t)
@@ -99,20 +104,16 @@ async function buildPayload(): Promise<{ matches: MatchMarket[] }> {
         away: team(mu.away),
         eventId: ev.id,
         eventTitle: ev.title || `${mu.home.name} vs ${mu.away.name}`,
-        venue: ev.venue ?? null,
+        venue: ev.venue ?? full?.venue ?? null,
         closeTime,
         odds: readMoneyline(mapped, mu.home, mu.away),
       };
-    } catch {
-      return null;
-    }
-  });
+    });
 
-  const matches = found
-    .filter((m): m is MatchMarket => m !== null)
-    .sort((a, b) => (a.closeTime || '').localeCompare(b.closeTime || ''));
-
-  return { matches };
+  return {
+    matches: (matches.filter(Boolean) as MatchMarket[])
+      .sort((a, b) => (a.closeTime || '').localeCompare(b.closeTime || '')),
+  };
 }
 
 function refresh(): Promise<unknown> {

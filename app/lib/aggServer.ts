@@ -289,6 +289,24 @@ export async function listVenueEvents(params: {
   return { data: [...seen.values()] };
 }
 
+// Lightweight event discovery: a single /search with NO per-event market
+// enrichment. Use when you only need titles/ids to filter, then enrich the
+// few survivors yourself via getVenueEvent — far cheaper than
+// listVenueEvents when most results will be discarded (e.g. per-matchup
+// lookups that mostly miss).
+export async function searchEventsBrief(query: string, limit = 6): Promise<AggVenueEvent[]> {
+  const categoryIds = DEFAULT_CATEGORY_IDS.length ? DEFAULT_CATEGORY_IDS : undefined;
+  try {
+    const brief = await aggFetch<{ data?: AggVenueEvent[] }>('/search', {
+      query: { q: query, type: 'events', ...(categoryIds ? { categoryIds } : {}), limit },
+    });
+    return brief.data || [];
+  } catch (err) {
+    console.error(`[searchEventsBrief] "${query}":`, err);
+    return [];
+  }
+}
+
 export async function getVenueEvent(id: string): Promise<AggVenueEvent | null> {
   try {
     const ev = await aggFetch<AggVenueEvent & { venueMarkets?: AggVenueMarket[] }>(
