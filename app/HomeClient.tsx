@@ -18,13 +18,26 @@ import Spinner from './components/ui/Spinner';
 // searchTerms or pass it via props.
 const SEARCH_QUERY = 'FIFA World Cup';
 
+// Keep the curated home strictly FIFA. AGG's fuzzy search drags in other
+// "World Cup"/"Cup" events (esports, cricket, MLS, US leagues); show an
+// event only if it reads as FIFA football and matches none of those.
+const FIFA_RE = /world cup|fifa/i;
+const NOT_FIFA_RE = /esports|league of legends|\blol\b|lol:|dota|\bnba\b|\bnhl\b|\bnfl\b|\bmlb\b|world series|cricket|\bicc\b|\bt20\b|\bmls\b|champions league|europa league|rugby/i;
+
 export default function HomeClient() {
   const router = useRouter();
+  // AGG's /search caps page size around 100; pull the full slate (not a
+  // 20-event sample) so every FIFA market — outright, groups, advancement
+  // AND individual games — is available on the trade page.
   const { data: events, isLoading, isError, error } = useSearch<VenueEvent>({
     q: SEARCH_QUERY,
     type: 'events',
-    limit: 20,
+    limit: 100,
   });
+
+  const fifaEvents = (events ?? []).filter(
+    ev => FIFA_RE.test(ev.title || '') && !NOT_FIFA_RE.test(ev.title || ''),
+  );
 
   // EventListItem takes `href` directly for the card link (no per-item
   // getter like HomePage has). onEventClick fires on body click; the
@@ -54,7 +67,7 @@ export default function HomeClient() {
     );
   }
 
-  if (!events?.length) {
+  if (!fifaEvents.length) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-32 text-center">
         <div className="text-5xl mb-4">🏆</div>
@@ -74,7 +87,7 @@ export default function HomeClient() {
             FIFA World Cup 2026
           </h1>
           <p className="text-xs text-[var(--secondary)] font-bold uppercase tracking-widest mt-1">
-            {events.length} live market{events.length === 1 ? '' : 's'}
+            {fifaEvents.length} live market{fifaEvents.length === 1 ? '' : 's'}
           </p>
         </div>
       </header>
@@ -90,7 +103,7 @@ export default function HomeClient() {
           gridTemplateColumns: 'repeat(auto-fill, minmax(min(360px, 100%), 1fr))',
         }}
       >
-        {events.map(ev => (
+        {fifaEvents.map(ev => (
           <EventListItem
             key={ev.id}
             eventId={ev.id}
