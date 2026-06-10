@@ -71,7 +71,7 @@ async function buildPayload(): Promise<{ matches: MatchMarket[] }> {
   // events that name BOTH teams. No market enrichment yet, so the 72
   // mostly-miss lookups stay fast.
   const hits = await mapPool(matchups, 10, async (mu): Promise<{ mu: GroupMatchup; ev: AggVenueEvent } | null> => {
-    const events = await searchEventsBrief(`${mu.home.name} vs ${mu.away.name}`, 6);
+    const events = await searchEventsBrief(`${mu.home.name} vs ${mu.away.name}`, 40);
     const candidates = events.filter(ev =>
       ev.title
       && titleMentionsCountry(ev.title, mu.home)
@@ -129,7 +129,21 @@ function refresh(): Promise<unknown> {
   return inflight;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  // Temporary diagnostic: ?debug=1 shows what the brief search returns for
+  // the opener pairing, so we can see why discovery does/doesn't match.
+  if (new URL(req.url).searchParams.get('debug')) {
+    const mu = getGroupMatchups().find(m =>
+      titleMentionsCountry('mexico south africa', m.home) && titleMentionsCountry('mexico south africa', m.away));
+    const q = mu ? `${mu.home.name} vs ${mu.away.name}` : 'Mexico vs South Africa';
+    const events = await searchEventsBrief(q, 40);
+    return NextResponse.json({
+      query: q,
+      briefCount: events.length,
+      titles: events.map(e => ({ title: e.title, venue: e.venue, id: e.id })),
+    });
+  }
+
   // Stale-while-revalidate: serve cache instantly, refresh in background.
   if (cached) {
     if (Date.now() - cached.ts >= CACHE_TTL_MS) void refresh();
