@@ -70,7 +70,7 @@ async function buildPayload(): Promise<{ matches: MatchMarket[] }> {
   // Phase 1 — cheap: one title-only search per pairing, keep just the
   // events that name BOTH teams. No market enrichment yet, so the 72
   // mostly-miss lookups stay fast.
-  const hits = await mapPool(matchups, 10, async (mu): Promise<{ mu: GroupMatchup; ev: AggVenueEvent } | null> => {
+  const hits = await mapPool(matchups, 5, async (mu): Promise<{ mu: GroupMatchup; ev: AggVenueEvent } | null> => {
     const events = await searchEventsBrief(`${mu.home.name} vs ${mu.away.name}`, 40);
     const candidates = events.filter(ev =>
       ev.title
@@ -133,14 +133,22 @@ export async function GET(req: Request) {
   // Temporary diagnostic: ?debug=1 shows what the brief search returns for
   // the opener pairing, so we can see why discovery does/doesn't match.
   if (new URL(req.url).searchParams.get('debug')) {
-    const mu = getGroupMatchups().find(m =>
-      titleMentionsCountry('mexico south africa', m.home) && titleMentionsCountry('mexico south africa', m.away));
-    const q = mu ? `${mu.home.name} vs ${mu.away.name}` : 'Mexico vs South Africa';
-    const events = await searchEventsBrief(q, 40);
+    const matchups = getGroupMatchups();
+    let briefNonEmpty = 0;
+    const hitTitles: string[] = [];
+    await mapPool(matchups, 5, async (mu) => {
+      const events = await searchEventsBrief(`${mu.home.name} vs ${mu.away.name}`, 40);
+      if (events.length) briefNonEmpty++;
+      const cands = events.filter(ev =>
+        ev.title && titleMentionsCountry(ev.title, mu.home) && titleMentionsCountry(ev.title, mu.away));
+      if (cands.length) hitTitles.push(`${mu.home.name} v ${mu.away.name} -> "${cands[0].title}" [${cands[0].venue}] ${cands[0].id}`);
+      return null;
+    });
     return NextResponse.json({
-      query: q,
-      briefCount: events.length,
-      titles: events.map(e => ({ title: e.title, venue: e.venue, id: e.id })),
+      totalPairings: matchups.length,
+      briefNonEmpty,          // how many of the 72 searches returned ANY events
+      hitCount: hitTitles.length, // how many matched both team names
+      hitTitles,
     });
   }
 
