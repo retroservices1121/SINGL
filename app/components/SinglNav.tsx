@@ -48,7 +48,18 @@ export default function SinglNav() {
   const [tournamentOpen, setTournamentOpen] = useState(false);
   const tournamentRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setTournamentOpen(false); }, [pathname]);
+  // Mobile menu — the desktop nav is hidden below md, so without this the
+  // only reachable page on a phone is Trade.
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => { setTournamentOpen(false); setMobileOpen(false); }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [mobileOpen]);
 
   useEffect(() => {
     if (!tournamentOpen) return;
@@ -148,7 +159,7 @@ export default function SinglNav() {
             array) when signed out, and a profile/balance menu when signed
             in. Deposit/Withdraw clicks dispatch AGG's modal-open events
             which the SDK handles. */}
-        <div className="shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <ConnectButton
             onDepositClick={() => requestAggDepositModalOpen()}
             onWithdrawClick={() => requestAggWithdrawModalOpen()}
@@ -159,8 +170,71 @@ export default function SinglNav() {
             onProfileClick={() => requestEditProfileOpen()}
             onProfileCardClick={() => router.push('/profile')}
           />
+
+          {/* Mobile hamburger — only below md, where the inline nav is hidden. */}
+          <button
+            type="button"
+            onClick={() => setMobileOpen(o => !o)}
+            aria-label="Menu"
+            aria-haspopup="true"
+            aria-expanded={mobileOpen}
+            className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg text-[var(--on-surface)] hover:bg-[var(--surface-container-low)] cursor-pointer"
+          >
+            <span className="material-symbols-outlined">{mobileOpen ? 'close' : 'menu'}</span>
+          </button>
         </div>
       </div>
+
+      {/* Mobile menu panel — full list of pages, since the inline nav row is
+          desktop-only. Closes on navigation (pathname effect) and Escape. */}
+      {mobileOpen && (
+        <div className="md:hidden border-t border-[var(--surface-container)] bg-white max-h-[80vh] overflow-y-auto">
+          <div className="flex flex-col px-4 py-3">
+            {LEAD_NAV.map(item => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={`py-2.5 text-sm font-bold uppercase tracking-tight ${
+                  isActive(item.href) ? 'text-[var(--primary-container)]' : 'text-[var(--on-surface)]'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            <div className="mt-2 mb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--secondary)]">
+              Tournament
+            </div>
+            {TOURNAMENT_NAV.map(item => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={`py-2.5 pl-3 text-sm font-bold uppercase tracking-tight ${
+                  pathname.startsWith(item.href) ? 'text-[var(--primary-container)]' : 'text-[var(--on-surface)]'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            <div className="mt-2 mb-1 border-t border-[var(--surface-container)]" />
+            {TRAIL_NAV.map(item => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={`py-2.5 text-sm font-bold uppercase tracking-tight ${
+                  isActive(item.href) ? 'text-[var(--primary-container)]' : 'text-[var(--on-surface)]'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
