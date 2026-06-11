@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 // Cold build fans out one search per group pairing (72). Allow headroom so
 // the first request doesn't hit the default serverless timeout; subsequent
 // requests are served instantly from the SWR cache below.
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 // Match markets on AGG are titled "Team A vs Team B" (per venue), NOT
 // "World Cup …", so the event-title search the rest of the app uses never
