@@ -6,12 +6,17 @@
 // instance serves it instantly (the in-memory cache is per-instance).
 
 import { prisma } from '@/app/lib/db';
-import { searchEventsBrief, mapPool, type AggVenueEvent } from '@/app/lib/aggServer';
+import { searchEventsBrief, getVenueEvent, mapPool, type AggVenueEvent, type AggVenueMarket } from '@/app/lib/aggServer';
 import { getGroupMatchups, titleMentionsCountry, countryFlagUrl, type FIFACountry } from '@/app/lib/fifa';
 
 // Bump the suffix to invalidate the cached payload when the shape changes
-// (e.g. adding `date`) so a fresh build runs instead of serving old rows.
-export const FIFA_MATCHES_KEY = 'fifaMatchesV2';
+// so a fresh build runs instead of serving old rows.
+export const FIFA_MATCHES_KEY = 'fifaMatchesV3';
+
+// Tournament window — used to reject resolved pre-tournament friendlies /
+// qualifiers that share a team pairing (e.g. a settled "Mexico vs USA").
+const WC_START = '2026-06-10T00:00:00.000Z';
+const WC_END = '2026-07-21T00:00:00.000Z';
 
 export interface MatchTeam { name: string; code: string; flag: string; group: string; }
 export interface MatchMarket {
@@ -56,16 +61,25 @@ function dateFromTitle(title: string): string | null {
   return isNaN(d.getTime()) ? null : d.toISOString();
 }
 
-function matchDate(ev: AggVenueEvent): string | null {
-  return ev.startDate ?? ev.endDate ?? dateFromTitle(ev.title || '');
+// The reliable match date is when its markets resolve (≈ kickoff), not the
+// event's startDate (which AGG often returns as a placeholder). Use the
+// earliest market endDate; fall back to event endDate, then a title date.
+function resolveDate(ev: AggVenueEvent, markets: AggVenueMarket[] | undefined): string | null {
+  const ends = (markets || []).map(m => m.endDate).filter((d): d is string => !!d).sort();
+  return ends[0] ?? ev.endDate ?? dateFromTitle(ev.title || '');
 }
 
-// Runs the full per-pairing scan (72 group matches). ~90-120s — call from a
-// long-timeout context (cron, or a route with maxDuration >= 300).
-export async function discoverMatches(): Promise<MatchMarket[]> {
+// Runs the full per-pairing scan (72 group matches), enriching candidates
+// to confirm each is a real upcoming WC match (markets resolve inside the
+// tournament window) rather than a settled friendly. ~120-180s — call from
+// a long-timeout context (cron, or a route with maxDuration >= 300).
+export async function discoverMatches(now: number): Promise<MatchMarket[]> {
   const matchups = getGroupMatchups();
+  // Drop matches that have already finished (resolve > ~4h ago).
+  const cutoff = new Date(now - 4 * 60 * 60 * 1000).toISOString();
+  const minDate = cutoff > WC_START ? cutoff : WC_START;
 
-  const found = await mapPool(matchups, 6, async (mu): Promise<MatchMarket | null> => {
+  const found = await mapPool(matchups, 8, async (mu): Promise<MatchMarket | null> => {
     const events = await searchEventsBrief(`${mu.home.name} vs ${mu.away.name}`, 40);
     const candidates = events.filter(ev =>
       ev.title
@@ -74,32 +88,36 @@ export async function discoverMatches(): Promise<MatchMarket[]> {
     );
     if (candidates.length === 0) return null;
     candidates.sort((a, b) => eventScore(b) - eventScore(a));
-    const ev = candidates[0];
-    return {
-      id: `${mu.group}:${mu.home.code}-${mu.away.code}`,
-      group: mu.group,
-      home: team(mu.home),
-      away: team(mu.away),
-      eventId: ev.id,
-      eventTitle: ev.title || `${mu.home.name} vs ${mu.away.name}`,
-      venue: ev.venue ?? null,
-      date: matchDate(ev),
-    };
+
+    // Walk the best candidates until one resolves within the tournament
+    // window (and isn't already finished). This rejects resolved
+    // pre-tournament friendlies sharing the same pairing.
+    for (const ev of candidates.slice(0, 4)) {
+      const full = await getVenueEvent(ev.id);
+      const date = resolveDate(ev, full?.markets);
+      if (!date || date < minDate || date > WC_END) continue;
+      return {
+        id: `${mu.group}:${mu.home.code}-${mu.away.code}`,
+        group: mu.group,
+        home: team(mu.home),
+        away: team(mu.away),
+        eventId: ev.id,
+        eventTitle: ev.title || `${mu.home.name} vs ${mu.away.name}`,
+        venue: ev.venue ?? full?.venue ?? null,
+        date,
+      };
+    }
+    return null;
   });
 
-  // Order by kickoff (soonest first) so today's fixtures lead; undated
-  // matches fall to the end, then by group.
-  return (found.filter(Boolean) as MatchMarket[]).sort((a, b) => {
-    if (a.date && b.date) return a.date.localeCompare(b.date);
-    if (a.date) return -1;
-    if (b.date) return 1;
-    return a.group.localeCompare(b.group) || a.home.name.localeCompare(b.home.name);
-  });
+  // Order by kickoff (soonest first) so today's fixtures lead.
+  return (found.filter(Boolean) as MatchMarket[])
+    .sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.group.localeCompare(b.group));
 }
 
 // Discover + persist to the shared SiteConfig cache (timestamped).
 export async function discoverAndPersist(now: number): Promise<MatchMarket[]> {
-  const matches = await discoverMatches();
+  const matches = await discoverMatches(now);
   // Only overwrite the cache with a non-empty result, so a transient AGG
   // hiccup can't wipe a good list.
   if (matches.length > 0) {
