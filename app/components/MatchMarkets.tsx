@@ -10,6 +10,18 @@ interface MatchMarket {
   group: string;
   eventId: string;
   eventTitle: string;
+  date: string | null;
+}
+
+function kickoffLabel(iso: string | null): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  if (sameDay) return `Today · ${time}`;
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
 // Each EventListItem fetches its event + opens a live price subscription,
@@ -104,14 +116,20 @@ export default function MatchMarkets() {
           }}
         >
           {shown.map(m => (
-            <EventListItem
-              key={m.eventId}
-              eventId={m.eventId}
-              href={`/event/${m.eventId}`}
-              onEventClick={onEventClick}
-              getMarketHref={getMarketHref}
-              classNames={{ root: 'w-full min-w-0 max-w-none' }}
-            />
+            <div key={m.eventId} className="flex flex-col gap-1 min-w-0">
+              {m.date && (
+                <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--secondary)] px-1">
+                  Group {m.group} · {kickoffLabel(m.date)}
+                </span>
+              )}
+              <EventListItem
+                eventId={m.eventId}
+                href={`/event/${m.eventId}`}
+                onEventClick={onEventClick}
+                getMarketHref={getMarketHref}
+                classNames={{ root: 'w-full min-w-0 max-w-none' }}
+              />
+            </div>
           ))}
         </div>
       )}
