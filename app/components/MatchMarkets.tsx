@@ -2,48 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { EventListItem } from '@agg-build/ui';
+import type { VenueEventWithMarkets, VenueMarket, VenueMarketOutcome } from '@agg-build/sdk';
 
-interface MatchTeam { name: string; code: string; flag: string; group: string; }
 interface MatchMarket {
   id: string;
   group: string;
-  home: MatchTeam;
-  away: MatchTeam;
   eventId: string;
   eventTitle: string;
-  venue: string | null;
-}
-
-function MatchCard({ m }: { m: MatchMarket }) {
-  const router = useRouter();
-  return (
-    <button
-      type="button"
-      onClick={() => router.push(`/event/${m.eventId}`)}
-      className="flex flex-col gap-2 p-3 text-left bg-[var(--surface-container-lowest)] rounded-xl shadow-ambient cursor-pointer hover:scale-[1.02] transition-all"
-    >
-      <div className="flex items-center justify-between">
-        <span className="text-[8px] font-bold uppercase tracking-widest text-[var(--secondary)]">Group {m.group}</span>
-        {m.venue && <span className="text-[8px] font-bold uppercase tracking-widest text-[var(--secondary)]">{m.venue}</span>}
-      </div>
-      <div className="flex items-center gap-2">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={m.home.flag} alt={m.home.name} className="w-6 h-4 object-cover rounded-sm shrink-0" />
-        <span className="text-[11px] font-bold text-[var(--on-surface)] truncate flex-1">{m.home.name}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={m.away.flag} alt={m.away.name} className="w-6 h-4 object-cover rounded-sm shrink-0" />
-        <span className="text-[11px] font-bold text-[var(--on-surface)] truncate flex-1">{m.away.name}</span>
-      </div>
-      <div className="py-1 text-center text-[9px] font-bold uppercase tracking-widest rounded-md bg-[var(--primary-fixed)] text-[var(--primary)]">
-        Trade
-      </div>
-    </button>
-  );
 }
 
 export default function MatchMarkets() {
+  const router = useRouter();
   const [matches, setMatches] = useState<MatchMarket[] | null>(null);
   const [done, setDone] = useState(false);
 
@@ -57,12 +27,19 @@ export default function MatchMarkets() {
     return () => { live = false; };
   }, []);
 
-  // Loaded with no markets → hide entirely (nothing to trade yet).
+  // Same handlers the home grid uses, so match cards route identically.
+  const onEventClick = (event?: VenueEventWithMarkets) => {
+    if (event) router.push(`/event/${event.id}`);
+  };
+  const getMarketHref = (event: VenueEventWithMarkets, _m: VenueMarket, _o: VenueMarketOutcome) =>
+    `/event/${event.id}`;
+
+  // Loaded with no markets → hide entirely.
   if (done && (!matches || matches.length === 0)) return null;
 
   return (
     <section className="mb-8">
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-4">
         <span className="material-symbols-outlined text-[var(--primary-container)]">sports_soccer</span>
         <h2 className="text-sm font-black font-heading uppercase tracking-widest text-[var(--on-surface)]">Match Markets</h2>
         {matches && matches.length > 0 && (
@@ -77,14 +54,25 @@ export default function MatchMarkets() {
           Loading match markets…
         </div>
       ) : (
+        // Same grid template + EventListItem the home market grid uses, so
+        // match cards look identical and get the same live WS pricing.
         <div
           style={{
             display: 'grid',
-            gap: '0.75rem',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(180px, 100%), 1fr))',
+            gap: '1rem',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(360px, 100%), 1fr))',
           }}
         >
-          {matches!.map(m => <MatchCard key={m.id} m={m} />)}
+          {matches!.map(m => (
+            <EventListItem
+              key={m.eventId}
+              eventId={m.eventId}
+              href={`/event/${m.eventId}`}
+              onEventClick={onEventClick}
+              getMarketHref={getMarketHref}
+              classNames={{ root: 'w-full min-w-0 max-w-none' }}
+            />
+          ))}
         </div>
       )}
     </section>
