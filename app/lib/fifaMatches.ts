@@ -11,12 +11,14 @@ import { getGroupMatchups, titleMentionsCountry, countryFlagUrl, type FIFACountr
 
 // Bump the suffix to invalidate the cached payload when the shape changes
 // so a fresh build runs instead of serving old rows.
-export const FIFA_MATCHES_KEY = 'fifaMatchesV3';
+export const FIFA_MATCHES_KEY = 'fifaMatchesV4';
 
-// Tournament window — used to reject resolved pre-tournament friendlies /
-// qualifiers that share a team pairing (e.g. a settled "Mexico vs USA").
-const WC_START = '2026-06-10T00:00:00.000Z';
-const WC_END = '2026-07-21T00:00:00.000Z';
+// These are all GROUP-stage games, which run Jun 11–27. Reject anything
+// resolving outside that window: it's either a settled pre-tournament
+// friendly sharing the pairing, or a prop/award market that settles long
+// after the match (which would show a wrong date).
+const GROUP_START = '2026-06-10T00:00:00.000Z';
+const GROUP_END = '2026-06-28T00:00:00.000Z';
 
 export interface MatchTeam { name: string; code: string; flag: string; group: string; }
 export interface MatchMarket {
@@ -77,7 +79,7 @@ export async function discoverMatches(now: number): Promise<MatchMarket[]> {
   const matchups = getGroupMatchups();
   // Drop matches that have already finished (resolve > ~4h ago).
   const cutoff = new Date(now - 4 * 60 * 60 * 1000).toISOString();
-  const minDate = cutoff > WC_START ? cutoff : WC_START;
+  const minDate = cutoff > GROUP_START ? cutoff : GROUP_START;
 
   const found = await mapPool(matchups, 8, async (mu): Promise<MatchMarket | null> => {
     const events = await searchEventsBrief(`${mu.home.name} vs ${mu.away.name}`, 40);
@@ -89,25 +91,33 @@ export async function discoverMatches(now: number): Promise<MatchMarket[]> {
     if (candidates.length === 0) return null;
     candidates.sort((a, b) => eventScore(b) - eventScore(a));
 
-    // Walk the best candidates until one resolves within the tournament
-    // window (and isn't already finished). This rejects resolved
-    // pre-tournament friendlies sharing the same pairing.
-    for (const ev of candidates.slice(0, 4)) {
-      const full = await getVenueEvent(ev.id);
-      const date = resolveDate(ev, full?.markets);
-      if (!date || date < minDate || date > WC_END) continue;
-      return {
-        id: `${mu.group}:${mu.home.code}-${mu.away.code}`,
-        group: mu.group,
-        home: team(mu.home),
-        away: team(mu.away),
-        eventId: ev.id,
-        eventTitle: ev.title || `${mu.home.name} vs ${mu.away.name}`,
-        venue: ev.venue ?? full?.venue ?? null,
-        date,
-      };
-    }
-    return null;
+    // Enrich the top candidates to read each one's resolution date, then
+    // keep only those resolving within the group-stage window. The match
+    // RESULT settles at kickoff while props settle later, so the right
+    // event + date is the EARLIEST in-window one; ties break toward the
+    // cleanest (moneyline) title via eventScore.
+    const enriched = await Promise.all(
+      candidates.slice(0, 6).map(async ev => {
+        const full = await getVenueEvent(ev.id);
+        return { ev, date: resolveDate(ev, full?.markets), venue: ev.venue ?? full?.venue ?? null };
+      }),
+    );
+    const valid = enriched.filter(e => e.date && e.date >= minDate && e.date <= GROUP_END) as
+      { ev: AggVenueEvent; date: string; venue: string | null }[];
+    if (valid.length === 0) return null;
+    valid.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : eventScore(b.ev) - eventScore(a.ev)));
+    const best = valid[0];
+
+    return {
+      id: `${mu.group}:${mu.home.code}-${mu.away.code}`,
+      group: mu.group,
+      home: team(mu.home),
+      away: team(mu.away),
+      eventId: best.ev.id,
+      eventTitle: best.ev.title || `${mu.home.name} vs ${mu.away.name}`,
+      venue: best.venue,
+      date: best.date,
+    };
   });
 
   // Order by kickoff (soonest first) so today's fixtures lead.

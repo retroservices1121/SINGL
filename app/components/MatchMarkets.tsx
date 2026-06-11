@@ -13,15 +13,18 @@ interface MatchMarket {
   date: string | null;
 }
 
+// Always display kickoff in US Eastern, regardless of the viewer's locale.
+const ET = 'America/New_York';
 function kickoffLabel(iso: string | null): string {
   if (!iso) return '';
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '';
-  const now = new Date();
-  const sameDay = d.toDateString() === now.toDateString();
-  const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  if (sameDay) return `Today · ${time}`;
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const day = d.toLocaleDateString('en-US', { timeZone: ET });
+  const today = new Date().toLocaleDateString('en-US', { timeZone: ET });
+  const time = d.toLocaleTimeString('en-US', { timeZone: ET, hour: 'numeric', minute: '2-digit' });
+  if (day === today) return `Today · ${time} ET`;
+  const date = d.toLocaleDateString('en-US', { timeZone: ET, weekday: 'short', month: 'short', day: 'numeric' });
+  return `${date} · ${time} ET`;
 }
 
 // Each EventListItem fetches its event + opens a live price subscription,
