@@ -1,25 +1,18 @@
 import { NextResponse } from 'next/server';
-import { searchEventsBrief, getVenueEvent, mapAggMarket, mapPool, type AggVenueEvent } from '@/app/lib/aggServer';
-import { getGroupMatchups, titleMentionsCountry, countryFlagUrl, type FIFACountry, type GroupMatchup } from '@/app/lib/fifa';
+import { searchEventsBrief, mapPool, type AggVenueEvent } from '@/app/lib/aggServer';
+import { getGroupMatchups, titleMentionsCountry, countryFlagUrl, type FIFACountry } from '@/app/lib/fifa';
 
 export const dynamic = 'force-dynamic';
-// Cold build fans out one search per group pairing (72). Allow headroom so
-// the first request doesn't hit the default serverless timeout; subsequent
-// requests are served instantly from the SWR cache below.
+// Discovery fans out one search per group pairing (72). The full scan runs
+// ~90-120s, so we need headroom well past the default 60s; the SWR cache
+// below means only the first request after expiry pays it.
 export const maxDuration = 300;
 
-// Match markets on AGG are titled "Team A vs Team B" (per venue), NOT
-// "World Cup …", so the event-title search the rest of the app uses never
-// finds them. We instead look each group pairing up by team names and
-// surface whatever venues have posted. Most matches aren't listed until
-// close to kickoff, so this naturally grows from the opener outward.
-
-const CACHE_TTL_MS = 15 * 60 * 1000; // matches change slowly; pricing is live via WS
+const CACHE_TTL_MS = 30 * 60 * 1000; // fixtures barely change; rebuild every 30 min
 let cached: { ts: number; payload: unknown } | null = null;
 let inflight: Promise<unknown> | null = null;
 
 interface MatchTeam { name: string; code: string; flag: string; group: string; }
-interface MatchOdds { home: number | null; draw: number | null; away: number | null; }
 interface MatchMarket {
   id: string;
   group: string;
@@ -28,49 +21,28 @@ interface MatchMarket {
   eventId: string;
   eventTitle: string;
   venue: string | null;
-  closeTime: string | null;
-  odds: MatchOdds;
 }
 
 function team(c: FIFACountry): MatchTeam {
   return { name: c.name, code: c.code, flag: countryFlagUrl(c, 40), group: c.group };
 }
 
-// A binary leg whose title is exactly a team name / "Tie" / "Draw" gives us
-// the moneyline price. Venues differ, so this is best-effort — the card
-// still links to the full market when a price can't be read.
-function readMoneyline(
-  markets: ReturnType<typeof mapAggMarket>[],
-  home: FIFACountry,
-  away: FIFACountry,
-): MatchOdds {
-  const odds: MatchOdds = { home: null, draw: null, away: null };
-  for (const m of markets) {
-    if (!m) continue;
-    const t = (m.title || '').trim().toLowerCase();
-    if (odds.home == null && (t === home.name.toLowerCase() || home.aliases.includes(t))) odds.home = m.yesPrice;
-    else if (odds.away == null && (t === away.name.toLowerCase() || away.aliases.includes(t))) odds.away = m.yesPrice;
-    else if (odds.draw == null && (t === 'tie' || t === 'draw')) odds.draw = m.yesPrice;
-  }
-  return odds;
-}
-
-// Prefer the plain match event ("Mexico vs. South Africa") over side
-// events ("- More Markets", "- Halftime Result", "- Exact Score").
+// Among the events that name both teams, prefer the plain "Team vs Team"
+// moneyline over prop/side events ("- More Markets", "- Exact Score",
+// ": Spread", ": BTTS", halftime, corners, …) — shorter, suffix-free
+// titles win. Linking to the moneyline event gives the cleanest trade.
 function eventScore(ev: AggVenueEvent): number {
   const t = (ev.title || '').toLowerCase();
-  let s = (ev.markets?.length || 0);
-  if (t.includes(' - ')) s -= 100; // de-prioritise prop/side events
+  let s = 1000 - t.length;
+  if (t.includes(' - ') || t.includes(': ')) s -= 5000;
+  if (/win by|to score|both to|total |corners|cards|player props|halftime|first half|exact score|spread|btts|team total|announcers/.test(t)) s -= 5000;
   return s;
 }
 
 async function buildPayload(): Promise<{ matches: MatchMarket[] }> {
   const matchups = getGroupMatchups();
 
-  // Phase 1 — cheap: one title-only search per pairing, keep just the
-  // events that name BOTH teams. No market enrichment yet, so the 72
-  // mostly-miss lookups stay fast.
-  const hits = await mapPool(matchups, 5, async (mu): Promise<{ mu: GroupMatchup; ev: AggVenueEvent } | null> => {
+  const found = await mapPool(matchups, 6, async (mu): Promise<MatchMarket | null> => {
     const events = await searchEventsBrief(`${mu.home.name} vs ${mu.away.name}`, 40);
     const candidates = events.filter(ev =>
       ev.title
@@ -79,41 +51,22 @@ async function buildPayload(): Promise<{ matches: MatchMarket[] }> {
     );
     if (candidates.length === 0) return null;
     candidates.sort((a, b) => eventScore(b) - eventScore(a));
-    return { mu, ev: candidates[0] };
+    const ev = candidates[0];
+    return {
+      id: `${mu.group}:${mu.home.code}-${mu.away.code}`,
+      group: mu.group,
+      home: team(mu.home),
+      away: team(mu.away),
+      eventId: ev.id,
+      eventTitle: ev.title || `${mu.home.name} vs ${mu.away.name}`,
+      venue: ev.venue ?? null,
+    };
   });
 
-  // Phase 2 — enrich only the survivors (today: the opener) to read markets.
-  const matches = await mapPool(hits.filter(Boolean) as { mu: GroupMatchup; ev: AggVenueEvent }[], 8,
-    async ({ mu, ev }): Promise<MatchMarket | null> => {
-      const full = await getVenueEvent(ev.id);
-      const markets = full?.markets || [];
-      // Only surface a market that closes within the tournament window —
-      // filters out a stale friendly that happened to match the names.
-      if (!markets.some(m => (m.endDate || '') >= '2026-06-10')) return null;
+  const matches = (found.filter(Boolean) as MatchMarket[])
+    .sort((a, b) => a.group.localeCompare(b.group) || a.home.name.localeCompare(b.home.name));
 
-      const mapped = markets.map(m => mapAggMarket(full!, m)).filter(Boolean);
-      const closeTime = mapped
-        .map(m => m!.closeTime)
-        .filter((t): t is string => !!t)
-        .sort()[0] ?? null;
-
-      return {
-        id: `${mu.group}:${mu.home.code}-${mu.away.code}`,
-        group: mu.group,
-        home: team(mu.home),
-        away: team(mu.away),
-        eventId: ev.id,
-        eventTitle: ev.title || `${mu.home.name} vs ${mu.away.name}`,
-        venue: ev.venue ?? full?.venue ?? null,
-        closeTime,
-        odds: readMoneyline(mapped, mu.home, mu.away),
-      };
-    });
-
-  return {
-    matches: (matches.filter(Boolean) as MatchMarket[])
-      .sort((a, b) => (a.closeTime || '').localeCompare(b.closeTime || '')),
-  };
+  return { matches };
 }
 
 function refresh(): Promise<unknown> {
@@ -129,30 +82,10 @@ function refresh(): Promise<unknown> {
   return inflight;
 }
 
-export async function GET(req: Request) {
-  // Temporary diagnostic: ?debug=1 shows what the brief search returns for
-  // the opener pairing, so we can see why discovery does/doesn't match.
-  if (new URL(req.url).searchParams.get('debug')) {
-    const matchups = getGroupMatchups();
-    let briefNonEmpty = 0;
-    const hitTitles: string[] = [];
-    await mapPool(matchups, 5, async (mu) => {
-      const events = await searchEventsBrief(`${mu.home.name} vs ${mu.away.name}`, 40);
-      if (events.length) briefNonEmpty++;
-      const cands = events.filter(ev =>
-        ev.title && titleMentionsCountry(ev.title, mu.home) && titleMentionsCountry(ev.title, mu.away));
-      if (cands.length) hitTitles.push(`${mu.home.name} v ${mu.away.name} -> "${cands[0].title}" [${cands[0].venue}] ${cands[0].id}`);
-      return null;
-    });
-    return NextResponse.json({
-      totalPairings: matchups.length,
-      briefNonEmpty,          // how many of the 72 searches returned ANY events
-      hitCount: hitTitles.length, // how many matched both team names
-      hitTitles,
-    });
-  }
-
+export async function GET() {
   // Stale-while-revalidate: serve cache instantly, refresh in background.
+  // The cold build is ~100s, so the first caller waits; everyone after is
+  // instant until the cache goes stale.
   if (cached) {
     if (Date.now() - cached.ts >= CACHE_TTL_MS) void refresh();
     return NextResponse.json(cached.payload);
