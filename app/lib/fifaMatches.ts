@@ -12,7 +12,7 @@ import { findCountry, titleMentionsCountry, countryFlagUrl, type FIFACountry } f
 import { fetchMatches, type OracleMatch } from '@/app/lib/espn';
 
 // Bump to invalidate the cached payload when the shape changes.
-export const FIFA_MATCHES_KEY = 'fifaMatchesV7';
+export const FIFA_MATCHES_KEY = 'fifaMatchesV8';
 
 // How far ahead to surface fixtures (covers the live matchdays without
 // pulling the whole tournament every refresh).
@@ -40,7 +40,7 @@ function eventScore(ev: AggVenueEvent): number {
   const t = (ev.title || '').toLowerCase();
   let s = 1000 - t.length;
   if (t.includes(' - ') || t.includes(': ') || t.includes('?')) s -= 5000;
-  if (/win by|to score|both to|total |corners|cards|player props|half|exact score|correct score|spread|btts|team total|announcers|first goal|\bsay\b|will the/.test(t)) s -= 5000;
+  if (/win by|to score|both to|total |corners|cards|player props|half|exact score|correct score|spread|btts|team total|announcers|first goal|\bsay\b|will the|captain|\bopener\b|to start|man of the match|\bmotm\b|booking|red card|penalty/.test(t)) s -= 5000;
   return s;
 }
 
@@ -48,7 +48,7 @@ function eventScore(ev: AggVenueEvent): number {
 // (moneyline), not a halftime/exact-score/prop variant.
 function hasMoneyline(ev: AggVenueEvent, markets: AggVenueMarket[] | undefined, home: FIFACountry, away: FIFACountry): boolean {
   const t = (ev.title || '').toLowerCase();
-  if (/half|exact score|first team|player props|to score|corners|cards|assists|goalscorer/.test(t)) return false;
+  if (/half|exact score|first team|player props|to score|corners|cards|assists|goalscorer|captain|opener|to start|man of the match|motm|booking/.test(t)) return false;
   const titles = (markets || []).map(m => (m.question ?? m.title ?? '').trim().toLowerCase());
   const has = (c: FIFACountry) => titles.some(x => x === c.name.toLowerCase() || c.aliases.includes(x));
   return has(home) && has(away);
