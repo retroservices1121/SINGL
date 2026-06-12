@@ -11,7 +11,7 @@ import { getGroupMatchups, titleMentionsCountry, countryFlagUrl, type FIFACountr
 
 // Bump the suffix to invalidate the cached payload when the shape changes
 // so a fresh build runs instead of serving old rows.
-export const FIFA_MATCHES_KEY = 'fifaMatchesV5';
+export const FIFA_MATCHES_KEY = 'fifaMatchesV6';
 
 // These are all GROUP-stage games, which run Jun 11–27. Reject anything
 // resolving outside that window: it's either a settled pre-tournament
@@ -43,8 +43,8 @@ function team(c: FIFACountry): MatchTeam {
 function eventScore(ev: AggVenueEvent): number {
   const t = (ev.title || '').toLowerCase();
   let s = 1000 - t.length;
-  if (t.includes(' - ') || t.includes(': ')) s -= 5000;
-  if (/win by|to score|both to|total |corners|cards|player props|half|exact score|correct score|spread|btts|team total|announcers|first goal/.test(t)) s -= 5000;
+  if (t.includes(' - ') || t.includes(': ') || t.includes('?')) s -= 5000;
+  if (/win by|to score|both to|total |corners|cards|player props|half|exact score|correct score|spread|btts|team total|announcers|first goal|\bsay\b|will the/.test(t)) s -= 5000;
   return s;
 }
 
@@ -94,7 +94,9 @@ export async function discoverMatches(now: number): Promise<MatchMarket[]> {
   const minDate = cutoff > GROUP_START ? cutoff : GROUP_START;
 
   const found = await mapPool(matchups, 8, async (mu): Promise<MatchMarket | null> => {
-    const events = await searchEventsBrief(`${mu.home.name} vs ${mu.away.name}`, 40);
+    // Pull the full page (AGG ranking is inconsistent — a small limit can
+    // miss the plain moneyline event), then enrich the cleanest few.
+    const events = await searchEventsBrief(`${mu.home.name} vs ${mu.away.name}`, 100);
     const candidates = events.filter(ev =>
       ev.title
       && titleMentionsCountry(ev.title, mu.home)
