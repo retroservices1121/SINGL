@@ -17,6 +17,8 @@ interface PlayerStats {
   holdMultiplier: string;
   holdMultiplierBps: number;
   sprddBalance: string;
+  tradeVolumeUsd: number;
+  tradePoints: number;
 }
 interface Reward {
   periodKey: string;
@@ -188,7 +190,7 @@ export default function OracleClient() {
       ) : (
         <div className="space-y-6">
           {/* Stat header */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <StatCard label="Your Points" value={stats ? stats.totalPoints.toLocaleString() : '—'} accent />
             <StatCard label="Rank" value={stats ? `#${stats.rank}` : '—'} />
             <StatCard
@@ -200,6 +202,11 @@ export default function OracleClient() {
               label="Hold Multiplier"
               value={stats ? stats.holdMultiplier : '1.0x'}
               sub={stats ? `${fmtTokens(stats.sprddBalance)} SPRDD` : undefined}
+            />
+            <StatCard
+              label="Trade Points"
+              value={stats ? stats.tradePoints.toLocaleString() : '—'}
+              sub={stats ? `$${Math.round(stats.tradeVolumeUsd).toLocaleString()} traded` : undefined}
             />
           </div>
 
