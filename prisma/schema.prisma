@@ -171,6 +171,13 @@ model OraclePlayer {
   multiplierBps   Int      @default(10000) // 10000 = 1.00x
   balanceSyncedAt DateTime?
 
+  // Trade-to-earn: cumulative AGG trade volume credited so far (USD) and the
+  // points it earned (volume base points × hold multiplier at credit time).
+  // Stored cumulative so a re-sync only credits the delta — never double-pays.
+  tradeVolumeUsd  Float    @default(0)
+  tradePoints     Int      @default(0)
+  volumeSyncedAt  DateTime?
+
   // Mutex for the claim flow: held while a claim is mid-flight so two concurrent
   // requests can't both reserve the same vested balance. Cleared on completion.
   claimLockedAt DateTime?

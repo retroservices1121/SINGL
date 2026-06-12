@@ -33,6 +33,23 @@ export const HOLD_TIERS: HoldTier[] = [
   { minTokens: 0, bps: 10000, label: '1.0x' },
 ];
 
+// ── Trade-to-earn ─────────────────────────────────────────────────────────────
+// Real trading on the markets earns points too — volume → base points, then
+// (like every other point) multiplied by the player's hold tier. So holding
+// AND trading AND predicting all compound into reward share. `maxVolumeUsd`
+// caps how much volume earns, the first-line defence against wash-farming the
+// fixed pool; spread-cost weighting can refine this once the trade feed lands.
+export const TRADE = {
+  usdPerPoint: 10,    // $10 of credited volume = 1 base point
+  maxVolumeUsd: 5000, // only the first $5k of a player's volume earns
+} as const;
+
+/** Base (pre-multiplier) points for a cumulative USD volume figure. */
+export function tradeBasePoints(volumeUsd: number): number {
+  const capped = Math.min(Math.max(0, volumeUsd), TRADE.maxVolumeUsd);
+  return Math.floor(capped / TRADE.usdPerPoint);
+}
+
 // ── Streak ────────────────────────────────────────────────────────────────────
 // Consecutive settled days with >= 1 correct pick. Resets to 0 on a missed/blank
 // day. The streak multiplier is applied as a daily bonus on that day's points.

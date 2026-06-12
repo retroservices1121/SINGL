@@ -41,6 +41,8 @@ export async function GET(req: NextRequest) {
       holdMultiplierBps: player.multiplierBps,
       streakMultiplierBps: streakBps,
       sprddBalance: player.sprddBalance,
+      tradeVolumeUsd: player.tradeVolumeUsd,
+      tradePoints: player.tradePoints,
       hasBracket: !!bracket,
     },
     rewards: rewards.map(r => ({

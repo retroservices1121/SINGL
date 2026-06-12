@@ -42,6 +42,24 @@ no trade-fee skim after the AGG cutover).
 - Streak: consecutive settled days with ≥1 correct → daily bonus up to **2.0×**.
 - Hold-to-multiply: 250k = 1.25× · 1M = 1.5× · 5M = 2.0×.
 - Bracket: group winner +25, advancing team +10, champion +200.
+- **Trade-to-earn: real volume → points × hold multiplier.** `$10` of traded
+  volume = 1 base point, scaled by the player's hold tier (so holding + trading
+  + predicting all compound into reward share). First `$5k` of a player's volume
+  earns (`TRADE.maxVolumeUsd`), the anti-wash cap.
+
+### Trade-to-earn plumbing
+- `creditTradeVolume(aggUserId, cumulativeVolumeUsd)` (`oracleServer.ts`) credits
+  only the **delta** of base points since last sync × current hold multiplier,
+  writes a `trade` `PointsLedger` row, and folds it into `totalPoints`.
+  Cumulative-volume input ⇒ replays / out-of-order syncs never double-pay; a
+  lower figure credits nothing.
+- `POST /api/oracle/sync-volume` (Bearer `CRON_SECRET`) is the ingest. **Trusted
+  source only** — fed by the AGG **trade-event webhook** (or a server fills
+  reader) once available; never the client, or volume/reward share is forgeable.
+  This is the same dependency that gates the volume leaderboard. Until the feed
+  lands, the engine is dormant but ready (schema + accrual shipped).
+- Refinement hook: weight credited volume by **spread cost** so wash trades
+  (which pay spread) don't farm the fixed pool.
 
 ## Reward economy
 
