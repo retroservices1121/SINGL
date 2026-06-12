@@ -11,6 +11,7 @@ interface MatchMarket {
   eventId: string;
   eventTitle: string;
   date: string | null;
+  status?: 'scheduled' | 'live' | 'final';
 }
 
 // Always display kickoff in US Eastern, regardless of the viewer's locale.
@@ -120,11 +121,16 @@ export default function MatchMarkets() {
         >
           {shown.map(m => (
             <div key={m.eventId} className="flex flex-col gap-1 min-w-0">
-              {m.date && (
-                <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--secondary)] px-1">
-                  Group {m.group} · {kickoffLabel(m.date)}
-                </span>
-              )}
+              <span className="text-[9px] font-bold uppercase tracking-widest px-1 flex items-center gap-1.5">
+                {m.status === 'live' ? (
+                  <span className="inline-flex items-center gap-1 text-[var(--no)]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--no)] animate-pulse" />
+                    Live · Group {m.group}
+                  </span>
+                ) : (
+                  <span className="text-[var(--secondary)]">Group {m.group} · {kickoffLabel(m.date)}</span>
+                )}
+              </span>
               <EventListItem
                 eventId={m.eventId}
                 href={`/event/${m.eventId}`}

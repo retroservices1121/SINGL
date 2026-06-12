@@ -1,45 +1,41 @@
-// Shared World Cup match-market discovery, used by both the public
-// /api/fifa/matches endpoint and the warming cron. AGG titles match
-// markets by team name ("Mexico vs. South Africa"), not "World Cup …", so
-// we look each group pairing up by team names and keep whatever venues
-// have posted. Result is persisted to SiteConfig so every serverless
-// instance serves it instantly (the in-memory cache is per-instance).
+// World Cup match markets — REAL schedule from ESPN, market from AGG.
+//
+// ESPN (the same source the SPREDD Oracle uses) is the source of truth for
+// fixtures: real teams, kickoff times, dates and live status. AGG only
+// provides the tradeable market, which we attach per fixture by team name
+// (AGG titles match markets "Mexico vs. South Africa", not "World Cup …").
+// Result is persisted to SiteConfig so every instance serves it instantly.
 
 import { prisma } from '@/app/lib/db';
 import { searchEventsBrief, getVenueEvent, mapPool, type AggVenueEvent, type AggVenueMarket } from '@/app/lib/aggServer';
-import { getGroupMatchups, titleMentionsCountry, countryFlagUrl, type FIFACountry } from '@/app/lib/fifa';
+import { findCountry, titleMentionsCountry, countryFlagUrl, type FIFACountry } from '@/app/lib/fifa';
+import { fetchMatches, type OracleMatch } from '@/app/lib/espn';
 
-// Bump the suffix to invalidate the cached payload when the shape changes
-// so a fresh build runs instead of serving old rows.
-export const FIFA_MATCHES_KEY = 'fifaMatchesV6';
+// Bump to invalidate the cached payload when the shape changes.
+export const FIFA_MATCHES_KEY = 'fifaMatchesV7';
 
-// These are all GROUP-stage games, which run Jun 11–27. Reject anything
-// resolving outside that window: it's either a settled pre-tournament
-// friendly sharing the pairing, or a prop/award market that settles long
-// after the match (which would show a wrong date).
-const GROUP_START = '2026-06-10T00:00:00.000Z';
-const GROUP_END = '2026-06-28T00:00:00.000Z';
+// How far ahead to surface fixtures (covers the live matchdays without
+// pulling the whole tournament every refresh).
+const LOOKAHEAD_DAYS = 16;
 
 export interface MatchTeam { name: string; code: string; flag: string; group: string; }
 export interface MatchMarket {
-  id: string;
+  id: string;            // ESPN event id
   group: string;
   home: MatchTeam;
   away: MatchTeam;
-  eventId: string;
+  eventId: string;       // AGG event id (for trading)
   eventTitle: string;
   venue: string | null;
-  date: string | null; // ISO kickoff/close time, for ordering + display
+  date: string;          // real ESPN kickoff (ISO)
+  status: 'scheduled' | 'live' | 'final';
 }
 
 function team(c: FIFACountry): MatchTeam {
   return { name: c.name, code: c.code, flag: countryFlagUrl(c, 40), group: c.group };
 }
 
-// Prefer the plain "Team vs Team" moneyline over prop/side events
-// ("- More Markets", "- Exact Score", ": Spread", ": BTTS", halftime,
-// "Correct Score", …). Lower-but-not-rejected so a match with ONLY prop
-// events still surfaces something tradeable.
+// Prefer the plain "Team vs Team" moneyline over prop/side events.
 function eventScore(ev: AggVenueEvent): number {
   const t = (ev.title || '').toLowerCase();
   let s = 1000 - t.length;
@@ -48,33 +44,8 @@ function eventScore(ev: AggVenueEvent): number {
   return s;
 }
 
-const MONTHS: Record<string, number> = {
-  jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11,
-};
-
-// Some venues (e.g. limitless) bake the date into the title
-// ("World Cup, X vs Y, Jun 25, 2026") rather than a structured field.
-function dateFromTitle(title: string): string | null {
-  const m = title.match(/\b([A-Za-z]{3})[a-z]*\s+(\d{1,2}),?\s+(\d{4})\b/);
-  if (!m) return null;
-  const mon = MONTHS[m[1].toLowerCase()];
-  if (mon === undefined) return null;
-  const d = new Date(Date.UTC(Number(m[3]), mon, Number(m[2]), 12, 0, 0));
-  return isNaN(d.getTime()) ? null : d.toISOString();
-}
-
-// The reliable match date is when its markets resolve (≈ kickoff), not the
-// event's startDate (which AGG often returns as a placeholder). Use the
-// earliest market endDate; fall back to event endDate, then a title date.
-function resolveDate(ev: AggVenueEvent, markets: AggVenueMarket[] | undefined): string | null {
-  const ends = (markets || []).map(m => m.endDate).filter((d): d is string => !!d).sort();
-  return ends[0] ?? ev.endDate ?? dateFromTitle(ev.title || '');
-}
-
-// True when the event holds the full-match WIN market — i.e. a market for
-// each team (the moneyline "Mexico / Draw / Korea Republic"), and is NOT a
-// halftime / exact-score / prop variant. We prefer these so the card lands
-// on the who-wins market rather than spreads/totals.
+// The event holds the full-match WIN market — a market for each team
+// (moneyline), not a halftime/exact-score/prop variant.
 function hasMoneyline(ev: AggVenueEvent, markets: AggVenueMarket[] | undefined, home: FIFACountry, away: FIFACountry): boolean {
   const t = (ev.title || '').toLowerCase();
   if (/half|exact score|first team|player props|to score|corners|cards|assists|goalscorer/.test(t)) return false;
@@ -83,81 +54,93 @@ function hasMoneyline(ev: AggVenueEvent, markets: AggVenueMarket[] | undefined, 
   return has(home) && has(away);
 }
 
-// Runs the full per-pairing scan (72 group matches), enriching candidates
-// to confirm each is a real upcoming WC match (markets resolve inside the
-// tournament window) rather than a settled friendly. ~120-180s — call from
-// a long-timeout context (cron, or a route with maxDuration >= 300).
-export async function discoverMatches(now: number): Promise<MatchMarket[]> {
-  const matchups = getGroupMatchups();
-  // Drop matches that have already finished (resolve > ~4h ago).
-  const cutoff = new Date(now - 4 * 60 * 60 * 1000).toISOString();
-  const minDate = cutoff > GROUP_START ? cutoff : GROUP_START;
+function earliestEnd(markets: AggVenueMarket[] | undefined): string | null {
+  const ends = (markets || []).map(m => m.endDate).filter((d): d is string => !!d).sort();
+  return ends[0] ?? null;
+}
 
-  const found = await mapPool(matchups, 8, async (mu): Promise<MatchMarket | null> => {
-    // Pull the full page (AGG ranking is inconsistent — a small limit can
-    // miss the plain moneyline event), then enrich the cleanest few.
-    const events = await searchEventsBrief(`${mu.home.name} vs ${mu.away.name}`, 100);
-    const candidates = events.filter(ev =>
-      ev.title
-      && titleMentionsCountry(ev.title, mu.home)
-      && titleMentionsCountry(ev.title, mu.away),
-    );
-    if (candidates.length === 0) return null;
-    candidates.sort((a, b) => eventScore(b) - eventScore(a));
+// Find the AGG event to trade for a fixture: search by team names, keep
+// only events resolving near the real kickoff (rejects settled friendlies
+// sharing the pairing), then prefer the moneyline.
+async function findAggEvent(home: FIFACountry, away: FIFACountry, kickoffIso: string):
+  Promise<{ eventId: string; title: string; venue: string | null } | null> {
+  const events = await searchEventsBrief(`${home.name} vs ${away.name}`, 100);
+  const candidates = events.filter(ev =>
+    ev.title && titleMentionsCountry(ev.title, home) && titleMentionsCountry(ev.title, away));
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => eventScore(b) - eventScore(a));
 
-    // Enrich the top candidates to read each one's resolution date, then
-    // keep only those resolving within the group-stage window. The match
-    // RESULT settles at kickoff while props settle later, so the right
-    // event + date is the EARLIEST in-window one; ties break toward the
-    // cleanest (moneyline) title via eventScore.
-    const enriched = await Promise.all(
-      candidates.slice(0, 8).map(async ev => {
-        const full = await getVenueEvent(ev.id);
-        const markets = full?.markets;
-        return {
-          ev,
-          date: resolveDate(ev, markets),
-          venue: ev.venue ?? full?.venue ?? null,
-          moneyline: hasMoneyline(ev, markets, mu.home, mu.away),
-        };
-      }),
-    );
-    const valid = enriched.filter(e => e.date && e.date >= minDate && e.date <= GROUP_END) as
-      { ev: AggVenueEvent; date: string; venue: string | null; moneyline: boolean }[];
-    if (valid.length === 0) return null;
-
-    // Kickoff = earliest in-window resolution (the result settles at match
-    // time; props settle later). Link to the moneyline event if one exists,
-    // else the cleanest-titled event.
-    const matchDate = valid.map(v => v.date).sort()[0];
-    valid.sort((a, b) =>
-      (b.moneyline ? 1 : 0) - (a.moneyline ? 1 : 0)
-      || eventScore(b.ev) - eventScore(a.ev)
-      || a.date.localeCompare(b.date));
-    const best = valid[0];
-
+  const k = new Date(kickoffIso).getTime();
+  const enriched = await Promise.all(candidates.slice(0, 8).map(async ev => {
+    const full = await getVenueEvent(ev.id);
     return {
-      id: `${mu.group}:${mu.home.code}-${mu.away.code}`,
-      group: mu.group,
-      home: team(mu.home),
-      away: team(mu.away),
-      eventId: best.ev.id,
-      eventTitle: best.ev.title || `${mu.home.name} vs ${mu.away.name}`,
-      venue: best.venue,
-      date: matchDate,
+      ev,
+      end: earliestEnd(full?.markets) ?? ev.endDate ?? null,
+      venue: ev.venue ?? full?.venue ?? null,
+      moneyline: hasMoneyline(ev, full?.markets, home, away),
+    };
+  }));
+  // Tie the market to THIS fixture: its markets must resolve within a few
+  // days of the real kickoff.
+  const valid = enriched.filter(e => e.end && Math.abs(new Date(e.end).getTime() - k) <= 4 * 24 * 60 * 60 * 1000);
+  if (valid.length === 0) return null;
+  valid.sort((a, b) => (b.moneyline ? 1 : 0) - (a.moneyline ? 1 : 0) || eventScore(b.ev) - eventScore(a.ev));
+  const best = valid[0];
+  return { eventId: best.ev.id, title: best.ev.title || `${home.name} vs ${away.name}`, venue: best.venue };
+}
+
+// ET calendar date (YYYYMMDD) `offset` days from `now` — ESPN buckets the
+// scoreboard by ET day, matching how fixtures are experienced.
+function etYyyymmdd(now: number, offset: number): string {
+  const d = new Date(now + offset * 24 * 60 * 60 * 1000);
+  return d.toLocaleDateString('en-CA', { timeZone: 'America/New_York' }).replace(/-/g, '');
+}
+
+async function fetchUpcomingFixtures(now: number): Promise<OracleMatch[]> {
+  const days = Array.from({ length: LOOKAHEAD_DAYS }, (_, i) => etYyyymmdd(now, i));
+  const lists = await mapPool(days, 6, d => fetchMatches(d));
+  const seen = new Set<string>();
+  const out: OracleMatch[] = [];
+  for (const list of lists) {
+    for (const m of list) {
+      if (seen.has(m.id)) continue;
+      seen.add(m.id);
+      if (m.status !== 'final') out.push(m); // upcoming + live only
+    }
+  }
+  return out;
+}
+
+// Real fixtures (ESPN) joined to their AGG market. ~30-90s depending on how
+// many matchdays are in range — call from a long-timeout context.
+export async function discoverMatches(now: number): Promise<MatchMarket[]> {
+  const fixtures = await fetchUpcomingFixtures(now);
+
+  const out = await mapPool(fixtures, 8, async (fx): Promise<MatchMarket | null> => {
+    const home = findCountry(fx.home);
+    const away = findCountry(fx.away);
+    if (!home || !away) return null;
+    const agg = await findAggEvent(home, away, fx.kickoff);
+    if (!agg) return null;
+    return {
+      id: fx.id,
+      group: home.group,
+      home: team(home),
+      away: team(away),
+      eventId: agg.eventId,
+      eventTitle: agg.title,
+      venue: agg.venue,
+      date: fx.kickoff,
+      status: fx.status,
     };
   });
 
-  // Order by kickoff (soonest first) so today's fixtures lead.
-  return (found.filter(Boolean) as MatchMarket[])
-    .sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.group.localeCompare(b.group));
+  return (out.filter(Boolean) as MatchMarket[]).sort((a, b) => a.date.localeCompare(b.date));
 }
 
 // Discover + persist to the shared SiteConfig cache (timestamped).
 export async function discoverAndPersist(now: number): Promise<MatchMarket[]> {
   const matches = await discoverMatches(now);
-  // Only overwrite the cache with a non-empty result, so a transient AGG
-  // hiccup can't wipe a good list.
   if (matches.length > 0) {
     const value = JSON.stringify({ ts: now, matches });
     await prisma.siteConfig.upsert({
