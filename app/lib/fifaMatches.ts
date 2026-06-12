@@ -11,7 +11,7 @@ import { getGroupMatchups, titleMentionsCountry, countryFlagUrl, type FIFACountr
 
 // Bump the suffix to invalidate the cached payload when the shape changes
 // so a fresh build runs instead of serving old rows.
-export const FIFA_MATCHES_KEY = 'fifaMatchesV4';
+export const FIFA_MATCHES_KEY = 'fifaMatchesV5';
 
 // These are all GROUP-stage games, which run Jun 11–27. Reject anything
 // resolving outside that window: it's either a settled pre-tournament
@@ -71,6 +71,18 @@ function resolveDate(ev: AggVenueEvent, markets: AggVenueMarket[] | undefined): 
   return ends[0] ?? ev.endDate ?? dateFromTitle(ev.title || '');
 }
 
+// True when the event holds the full-match WIN market — i.e. a market for
+// each team (the moneyline "Mexico / Draw / Korea Republic"), and is NOT a
+// halftime / exact-score / prop variant. We prefer these so the card lands
+// on the who-wins market rather than spreads/totals.
+function hasMoneyline(ev: AggVenueEvent, markets: AggVenueMarket[] | undefined, home: FIFACountry, away: FIFACountry): boolean {
+  const t = (ev.title || '').toLowerCase();
+  if (/half|exact score|first team|player props|to score|corners|cards|assists|goalscorer/.test(t)) return false;
+  const titles = (markets || []).map(m => (m.question ?? m.title ?? '').trim().toLowerCase());
+  const has = (c: FIFACountry) => titles.some(x => x === c.name.toLowerCase() || c.aliases.includes(x));
+  return has(home) && has(away);
+}
+
 // Runs the full per-pairing scan (72 group matches), enriching candidates
 // to confirm each is a real upcoming WC match (markets resolve inside the
 // tournament window) rather than a settled friendly. ~120-180s — call from
@@ -97,15 +109,29 @@ export async function discoverMatches(now: number): Promise<MatchMarket[]> {
     // event + date is the EARLIEST in-window one; ties break toward the
     // cleanest (moneyline) title via eventScore.
     const enriched = await Promise.all(
-      candidates.slice(0, 6).map(async ev => {
+      candidates.slice(0, 8).map(async ev => {
         const full = await getVenueEvent(ev.id);
-        return { ev, date: resolveDate(ev, full?.markets), venue: ev.venue ?? full?.venue ?? null };
+        const markets = full?.markets;
+        return {
+          ev,
+          date: resolveDate(ev, markets),
+          venue: ev.venue ?? full?.venue ?? null,
+          moneyline: hasMoneyline(ev, markets, mu.home, mu.away),
+        };
       }),
     );
     const valid = enriched.filter(e => e.date && e.date >= minDate && e.date <= GROUP_END) as
-      { ev: AggVenueEvent; date: string; venue: string | null }[];
+      { ev: AggVenueEvent; date: string; venue: string | null; moneyline: boolean }[];
     if (valid.length === 0) return null;
-    valid.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : eventScore(b.ev) - eventScore(a.ev)));
+
+    // Kickoff = earliest in-window resolution (the result settles at match
+    // time; props settle later). Link to the moneyline event if one exists,
+    // else the cleanest-titled event.
+    const matchDate = valid.map(v => v.date).sort()[0];
+    valid.sort((a, b) =>
+      (b.moneyline ? 1 : 0) - (a.moneyline ? 1 : 0)
+      || eventScore(b.ev) - eventScore(a.ev)
+      || a.date.localeCompare(b.date));
     const best = valid[0];
 
     return {
@@ -116,7 +142,7 @@ export async function discoverMatches(now: number): Promise<MatchMarket[]> {
       eventId: best.ev.id,
       eventTitle: best.ev.title || `${mu.home.name} vs ${mu.away.name}`,
       venue: best.venue,
-      date: best.date,
+      date: matchDate,
     };
   });
 
