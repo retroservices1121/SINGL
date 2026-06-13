@@ -116,14 +116,27 @@ spike at settlement. Same flywheel, different heartbeat.
 
 ---
 
-## Regulatory posture (the launch gate)
+## Regulatory posture (DECIDED: geo-gate the USA)
 
-Permissionless real-money markets = potential unlicensed gambling/derivatives,
-esp. in the US. Pick a posture **before** launch:
-- **$SPRDD / points-denominated** (no fiat payout) — closest to a game, safest.
-- **Geofenced + objective-only + KYC**, offshore entity.
-- Politics is the hottest zone — do not open permissionless election-market
-  creation to US users without legal cover.
+**Chosen posture: geo-restrict the US** (the Polymarket playbook). This lets us
+run real-money / crypto-settled markets for the rest of the world, makes
+politics viable globally, and **decouples the token from regulation** —
+$SPRDD-denominated becomes a flywheel *choice*, not a legal requirement.
+
+**An IP block alone is NOT enough.** Polymarket geofenced the US and still took
+a ~$1.4M CFTC settlement because US users entered via VPN. Layer the controls:
+- **IP geofence** (Vercel `x-vercel-ip-country` in middleware) on the real-money
+  *actions* (trade + create) — read-only aggregation can stay global.
+- **VPN / proxy detection** (e.g. IPQualityScore) — the piece Polymarket lacked.
+- **On-connect attestation** ("not a US person") + Terms restricting prohibited
+  jurisdictions.
+- **Block OFAC-sanctioned countries** too (not just US).
+- **Offshore operating entity** — structure matters as much as the IP block.
+
+Scope note: SINGL already facilitates real trading via AGG, so the geo-gate
+likely applies to the **current app**, not only the future marketplace
+(AGG's underlying venues geo-gate themselves, but the Spredd front-end should
+have its own gate by launch).
 
 ---
 
