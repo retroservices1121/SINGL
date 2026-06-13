@@ -565,6 +565,51 @@ export function enrichGroupsWithMarkets(groups: GroupData[], profiles: CountryPr
   }));
 }
 
+// A completed group-stage result (from ESPN). Team names are whatever ESPN
+// reports; findCountry maps them to the standings.
+export interface MatchResult {
+  home: string;
+  away: string;
+  homeScore: number;
+  awayScore: number;
+}
+
+// Recompute W/D/L/GD/Pts from finished matches. Resets the table to zero and
+// replays every result, so it's idempotent given the same set of finals.
+// Preserves odds fields already on the standings.
+export function enrichGroupsWithResults(groups: GroupData[], results: MatchResult[]): GroupData[] {
+  const cloned = groups.map(g => ({
+    ...g,
+    standings: g.standings.map(s => ({
+      ...s,
+      played: 0, won: 0, drawn: 0, lost: 0,
+      goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0,
+    })),
+  }));
+
+  const byName = new Map<string, GroupStanding>();
+  for (const g of cloned) for (const s of g.standings) byName.set(s.country.name.toLowerCase(), s);
+
+  for (const r of results) {
+    const hc = findCountry(r.home);
+    const ac = findCountry(r.away);
+    if (!hc || !ac || hc.group !== ac.group) continue; // group-stage matches only
+    const hs = byName.get(hc.name.toLowerCase());
+    const as = byName.get(ac.name.toLowerCase());
+    if (!hs || !as) continue;
+
+    hs.played++; as.played++;
+    hs.goalsFor += r.homeScore; hs.goalsAgainst += r.awayScore;
+    as.goalsFor += r.awayScore; as.goalsAgainst += r.homeScore;
+    if (r.homeScore > r.awayScore) { hs.won++; as.lost++; hs.points += 3; }
+    else if (r.homeScore < r.awayScore) { as.won++; hs.lost++; as.points += 3; }
+    else { hs.drawn++; as.drawn++; hs.points++; as.points++; }
+  }
+
+  for (const g of cloned) for (const s of g.standings) s.goalDifference = s.goalsFor - s.goalsAgainst;
+  return cloned;
+}
+
 // ── Match schedule ───────────────────────────────────────────────────────────
 
 export interface MatchFixture {
