@@ -18,6 +18,7 @@ type NavItem = { href: string; label: string };
 // enough to never need a scrollbar (even with the wallet connected).
 const LEAD_NAV: NavItem[] = [
   { href: '/', label: 'Trade' },
+  { href: '/markets', label: 'Markets' },
   { href: '/news', label: 'News' },
 ];
 const TOURNAMENT_NAV: NavItem[] = [

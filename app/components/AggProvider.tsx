@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { WagmiProvider, createConfig, http } from 'wagmi';
-import { mainnet, polygon, base } from 'wagmi/chains';
+import { mainnet, polygon, base, baseSepolia } from 'wagmi/chains';
 import { injected, walletConnect } from 'wagmi/connectors';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AggProvider as AggHooksProvider } from '@agg-build/hooks';
@@ -23,7 +23,9 @@ const WC_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '';
 const AUTH_REDIRECT = process.env.NEXT_PUBLIC_AGG_AUTH_REDIRECT || '';
 
 const wagmiConfig = createConfig({
-  chains: [mainnet, polygon, base],
+  // baseSepolia: the Spredd Markets marketplace (on-chain FPMM markets) lives
+  // on Base Sepolia for testnet.
+  chains: [mainnet, polygon, base, baseSepolia],
   connectors: [
     injected(),
     ...(WC_PROJECT_ID ? [walletConnect({ projectId: WC_PROJECT_ID, showQrModal: true })] : []),
@@ -32,6 +34,7 @@ const wagmiConfig = createConfig({
     [mainnet.id]: http(),
     [polygon.id]: http(),
     [base.id]: http(),
+    [baseSepolia.id]: http(process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC || 'https://sepolia.base.org'),
   },
 });
 

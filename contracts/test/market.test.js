@@ -15,7 +15,7 @@ async function deploy() {
   const factory = await Factory.deploy(
     sprdd.target, platform.address, resolver.address,
     tok(1000),  // minSprddToCreate
-    100, 100,   // creator 1% + platform 1%
+    70, 30,     // 1% total fee: 0.70% creator + 0.30% platform
     usdc(10),   // minSeed
   );
 
@@ -53,7 +53,7 @@ describe('SpreddMarket (FPMM)', () => {
 
     const [sharesOut, fee] = await market.calcBuy(YES, usdc(50));
     expect(sharesOut).to.be.gt(0);
-    expect(fee).to.equal(usdc(1)); // 2% of 50
+    expect(fee).to.equal(usdc(0.5)); // 1% of 50
 
     await ctx.coll.connect(ctx.trader).approve(market.target, usdc(50));
     await market.connect(ctx.trader).buy(YES, usdc(50), 0);
@@ -69,8 +69,9 @@ describe('SpreddMarket (FPMM)', () => {
     await ctx.coll.connect(ctx.trader).approve(market.target, usdc(50));
     await market.connect(ctx.trader).buy(YES, usdc(50), 0);
     const after = { c: await ctx.coll.balanceOf(ctx.creator.address), p: await ctx.coll.balanceOf(ctx.platform.address) };
-    expect(after.c - before.c).to.equal(usdc(0.5)); // 1% creator
-    expect(after.p - before.p).to.equal(usdc(0.5)); // 1% platform
+    // 1% fee on $50 = $0.50, split 70/30: creator $0.35, platform $0.15
+    expect(after.c - before.c).to.equal(usdc(0.35));
+    expect(after.p - before.p).to.equal(usdc(0.15));
   });
 
   it('round-trips buy then sell for less than paid (fees + impact)', async () => {

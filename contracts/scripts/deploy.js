@@ -18,8 +18,8 @@ async function main() {
     deployer.address,                       // platform fee recipient
     deployer.address,                       // default resolver (admin for v1)
     ethers.parseUnits('1000', 18),          // minSprddToCreate (1,000 $SPRDD)
-    100,                                    // creatorFeeBps (1%)
-    100,                                    // platformFeeBps (1%)
+    70,                                     // creatorFeeBps (0.70% — 70% of the 1% fee)
+    30,                                     // platformFeeBps (0.30% — 30% of the 1% fee)
     ethers.parseUnits('10', 6),             // minSeed (10 USDC)
   );
   await factory.waitForDeployment();

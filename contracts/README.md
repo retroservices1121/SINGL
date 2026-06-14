@@ -7,9 +7,11 @@ off-chain LMSR lib (`app/lib/lmsr.ts`) is kept for quotes/previews.
 
 ## Contracts
 - **`SpreddMarket.sol`** — one binary (YES/NO) market: seeded FPMM pool,
-  buy/sell either outcome (creator + platform fee per trade), `close()` (owner
-  stops trading), `resolve()` (resolver settles), `redeem()` (winning shares →
-  1 collateral each). Solvent by construction.
+  buy/sell either outcome (**1% fee per trade, split 70% creator / 30%
+  platform**), `close()` (owner stops trading), `resolve()` (resolver settles),
+  `redeem()` (winning shares → 1 collateral each). Solvent by construction.
+  Buyback/LP from platform fees is **manual** (fees land at the platform
+  address; no auto-routing).
 - **`SpreddMarketFactory.sol`** — permissionless creation **gated by a $SPRDD
   hold** (anti-spam + demand sink); pulls the creator's seed and funds the
   market. Owner-configurable fees / gate / resolver.
