@@ -15,8 +15,15 @@ off-chain LMSR lib (`app/lib/lmsr.ts`) is kept for quotes/previews.
 - **`SpreddMarketFactory.sol`** — permissionless creation **gated by a $SPRDD
   hold** (anti-spam + demand sink); pulls the creator's seed and funds the
   market. Owner-configurable fees / gate / resolver.
-- **`MockERC20.sol`** — test collateral ($USDC) and gate token ($SPRDD) for
-  testnet (real $SPRDD is Base mainnet).
+- **`MockERC20.sol`** — the testnet tokens: **PTS** (free points, the trading
+  collateral — open-mint faucet) and **$SPRDD** (the create-gate; distribute to
+  chosen testers, no public faucet, so the gate actually gates).
+
+## Testnet model (free-to-play)
+Trading uses **free PTS points** (claimable in the UI), so there's no real money
+on testnet — it still exercises the on-chain AMM and the create-gate end to end.
+**Creation stays gated by holding ≥ 1,000 $SPRDD.** Mainnet swaps PTS for real
+collateral (USDC) and uses the real $SPRDD; the gate logic is unchanged.
 
 ## Develop
 ```

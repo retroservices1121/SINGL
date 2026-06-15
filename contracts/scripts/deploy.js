@@ -7,9 +7,12 @@ async function main() {
   console.log(`Network: ${network.name}  Deployer: ${deployer.address}`);
 
   const Mock = await ethers.getContractFactory('MockERC20');
+  // $SPRDD = the create-gate token (distribute to chosen testers; don't
+  // expose a public faucet so the gate actually gates).
   const sprdd = await Mock.deploy('Spredd (test)', 'SPRDD', 18);
   await sprdd.waitForDeployment();
-  const usdc = await Mock.deploy('USD Coin (test)', 'USDC', 6);
+  // PTS = free testnet points = the trading collateral (open-mint faucet).
+  const usdc = await Mock.deploy('Spredd Points (test)', 'PTS', 6);
   await usdc.waitForDeployment();
 
   const Factory = await ethers.getContractFactory('SpreddMarketFactory');
@@ -29,10 +32,11 @@ async function main() {
   await (await usdc.mint(deployer.address, ethers.parseUnits('10000', 6))).wait();
 
   console.log('\n── Deployed ──────────────────────────────');
-  console.log('SPRDD (test):   ', sprdd.target);
-  console.log('USDC  (test):   ', usdc.target);
-  console.log('MarketFactory:  ', factory.target);
-  console.log('\nNext: approve USDC to the factory, then factory.createMarket(usdc, question, 0x0, seed).');
+  console.log('SPRDD (gate):     ', sprdd.target, '→ NEXT_PUBLIC ... (gate; distribute to testers)');
+  console.log('PTS (points/coll):', usdc.target, '→ NEXT_PUBLIC_MARKET_COLLATERAL');
+  console.log('MarketFactory:    ', factory.target, '→ NEXT_PUBLIC_MARKET_FACTORY');
+  console.log('\nTestnet: trading uses free PTS points (open-mint faucet in the UI).');
+  console.log('Creation is gated by holding >= 1,000 SPRDD — mint SPRDD to your testers.');
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

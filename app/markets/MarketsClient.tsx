@@ -8,7 +8,7 @@ import PageShell from '@/app/components/PageShell';
 import MarketWalletBar from '@/app/components/MarketWalletBar';
 import {
   FACTORY_ABI, MARKET_ABI, ERC20_ABI, FACTORY_ADDRESS, COLLATERAL_ADDRESS,
-  COLLATERAL_DECIMALS, COLLATERAL_SYMBOL, MARKETS_CHAIN_ID, isMarketplaceLive,
+  COLLATERAL_DECIMALS, COLLATERAL_SYMBOL, MARKETS_CHAIN_ID, isMarketplaceLive, FAUCET_AMOUNT,
 } from '@/app/lib/marketsAbi';
 
 interface MarketCard { address: `0x${string}`; question: string; priceYes: number; status: number; }
@@ -23,8 +23,33 @@ export default function MarketsClient() {
   const [question, setQuestion] = useState('');
   const [seed, setSeed] = useState('100');
   const [gate, setGate] = useState<{ min: bigint; bal: bigint } | null>(null);
+  const [pts, setPts] = useState<bigint | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+
+  const loadPts = useCallback(async () => {
+    if (!publicClient || !isMarketplaceLive || !address) return;
+    try {
+      const b = await publicClient.readContract({ address: COLLATERAL_ADDRESS as `0x${string}`, abi: ERC20_ABI, functionName: 'balanceOf', args: [address] }) as bigint;
+      setPts(b);
+    } catch { /* ignore */ }
+  }, [publicClient, address]);
+
+  useEffect(() => { loadPts(); }, [loadPts]);
+
+  const claimPoints = async () => {
+    if (!publicClient || !address) return;
+    setBusy(true); setMsg(null);
+    try {
+      const h = await writeContractAsync({
+        address: COLLATERAL_ADDRESS as `0x${string}`, abi: ERC20_ABI, functionName: 'mint',
+        args: [address, parseUnits(String(FAUCET_AMOUNT), COLLATERAL_DECIMALS)], chainId: MARKETS_CHAIN_ID,
+      });
+      await publicClient.waitForTransactionReceipt({ hash: h });
+      await loadPts();
+    } catch (e) { setMsg(e instanceof Error ? e.message.slice(0, 140) : 'Failed'); }
+    finally { setBusy(false); }
+  };
 
   const load = useCallback(async () => {
     if (!publicClient || !isMarketplaceLive) { setMarkets([]); return; }
@@ -99,6 +124,22 @@ export default function MarketsClient() {
         </div>
       ) : (
         <div className="space-y-8">
+          {/* Testnet faucet — trade with free points, no real money. */}
+          <div className="bg-[var(--primary-fixed)] rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 border border-[var(--primary-container)]">
+            <div>
+              <p className="text-xs font-black uppercase tracking-tight text-[var(--primary)]">Testnet · free to play</p>
+              <p className="text-[11px] text-[var(--primary)]">
+                Trade with free {COLLATERAL_SYMBOL} points{pts != null ? ` · you have ${Number(formatUnits(pts, COLLATERAL_DECIMALS)).toLocaleString()}` : ''}
+              </p>
+            </div>
+            <button
+              type="button" disabled={!onChain || busy} onClick={claimPoints}
+              className="px-4 py-2 rounded-lg bg-[var(--primary-container)] text-white text-xs font-bold uppercase tracking-widest cursor-pointer disabled:opacity-50"
+            >
+              {busy ? '…' : `Claim ${FAUCET_AMOUNT.toLocaleString()} ${COLLATERAL_SYMBOL}`}
+            </button>
+          </div>
+
           {/* Create */}
           <div className="bg-[var(--surface-container-lowest)] rounded-xl p-5 shadow-ambient">
             <h3 className="font-heading font-black text-sm uppercase tracking-tight text-[var(--on-surface)] mb-3">Create a market</h3>

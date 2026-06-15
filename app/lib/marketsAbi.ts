@@ -60,4 +60,10 @@ export const ERC20_ABI = [
   { type: 'function', name: 'allowance', stateMutability: 'view', inputs: [{ type: 'address' }, { type: 'address' }], outputs: [{ type: 'uint256' }] },
   { type: 'function', name: 'approve', stateMutability: 'nonpayable', inputs: [{ type: 'address' }, { type: 'uint256' }], outputs: [{ type: 'bool' }] },
   { type: 'function', name: 'decimals', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint8' }] },
+  // Testnet only: the points token is open-mint, so anyone can claim free
+  // PTS to trade with. Real collateral on mainnet won't expose this.
+  { type: 'function', name: 'mint', stateMutability: 'nonpayable', inputs: [{ type: 'address' }, { type: 'uint256' }], outputs: [] },
 ] as const;
+
+/** Free points granted per faucet claim (testnet). */
+export const FAUCET_AMOUNT = 1000;
