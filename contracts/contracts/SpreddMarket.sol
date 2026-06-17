@@ -35,6 +35,15 @@ contract SpreddMarket is ReentrancyGuard {
     address public resolver;             // may settle the market
     string public question;
 
+    // Resolution binding — what this market settles against. The launch rule
+    // is "objectively-resolvable only": a non-manual market must name a feed
+    // (an agg.market question, an ESPN event, a price feed) so it can be
+    // auto-settled rather than decided by free-text guesswork. `kind` 0 MANUAL
+    // is the testnet/admin escape hatch; the resolver still calls resolve().
+    enum ResolutionKind { MANUAL, AGG, ESPN, PRICE }
+    ResolutionKind public immutable resolutionKind;
+    string public resolutionSource;      // feed id the resolver settles against
+
     uint16 public immutable creatorFeeBps;   // e.g. 100 = 1%
     uint16 public immutable platformFeeBps;  // e.g. 100 = 1%
     uint16 public constant MAX_TOTAL_FEE_BPS = 1000; // 10% hard cap
@@ -70,10 +79,17 @@ contract SpreddMarket is ReentrancyGuard {
         string memory _question,
         uint16 _creatorFeeBps,
         uint16 _platformFeeBps,
-        uint256 seed
+        uint256 seed,
+        ResolutionKind _resolutionKind,
+        string memory _resolutionSource
     ) {
         require(seed > 0, "seed");
         require(uint256(_creatorFeeBps) + _platformFeeBps <= MAX_TOTAL_FEE_BPS, "fee");
+        // Objectively-resolvable launch rule: any non-manual market must bind a
+        // resolution feed. Manual markets (testnet/admin) may leave it empty.
+        if (_resolutionKind != ResolutionKind.MANUAL) {
+            require(bytes(_resolutionSource).length > 0, "source");
+        }
         factory = msg.sender;
         collateral = _collateral;
         creator = _creator;
@@ -82,6 +98,8 @@ contract SpreddMarket is ReentrancyGuard {
         question = _question;
         creatorFeeBps = _creatorFeeBps;
         platformFeeBps = _platformFeeBps;
+        resolutionKind = _resolutionKind;
+        resolutionSource = _resolutionSource;
 
         // The factory transfers `seed` collateral to this market right after
         // deploy; reserves start balanced (50/50 price). 1 collateral backs

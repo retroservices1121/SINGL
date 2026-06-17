@@ -14,6 +14,11 @@ export const isMarketplaceLive = !!FACTORY_ADDRESS && !!COLLATERAL_ADDRESS;
 
 export const OUTCOME = { YES: 0, NO: 1 } as const;
 
+/** What a market settles against (mirrors SpreddMarket.ResolutionKind). */
+export const RESOLUTION_KIND = { MANUAL: 0, AGG: 1, ESPN: 2, PRICE: 3 } as const;
+export type ResolutionKind = (typeof RESOLUTION_KIND)[keyof typeof RESOLUTION_KIND];
+export const RESOLUTION_LABEL = ['Manual', 'agg.market', 'ESPN', 'Price feed'] as const;
+
 export const FACTORY_ABI = [
   { type: 'function', name: 'marketCount', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint256' }] },
   { type: 'function', name: 'allMarkets', stateMutability: 'view', inputs: [{ type: 'uint256' }], outputs: [{ type: 'address' }] },
@@ -23,7 +28,11 @@ export const FACTORY_ABI = [
   { type: 'function', name: 'platformFeeBps', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint16' }] },
   {
     type: 'function', name: 'createMarket', stateMutability: 'nonpayable',
-    inputs: [{ name: 'collateral', type: 'address' }, { name: 'question', type: 'string' }, { name: 'resolver', type: 'address' }, { name: 'seed', type: 'uint256' }],
+    inputs: [
+      { name: 'collateral', type: 'address' }, { name: 'question', type: 'string' },
+      { name: 'resolver', type: 'address' }, { name: 'seed', type: 'uint256' },
+      { name: 'resolutionKind', type: 'uint8' }, { name: 'resolutionSource', type: 'string' },
+    ],
     outputs: [{ type: 'address' }],
   },
   {
@@ -34,6 +43,8 @@ export const FACTORY_ABI = [
       { name: 'collateral', type: 'address', indexed: false },
       { name: 'question', type: 'string', indexed: false },
       { name: 'seed', type: 'uint256', indexed: false },
+      { name: 'resolutionKind', type: 'uint8', indexed: false },
+      { name: 'resolutionSource', type: 'string', indexed: false },
     ],
   },
 ] as const;
@@ -42,6 +53,8 @@ export const MARKET_ABI = [
   { type: 'function', name: 'question', stateMutability: 'view', inputs: [], outputs: [{ type: 'string' }] },
   { type: 'function', name: 'status', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint8' }] }, // 0 Open 1 Closed 2 Resolved
   { type: 'function', name: 'winningOutcome', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint8' }] },
+  { type: 'function', name: 'resolutionKind', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint8' }] },
+  { type: 'function', name: 'resolutionSource', stateMutability: 'view', inputs: [], outputs: [{ type: 'string' }] },
   { type: 'function', name: 'price', stateMutability: 'view', inputs: [{ name: 'o', type: 'uint8' }], outputs: [{ type: 'uint256' }] },
   { type: 'function', name: 'reserveYes', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint256' }] },
   { type: 'function', name: 'reserveNo', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint256' }] },

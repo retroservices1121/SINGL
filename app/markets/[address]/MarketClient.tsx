@@ -8,13 +8,14 @@ import PageShell from '@/app/components/PageShell';
 import MarketWalletBar from '@/app/components/MarketWalletBar';
 import {
   MARKET_ABI, ERC20_ABI, COLLATERAL_DECIMALS, COLLATERAL_SYMBOL,
-  MARKETS_CHAIN_ID, OUTCOME, isMarketplaceLive,
+  MARKETS_CHAIN_ID, OUTCOME, isMarketplaceLive, RESOLUTION_LABEL,
 } from '@/app/lib/marketsAbi';
 
 interface MarketState {
   question: string; status: number; winning: number;
   priceYes: number; priceNo: number;
   yesShares: bigint; noShares: bigint;
+  resKind: number; resSource: string;
 }
 const STATUS = ['Open', 'Closed', 'Resolved'];
 
@@ -36,9 +37,10 @@ export default function MarketClient({ address }: { address: `0x${string}` }) {
     const read = (fn: string, args: unknown[] = []) =>
       publicClient.readContract({ address, abi: MARKET_ABI, functionName: fn as never, args: args as never });
     try {
-      const [q, st, win, pY, pN] = await Promise.all([
+      const [q, st, win, pY, pN, rk, rs] = await Promise.all([
         read('question'), read('status'), read('winningOutcome'), read('price', [0]), read('price', [1]),
-      ]) as [string, number, number, bigint, bigint];
+        read('resolutionKind'), read('resolutionSource'),
+      ]) as [string, number, number, bigint, bigint, number, string];
       const [yS, nS] = account
         ? await Promise.all([read('yesShares', [account]), read('noShares', [account])]) as [bigint, bigint]
         : [0n, 0n];
@@ -46,6 +48,7 @@ export default function MarketClient({ address }: { address: `0x${string}` }) {
         question: q, status: Number(st), winning: Number(win),
         priceYes: Number(formatUnits(pY, 18)), priceNo: Number(formatUnits(pN, 18)),
         yesShares: yS, noShares: nS,
+        resKind: Number(rk), resSource: rs,
       });
     } catch { /* ignore */ }
   }, [publicClient, address, account]);
@@ -141,6 +144,14 @@ export default function MarketClient({ address }: { address: `0x${string}` }) {
               </div>
             </div>
             <p className="mt-3 text-[11px] text-[var(--secondary)]">Your position: {fmt(m.yesShares)} YES · {fmt(m.noShares)} NO</p>
+            <div className="mt-3 pt-3 border-t border-[var(--surface-container)]">
+              <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--secondary)]">Resolves via</p>
+              <p className="text-xs font-bold text-[var(--on-surface)]">
+                {RESOLUTION_LABEL[m.resKind] ?? 'Manual'}
+                {m.resKind === 0 && <span className="font-normal text-[var(--secondary)]"> · admin-settled (testnet)</span>}
+              </p>
+              {m.resSource && <p className="text-[10px] font-mono text-[var(--secondary)] mt-0.5 break-all">{m.resSource}</p>}
+            </div>
           </div>
 
           {resolved ? (

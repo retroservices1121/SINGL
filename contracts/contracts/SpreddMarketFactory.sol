@@ -31,7 +31,9 @@ contract SpreddMarketFactory is Ownable {
         address indexed creator,
         address collateral,
         string question,
-        uint256 seed
+        uint256 seed,
+        uint8 resolutionKind,
+        string resolutionSource
     );
     event ParamsUpdated();
 
@@ -64,7 +66,9 @@ contract SpreddMarketFactory is Ownable {
         IERC20 collateral,
         string calldata question,
         address resolver,
-        uint256 seed
+        uint256 seed,
+        SpreddMarket.ResolutionKind resolutionKind,
+        string calldata resolutionSource
     ) external returns (address) {
         require(sprdd.balanceOf(msg.sender) >= minSprddToCreate, "hold $SPRDD");
         require(seed >= minSeed, "seed too small");
@@ -74,12 +78,16 @@ contract SpreddMarketFactory is Ownable {
         // Pull the seed, deploy the market, then fund its liquidity.
         collateral.safeTransferFrom(msg.sender, address(this), seed);
         SpreddMarket market = new SpreddMarket(
-            collateral, msg.sender, platform, res, question, creatorFeeBps, platformFeeBps, seed
+            collateral, msg.sender, platform, res, question,
+            creatorFeeBps, platformFeeBps, seed, resolutionKind, resolutionSource
         );
         collateral.safeTransfer(address(market), seed);
 
         allMarkets.push(address(market));
-        emit MarketCreated(address(market), msg.sender, address(collateral), question, seed);
+        emit MarketCreated(
+            address(market), msg.sender, address(collateral), question, seed,
+            uint8(resolutionKind), resolutionSource
+        );
         return address(market);
     }
 

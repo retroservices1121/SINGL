@@ -4,6 +4,7 @@ const { ethers } = require('hardhat');
 const usdc = (n) => ethers.parseUnits(n.toString(), 6); // collateral: 6 decimals
 const tok = (n) => ethers.parseUnits(n.toString(), 18); // $SPRDD: 18 decimals
 const YES = 0, NO = 1;
+const KIND = { MANUAL: 0, AGG: 1, ESPN: 2, PRICE: 3 };
 
 async function deploy() {
   const [deployer, platform, resolver, creator, trader] = await ethers.getSigners();
@@ -27,10 +28,10 @@ async function deploy() {
   return { deployer, platform, resolver, creator, trader, sprdd, coll, factory };
 }
 
-async function createMarket(ctx, seed = usdc(100)) {
+async function createMarket(ctx, seed = usdc(100), kind = KIND.MANUAL, source = '') {
   const { factory, coll, creator } = ctx;
   await coll.connect(creator).approve(factory.target, seed);
-  const tx = await factory.connect(creator).createMarket(coll.target, 'Will X happen?', ethers.ZeroAddress, seed);
+  const tx = await factory.connect(creator).createMarket(coll.target, 'Will X happen?', ethers.ZeroAddress, seed, kind, source);
   const rc = await tx.wait();
   const ev = rc.logs.map(l => { try { return factory.interface.parseLog(l); } catch { return null; } }).find(e => e && e.name === 'MarketCreated');
   return ethers.getContractAt('SpreddMarket', ev.args.market);
@@ -42,8 +43,22 @@ describe('SpreddMarket (FPMM)', () => {
     const { factory, coll, trader } = ctx; // trader has no $SPRDD
     await coll.connect(trader).approve(factory.target, usdc(100));
     await expect(
-      factory.connect(trader).createMarket(coll.target, 'q', ethers.ZeroAddress, usdc(100)),
+      factory.connect(trader).createMarket(coll.target, 'q', ethers.ZeroAddress, usdc(100), KIND.MANUAL, ''),
     ).to.be.revertedWith('hold $SPRDD');
+  });
+
+  it('binds a resolution source and rejects a non-manual market without one', async () => {
+    const ctx = await deploy();
+    const { factory, coll, creator } = ctx;
+    await coll.connect(creator).approve(factory.target, usdc(100));
+    // AGG market with no source must revert.
+    await expect(
+      factory.connect(creator).createMarket(coll.target, 'q', ethers.ZeroAddress, usdc(100), KIND.AGG, ''),
+    ).to.be.revertedWith('source');
+    // With a source it stores the binding.
+    const market = await createMarket(ctx, usdc(100), KIND.AGG, 'polymarket:0xabc');
+    expect(await market.resolutionKind()).to.equal(KIND.AGG);
+    expect(await market.resolutionSource()).to.equal('polymarket:0xabc');
   });
 
   it('starts at 50/50 and moves price up on a YES buy', async () => {

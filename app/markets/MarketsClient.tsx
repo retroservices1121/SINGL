@@ -9,10 +9,15 @@ import MarketWalletBar from '@/app/components/MarketWalletBar';
 import {
   FACTORY_ABI, MARKET_ABI, ERC20_ABI, FACTORY_ADDRESS, COLLATERAL_ADDRESS,
   COLLATERAL_DECIMALS, COLLATERAL_SYMBOL, MARKETS_CHAIN_ID, isMarketplaceLive, FAUCET_AMOUNT,
+  RESOLUTION_KIND, RESOLUTION_LABEL,
 } from '@/app/lib/marketsAbi';
+import type { MarketData } from '@/app/types';
 
-interface MarketCard { address: `0x${string}`; question: string; priceYes: number; status: number; }
+interface MarketCard { address: `0x${string}`; question: string; priceYes: number; status: number; resKind: number; }
 const STATUS = ['Open', 'Closed', 'Resolved'];
+
+/** A resolution feed this market settles against (the design doc's launch rule). */
+interface BoundSource { kind: number; value: string; label: string; }
 
 export default function MarketsClient() {
   const { address, isConnected, chainId } = useAccount();
@@ -26,6 +31,37 @@ export default function MarketsClient() {
   const [pts, setPts] = useState<bigint | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+
+  // Resolution binding: a market must map to a feed it settles against. Default
+  // path is mirroring an agg.market question (objective, auto-settleable); the
+  // manual escape hatch is testnet-only.
+  const [resMode, setResMode] = useState<'agg' | 'manual'>('agg');
+  const [source, setSource] = useState<BoundSource | null>(null);
+  const [aggQuery, setAggQuery] = useState('');
+  const [aggResults, setAggResults] = useState<MarketData[] | null>(null);
+  const [aggBusy, setAggBusy] = useState(false);
+
+  const searchAgg = useCallback(async () => {
+    const q = aggQuery.trim();
+    if (!q) { setAggResults(null); return; }
+    setAggBusy(true);
+    try {
+      const res = await fetch(`/api/markets?q=${encodeURIComponent(q)}&limit=8`);
+      const json = await res.json();
+      setAggResults((json.markets || []) as MarketData[]);
+    } catch { setAggResults([]); }
+    finally { setAggBusy(false); }
+  }, [aggQuery]);
+
+  const pickAgg = (mkt: MarketData) => {
+    const venue = mkt.venue ? `${mkt.venue}:` : '';
+    setSource({ kind: RESOLUTION_KIND.AGG, value: `${venue}${mkt.id}`, label: mkt.title });
+    setQuestion(mkt.title);
+    setAggResults(null);
+    setAggQuery('');
+  };
+
+  const clearSource = () => { setSource(null); setQuestion(''); };
 
   const loadPts = useCallback(async () => {
     if (!publicClient || !isMarketplaceLive || !address) return;
@@ -60,12 +96,13 @@ export default function MarketsClient() {
           publicClient.readContract({ address: FACTORY_ADDRESS as `0x${string}`, abi: FACTORY_ABI, functionName: 'allMarkets', args: [BigInt(i)] }) as Promise<`0x${string}`>),
       );
       const cards = await Promise.all(addrs.map(async (a) => {
-        const [q, p, s] = await Promise.all([
+        const [q, p, s, k] = await Promise.all([
           publicClient.readContract({ address: a, abi: MARKET_ABI, functionName: 'question' }) as Promise<string>,
           publicClient.readContract({ address: a, abi: MARKET_ABI, functionName: 'price', args: [0] }) as Promise<bigint>,
           publicClient.readContract({ address: a, abi: MARKET_ABI, functionName: 'status' }) as Promise<number>,
+          publicClient.readContract({ address: a, abi: MARKET_ABI, functionName: 'resolutionKind' }) as Promise<number>,
         ]);
-        return { address: a, question: q, priceYes: Number(formatUnits(p, 18)), status: Number(s) };
+        return { address: a, question: q, priceYes: Number(formatUnits(p, 18)), status: Number(s), resKind: Number(k) };
       }));
       setMarkets(cards.reverse());
     } catch { setMarkets([]); }
@@ -99,13 +136,15 @@ export default function MarketsClient() {
         args: [FACTORY_ADDRESS as `0x${string}`, seedWei], chainId: MARKETS_CHAIN_ID,
       });
       await publicClient.waitForTransactionReceipt({ hash: approveHash });
-      // 2) create the market
+      // 2) create the market, binding its resolution source
+      const resKind = resMode === 'agg' ? RESOLUTION_KIND.AGG : RESOLUTION_KIND.MANUAL;
+      const resSource = resMode === 'agg' ? (source?.value ?? '') : '';
       const createHash = await writeContractAsync({
         address: FACTORY_ADDRESS as `0x${string}`, abi: FACTORY_ABI, functionName: 'createMarket',
-        args: [COLLATERAL_ADDRESS as `0x${string}`, question, '0x0000000000000000000000000000000000000000', seedWei], chainId: MARKETS_CHAIN_ID,
+        args: [COLLATERAL_ADDRESS as `0x${string}`, question, '0x0000000000000000000000000000000000000000', seedWei, resKind, resSource], chainId: MARKETS_CHAIN_ID,
       });
       await publicClient.waitForTransactionReceipt({ hash: createHash });
-      setMsg('Market created.'); setQuestion('');
+      setMsg('Market created.'); setQuestion(''); setSource(null);
       await load();
     } catch (e) { setMsg(e instanceof Error ? e.message.slice(0, 140) : 'Failed'); }
     finally { setBusy(false); }
@@ -143,11 +182,68 @@ export default function MarketsClient() {
           {/* Create */}
           <div className="bg-[var(--surface-container-lowest)] rounded-xl p-5 shadow-ambient">
             <h3 className="font-heading font-black text-sm uppercase tracking-tight text-[var(--on-surface)] mb-3">Create a market</h3>
-            <input
-              value={question} onChange={e => setQuestion(e.target.value)}
-              placeholder="Will X happen by Y?"
-              className="w-full mb-3 px-3 py-2 rounded-lg border border-[var(--surface-container)] bg-[var(--surface-container-low)] text-sm text-[var(--on-surface)]"
-            />
+
+            {/* Resolution source — what the market settles against. */}
+            <div className="flex gap-2 mb-3">
+              {(['agg', 'manual'] as const).map(mode => (
+                <button key={mode} type="button" onClick={() => { setResMode(mode); clearSource(); }}
+                  className={`flex-1 py-2 rounded-lg text-[11px] font-bold uppercase tracking-widest cursor-pointer ${resMode === mode ? 'bg-[var(--on-surface)] text-white' : 'bg-[var(--surface-container-low)] text-[var(--secondary)]'}`}>
+                  {mode === 'agg' ? 'Mirror agg.market' : 'Custom (testnet)'}
+                </button>
+              ))}
+            </div>
+
+            {resMode === 'agg' ? (
+              source ? (
+                <div className="mb-3 flex items-start justify-between gap-3 rounded-lg border border-[var(--primary-container)] bg-[var(--primary-fixed)] p-3">
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--primary)]">Resolves via agg.market</p>
+                    <p className="text-sm font-bold text-[var(--on-surface)] line-clamp-2">{source.label}</p>
+                    <p className="text-[10px] font-mono text-[var(--secondary)] mt-0.5">{source.value}</p>
+                  </div>
+                  <button type="button" onClick={clearSource} className="text-[10px] font-bold uppercase tracking-widest text-[var(--secondary)] hover:text-[var(--on-surface)] cursor-pointer shrink-0">Change</button>
+                </div>
+              ) : (
+                <div className="mb-3">
+                  <div className="flex gap-2">
+                    <input
+                      value={aggQuery} onChange={e => setAggQuery(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); searchAgg(); } }}
+                      placeholder="Search agg.market to mirror a question…"
+                      className="flex-1 px-3 py-2 rounded-lg border border-[var(--surface-container)] bg-[var(--surface-container-low)] text-sm text-[var(--on-surface)]"
+                    />
+                    <button type="button" onClick={searchAgg} disabled={aggBusy || !aggQuery.trim()}
+                      className="px-3 py-2 rounded-lg bg-[var(--surface-container)] text-[var(--on-surface)] text-xs font-bold uppercase tracking-widest cursor-pointer disabled:opacity-50">
+                      {aggBusy ? '…' : 'Search'}
+                    </button>
+                  </div>
+                  {aggResults && (
+                    aggResults.length === 0 ? (
+                      <p className="mt-2 text-[11px] text-[var(--secondary)]">No markets found — try other terms or use Custom.</p>
+                    ) : (
+                      <div className="mt-2 space-y-1.5 max-h-64 overflow-y-auto">
+                        {aggResults.map(r => (
+                          <button key={r.id} type="button" onClick={() => pickAgg(r)}
+                            className="w-full text-left p-2.5 rounded-lg bg-[var(--surface-container-low)] hover:bg-[var(--surface-container)] cursor-pointer">
+                            <p className="text-xs font-bold text-[var(--on-surface)] line-clamp-2">{r.title}</p>
+                            <p className="text-[10px] text-[var(--secondary)] mt-0.5">
+                              {r.venue ?? 'agg'} · YES {Math.round((r.yesPrice ?? 0) * 100)}¢{r.volume ? ` · $${Math.round(r.volume).toLocaleString()} vol` : ''}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    )
+                  )}
+                </div>
+              )
+            ) : (
+              <input
+                value={question} onChange={e => setQuestion(e.target.value)}
+                placeholder="Will X happen by Y?"
+                className="w-full mb-3 px-3 py-2 rounded-lg border border-[var(--surface-container)] bg-[var(--surface-container-low)] text-sm text-[var(--on-surface)]"
+              />
+            )}
+
             <div className="flex items-center gap-3 mb-3">
               <input
                 value={seed} onChange={e => setSeed(e.target.value)} inputMode="decimal"
@@ -162,7 +258,8 @@ export default function MarketsClient() {
               </p>
             )}
             <button
-              type="button" disabled={!onChain || busy || !question || !meetsGate}
+              type="button"
+              disabled={!onChain || busy || !meetsGate || (resMode === 'agg' ? !source : !question.trim())}
               onClick={create}
               className="px-4 py-2 rounded-lg bg-[var(--primary-container)] text-white text-xs font-bold uppercase tracking-widest cursor-pointer disabled:opacity-50"
             >
@@ -183,7 +280,7 @@ export default function MarketsClient() {
                   className="block bg-[var(--surface-container-lowest)] rounded-xl p-4 shadow-ambient hover:scale-[1.02] transition-all">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--secondary)]">{STATUS[m.status]}</span>
-                    <span className="text-[9px] font-mono text-[var(--secondary)]">{m.address.slice(0, 6)}…</span>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--primary)]">{RESOLUTION_LABEL[m.resKind] ?? 'Manual'}</span>
                   </div>
                   <p className="text-sm font-bold text-[var(--on-surface)] mb-3 line-clamp-2">{m.question}</p>
                   <div className="flex gap-2">
