@@ -15,7 +15,7 @@ import type { MarketData } from '@/app/types';
 // Chart colors: yellow/gold, black, orange/brown for top 3, then more
 const COLORS = [
   '#D4A843', // gold/yellow
-  '#1a1a1a', // black
+  '#E8E8EA', // white (was near-black — invisible on the dark chart)
   '#C4652A', // orange/brown
   '#3B82F6', // blue
   '#8B5CF6', // purple
@@ -191,7 +191,7 @@ export default function OutcomeChart({ markets, eventId, volume }: OutcomeChartP
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-[var(--surface-container-lowest)] border border-[var(--surface-container)] rounded-xl p-5">
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mb-4">
         {topMarkets.map((m, i) => (
@@ -200,7 +200,7 @@ export default function OutcomeChart({ markets, eventId, volume }: OutcomeChartP
               className="w-2.5 h-2.5 rounded-full inline-block"
               style={{ backgroundColor: COLORS[i % COLORS.length] }}
             />
-            <span className="text-sm text-gray-700">{tickerLabels[m.ticker]}</span>
+            <span className="text-sm text-[var(--on-surface)]">{tickerLabels[m.ticker]}</span>
             <span className="text-sm font-semibold" style={{ color: COLORS[i % COLORS.length] }}>
               {Math.round(m.yesPrice * 100)}%
             </span>
@@ -217,13 +217,13 @@ export default function OutcomeChart({ markets, eventId, volume }: OutcomeChartP
               <ReferenceLine
                 key={v}
                 y={v}
-                stroke="#e5e7eb"
+                stroke="#2e2e34"
                 strokeDasharray="2 4"
               />
             ))}
             <XAxis
               dataKey="time"
-              tick={{ fontSize: 11, fill: '#9ca3af' }}
+              tick={{ fontSize: 11, fill: '#9a9aa2' }}
               tickLine={false}
               axisLine={false}
               interval="preserveStartEnd"
@@ -232,7 +232,7 @@ export default function OutcomeChart({ markets, eventId, volume }: OutcomeChartP
             <YAxis
               orientation="right"
               domain={[yMin, yMax]}
-              tick={{ fontSize: 11, fill: '#9ca3af' }}
+              tick={{ fontSize: 11, fill: '#9a9aa2' }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(v: number) => `${v}%`}
@@ -240,15 +240,15 @@ export default function OutcomeChart({ markets, eventId, volume }: OutcomeChartP
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#fff',
-                border: '1px solid #e5e7eb',
+                backgroundColor: '#16161a',
+                border: '1px solid #2e2e34',
                 borderRadius: '8px',
                 fontSize: '12px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.55)',
               }}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               formatter={(value: any, name: any) => [`${value}%`, tickerLabels[name] || name] as any}
-              labelStyle={{ color: '#6b7280', marginBottom: 4 }}
+              labelStyle={{ color: '#9a9aa2', marginBottom: 4 }}
             />
             {topMarkets.map((m, i) => {
               const color = COLORS[i % COLORS.length];
@@ -261,7 +261,7 @@ export default function OutcomeChart({ markets, eventId, volume }: OutcomeChartP
                   stroke={color}
                   strokeWidth={1.5}
                   dot={false}
-                  activeDot={{ r: 4, fill: color, stroke: '#fff', strokeWidth: 2 }}
+                  activeDot={{ r: 4, fill: color, stroke: '#111116', strokeWidth: 2 }}
                   connectNulls
                   isAnimationActive={false}
                 />
@@ -273,9 +273,9 @@ export default function OutcomeChart({ markets, eventId, volume }: OutcomeChartP
 
       {/* Bottom bar: volume left, time range buttons right */}
       <div className="flex items-center justify-between mt-2">
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-[var(--secondary)]">
           {volume ? (
-            <span className="font-semibold text-gray-700">{formatVolume(volume)} vol</span>
+            <span className="font-semibold text-[var(--on-surface)]">{formatVolume(volume)} vol</span>
           ) : null}
         </div>
         <div className="flex items-center gap-1">
@@ -285,8 +285,8 @@ export default function OutcomeChart({ markets, eventId, volume }: OutcomeChartP
               onClick={() => setRange(r.key)}
               className={`px-2.5 py-1 text-xs font-semibold rounded transition-colors cursor-pointer ${
                 range === r.key
-                  ? 'bg-gray-900 text-white'
-                  : 'text-gray-500 hover:bg-gray-100'
+                  ? 'bg-[var(--surface-container-high)] text-white'
+                  : 'text-[var(--secondary)] hover:bg-[var(--surface-container)]'
               }`}
             >
               {r.label}

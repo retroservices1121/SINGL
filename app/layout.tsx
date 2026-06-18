@@ -41,7 +41,7 @@ export default function RootLayout({
           Button, Place Order, etc.) to pick up our brand colors. Our
           own components also read the bound --primary / --secondary
           / --outline tokens, so the whole app stays in sync. */}
-      <body className="antialiased agg-root partner-theme">
+      <body className="antialiased agg-root partner-theme dark">
         <Providers>
           {children}
         </Providers>

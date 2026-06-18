@@ -14,7 +14,7 @@ export default function LeaderboardPage() {
   return (
     <div className="min-h-screen bg-[var(--surface)]">
       {/* Top Nav */}
-      <nav className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-[var(--surface-container)]">
+      <nav className="bg-[var(--surface)]/80 backdrop-blur-md sticky top-0 z-50 border-b border-[var(--surface-container)]">
         <div className="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto">
           <div className="flex items-center gap-8">
             <Link href="/">

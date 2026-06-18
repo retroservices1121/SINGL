@@ -492,7 +492,7 @@ function FinalFourSection({
                   <div className="mt-3 font-mono text-4xl font-bold text-[var(--primary-container)]">
                     {Math.round((topTeam.championshipOdds || 0) * 100)}%
                   </div>
-                  <div className="text-xs text-slate-400 mt-1">market-implied favorite</div>
+                  <div className="text-xs text-[var(--secondary)] mt-1">market-implied favorite</div>
                   <button className="mt-4 w-full py-2.5 text-xs font-bold uppercase tracking-widest rounded-md bg-[var(--primary-container)] text-white hover:brightness-110 transition-all cursor-pointer">
                     Trade Championship
                   </button>
@@ -600,7 +600,7 @@ function PathCalculator({ teams }: { teams: TeamProfile[] }) {
           </div>
 
           <div className="flex items-center justify-between p-3 bg-[var(--on-surface)] rounded-lg">
-            <span className="text-xs text-slate-400 uppercase tracking-widest">Championship Probability</span>
+            <span className="text-xs text-[var(--secondary)] uppercase tracking-widest">Championship Probability</span>
             <span className="font-mono text-xl font-bold text-[var(--primary-container)]">
               {Math.round((selectedTeam.championshipOdds || 0) * 100)}%
             </span>

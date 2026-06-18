@@ -86,7 +86,7 @@ export default function OrderBookDepth({ markets }: OrderBookDepthProps) {
             >
               {/* Subtle bid depth background */}
               <div
-                className="absolute inset-y-0 left-0 bg-emerald-50 opacity-40 pointer-events-none"
+                className="absolute inset-y-0 left-0 bg-emerald-500/10 opacity-40 pointer-events-none"
                 style={{ width: `${yesBidPct}%` }}
               />
 
@@ -97,7 +97,7 @@ export default function OrderBookDepth({ markets }: OrderBookDepthProps) {
 
               {/* Values */}
               <div className="relative flex items-center gap-4 shrink-0">
-                <span className="text-sm font-mono font-semibold text-emerald-600 w-10 text-right">
+                <span className="text-sm font-mono font-semibold text-emerald-300 w-10 text-right">
                   {yesBidPct}c
                 </span>
                 <span className="text-sm font-mono font-semibold text-red-500 w-10 text-right">

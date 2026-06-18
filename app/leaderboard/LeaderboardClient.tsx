@@ -109,7 +109,7 @@ export default function LeaderboardClient() {
               {top3[1] ? <PodiumCard leader={top3[1]} className="order-2 md:order-1" /> : <div className="order-2 md:order-1" />}
 
               {/* Rank 1 */}
-              <div className="order-1 md:order-2 bg-white p-10 rounded-xl relative border-t-4 border-[var(--primary-container)] shadow-2xl shadow-orange-500/10 scale-105 z-10">
+              <div className="order-1 md:order-2 bg-[var(--surface-container-lowest)] p-10 rounded-xl relative border-t-4 border-[var(--primary-container)] shadow-2xl shadow-orange-500/10 scale-105 z-10">
                 <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[var(--primary-container)] text-white font-heading font-black px-6 py-2 text-3xl">
                   #01
                 </div>
@@ -118,7 +118,7 @@ export default function LeaderboardClient() {
                     {top3[0].avatarUrl ? (
                       <img src={top3[0].avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
                     ) : (
-                      <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                      <div className="w-full h-full rounded-full bg-[var(--surface-container-lowest)] flex items-center justify-center">
                         <span className="material-symbols-outlined text-4xl text-[var(--primary-container)]">person</span>
                       </div>
                     )}
@@ -127,7 +127,7 @@ export default function LeaderboardClient() {
                     <h3 className="font-heading font-black text-3xl tracking-tight">{top3[0].name}</h3>
                     <p className="text-[var(--primary-container)] text-sm font-bold uppercase tracking-[0.2em] mt-1">Top Oracle</p>
                   </div>
-                  <div className="w-full grid grid-cols-2 gap-8 border-t border-slate-50 pt-6">
+                  <div className="w-full grid grid-cols-2 gap-8 border-t border-[var(--surface-container)] pt-6">
                     <div className="text-center">
                       <span className="block text-[10px] text-[var(--secondary)] font-bold uppercase">Points</span>
                       <span className="font-mono text-2xl font-bold">{top3[0].points.toLocaleString()}</span>
@@ -153,11 +153,11 @@ export default function LeaderboardClient() {
             <div className="w-32 text-right">Points</div>
           </div>
 
-          <div className="flex flex-col bg-white">
+          <div className="flex flex-col bg-[var(--surface-container-lowest)]">
             {visible.slice(top3.length > 0 ? top3.length : 0).map(leader => (
               <div
                 key={leader.rank}
-                className="px-8 py-6 flex justify-between items-center border-b border-slate-50 hover:bg-slate-50/50 transition-colors group"
+                className="px-8 py-6 flex justify-between items-center border-b border-[var(--surface-container)] hover:bg-[var(--surface-container)]/50 transition-colors group"
               >
                 <div className="w-16 font-heading font-black text-2xl text-[var(--secondary)]/30 group-hover:text-[var(--primary-container)] transition-colors">
                   {String(leader.rank).padStart(2, '0')}
@@ -166,7 +166,7 @@ export default function LeaderboardClient() {
                   {leader.avatarUrl ? (
                     <img src={leader.avatarUrl} alt="" className="w-10 h-10 rounded object-cover" />
                   ) : (
-                    <div className="w-10 h-10 rounded bg-slate-100 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded bg-[var(--surface-container)] flex items-center justify-center">
                       <span className="material-symbols-outlined text-[var(--secondary)]">person</span>
                     </div>
                   )}
@@ -179,7 +179,7 @@ export default function LeaderboardClient() {
             ))}
 
             {!showAll && leaders.length > 7 && (
-              <div className="p-8 flex justify-center border-t border-slate-100 bg-slate-50/30">
+              <div className="p-8 flex justify-center border-t border-[var(--surface-container)] bg-[var(--surface-container)]/30">
                 <button
                   onClick={() => setShowAll(true)}
                   className="bg-[var(--surface-container-high)] text-[var(--on-surface)] px-8 py-3 rounded-md font-heading font-bold uppercase tracking-widest text-sm flex items-center gap-2 hover:bg-[var(--surface-container-highest)] transition-all cursor-pointer"
@@ -206,7 +206,7 @@ export default function LeaderboardClient() {
               </div>
               {userEntry && (
                 <>
-                  <div className="h-8 w-px bg-slate-200" />
+                  <div className="h-8 w-px bg-[var(--surface-container)]" />
                   <div className="flex flex-col text-right">
                     <span className="text-[10px] font-bold text-[var(--secondary)] uppercase">Points</span>
                     <span className="font-mono text-lg">{userEntry.points.toLocaleString()}</span>
@@ -220,7 +220,7 @@ export default function LeaderboardClient() {
             </div>
             <Link
               href="/oracle"
-              className="bg-[var(--on-surface)] text-white px-8 py-3 rounded-md font-heading font-bold uppercase tracking-widest text-xs hover:bg-slate-800 transition-all flex items-center gap-2"
+              className="bg-[var(--on-surface)] text-white px-8 py-3 rounded-md font-heading font-bold uppercase tracking-widest text-xs hover:bg-[var(--surface-container-highest)] transition-all flex items-center gap-2"
             >
               Make Today&apos;s Picks
               <span className="material-symbols-outlined text-xs">arrow_forward</span>

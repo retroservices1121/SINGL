@@ -59,36 +59,41 @@
    Names kept stable — no component edits needed.
    ────────────────────────────────────────────────────────────────── */
 :root {
-  /* Surfaces — top of ladder aligns with AGG's secondary */
-  --surface: #f9f9ff;                 /* = --agg-color-secondary */
-  --surface-dim: #CFdAF2;
-  --surface-container: #E7EEFF;
-  --surface-container-low: #F0F3FF;
-  --surface-container-high: #DEE8FF;
-  --surface-container-highest: #D8E3FB;
-  --surface-container-lowest: #FFFFFF;
-  --surface-bright: #F9F9FF;
+  /* Dark theme — black/grey/white with an orange accent. The ladder runs
+     near-black page bg → progressively lighter elevated greys for cards/
+     menus. Surface bottom aligns with AGG's dark secondary so embedded AGG
+     components match (body carries `dark` → AGG's dark block, app/layout.tsx). */
+  --surface: #0a0a0e;                 /* = --agg-color-secondary (dark) */
+  --surface-dim: #050507;
+  --surface-container: #1d1d22;
+  --surface-container-low: #141418;
+  --surface-container-high: #26262c;
+  --surface-container-highest: #303037;
+  --surface-container-lowest: #111116; /* cards sit just above the page */
+  --surface-bright: #2a2a31;
 
-  --on-surface: #111C2D;
-  --on-surface-variant: #5A4136;
-  --on-background: #111C2D;
+  --on-surface: #f5f5f7;
+  --on-surface-variant: #c7c4c1;
+  --on-background: #f5f5f7;
 
-  /* Primary — single-source from AGG's brand orange */
-  --primary: #A04100;
+  /* Primary — AGG brand orange. `--primary` is the readable accent/text tone
+     (brightened for dark); `--primary-container` is the solid button fill;
+     `--primary-fixed` is a dark tonal-orange chip background. */
+  --primary: #ff7a2b;
   --primary-container: #fc6404;       /* = --agg-color-primary */
-  --primary-fixed: #FFDBCC;
-  --primary-fixed-dim: #FFB693;
+  --primary-fixed: #2e1809;
+  --primary-fixed-dim: #5a3315;
 
-  /* Body text / muted — matches AGG foreground & muted */
-  --secondary: #565e74;               /* = --agg-color-foreground */
-  --secondary-container: #DAE2FD;
+  /* Body text / muted — matches AGG dark foreground & muted */
+  --secondary: #9a9aa2;               /* = --agg-color-muted-foreground (dark) */
+  --secondary-container: #26262c;
 
-  --tertiary: #0062A1;
-  --tertiary-container: #059EFF;
+  --tertiary: #4aa8ff;
+  --tertiary-container: #0062A1;
 
-  /* Borders — bound to AGG */
-  --outline: #9fa4b3;                 /* = --agg-color-muted-foreground */
-  --outline-variant: #e1e2ea;         /* = --agg-color-border */
+  /* Borders */
+  --outline: #6e6e75;                 /* dim text / subtle marks */
+  --outline-variant: #2e2e34;         /* = --agg-color-border (dark) */
 
   --error: #ef4444;                   /* = --agg-color-error */
 
@@ -103,11 +108,12 @@
   --orange: var(--primary-container);
   --orange-lt: var(--primary-fixed);
 
-  /* Trading sides — bound to AGG success/error */
+  /* Trading sides — YES/NO buttons stay exactly as before (unchanged green/
+     red); only the tinted backgrounds go dark-tonal so they read on black. */
   --yes: #22c55e;                     /* = --agg-color-success */
-  --yes-bg: #E8F8F0;
+  --yes-bg: #102a1c;
   --no: #ef4444;                      /* = --agg-color-error */
-  --no-bg: #FDE8EA;
+  --no-bg: #2c1316;
 }
 
 @theme inline {
@@ -129,16 +135,18 @@ body {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Glassmorphism */
+/* Glassmorphism — dark frosted panel */
 .glass-card {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(20, 20, 24, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
 
-/* Ambient shadow for floating elements */
+/* Ambient elevation for floating elements. On black a drop-shadow alone is
+   invisible, so pair a deep shadow with a hairline top-light ring to give
+   cards a crisp edge against the page. */
 .shadow-ambient {
-  box-shadow: 0px 20px 40px rgba(17, 28, 45, 0.06);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 14px 36px rgba(0, 0, 0, 0.55);
 }
 
 /* Gradient CTA */

@@ -237,9 +237,9 @@ export default function OracleClient() {
             <div className="bg-[var(--on-surface)] rounded-xl p-4">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">SPRDD Rewards</div>
+                  <div className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">SPRDD Rewards</div>
                   <div className="font-heading font-black text-2xl text-white">
-                    {fmtTokens(totalUnclaimed.toString())} <span className="text-sm font-normal text-slate-400">vesting</span>
+                    {fmtTokens(totalUnclaimed.toString())} <span className="text-sm font-normal text-[var(--secondary)]">vesting</span>
                   </div>
                   <div className="text-xs text-[var(--primary-container)] font-bold mt-0.5">
                     {fmtTokens(claimable)} claimable now
@@ -254,7 +254,7 @@ export default function OracleClient() {
                 </button>
               </div>
               {!claimEnabled && (
-                <p className="text-[10px] text-slate-500 mt-2">Claims open once rewards are funded — your balance keeps accruing.</p>
+                <p className="text-[10px] text-[var(--secondary)] mt-2">Claims open once rewards are funded — your balance keeps accruing.</p>
               )}
               {claimMsg && <p className="text-[10px] text-slate-300 mt-2">{claimMsg}</p>}
             </div>

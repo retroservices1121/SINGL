@@ -43,9 +43,9 @@ export default function EventCountdown({ markets }: EventCountdownProps) {
   return (
     <div className={`rounded-xl p-4 border ${
       isCritical
-        ? 'bg-red-50 border-red-200'
+        ? 'bg-red-500/10 border-red-500/30'
         : isUrgent
-        ? 'bg-orange-50 border-orange-200'
+        ? 'bg-orange-500/10 border-orange-500/30'
         : 'bg-[var(--paper)] border-[var(--border)]'
     }`}>
       <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-dim)] mb-2">
@@ -54,21 +54,21 @@ export default function EventCountdown({ markets }: EventCountdownProps) {
       <div className="flex items-baseline gap-1">
         {days > 0 && (
           <>
-            <span className={`text-3xl font-bold font-mono ${isCritical ? 'text-red-600' : isUrgent ? 'text-orange-600' : 'text-[var(--text)]'}`}>
+            <span className={`text-3xl font-bold font-mono ${isCritical ? 'text-red-300' : isUrgent ? 'text-orange-300' : 'text-[var(--text)]'}`}>
               {days}
             </span>
             <span className="text-sm text-[var(--text-dim)] mr-2">d</span>
           </>
         )}
-        <span className={`text-3xl font-bold font-mono ${isCritical ? 'text-red-600' : isUrgent ? 'text-orange-600' : 'text-[var(--text)]'}`}>
+        <span className={`text-3xl font-bold font-mono ${isCritical ? 'text-red-300' : isUrgent ? 'text-orange-300' : 'text-[var(--text)]'}`}>
           {String(hours).padStart(2, '0')}
         </span>
         <span className="text-sm text-[var(--text-dim)]">h</span>
-        <span className={`text-3xl font-bold font-mono ${isCritical ? 'text-red-600' : isUrgent ? 'text-orange-600' : 'text-[var(--text)]'}`}>
+        <span className={`text-3xl font-bold font-mono ${isCritical ? 'text-red-300' : isUrgent ? 'text-orange-300' : 'text-[var(--text)]'}`}>
           {String(minutes).padStart(2, '0')}
         </span>
         <span className="text-sm text-[var(--text-dim)]">m</span>
-        <span className={`text-3xl font-bold font-mono ${isCritical ? 'text-red-600' : isUrgent ? 'text-orange-600' : 'text-[var(--text)]'}`}>
+        <span className={`text-3xl font-bold font-mono ${isCritical ? 'text-red-300' : isUrgent ? 'text-orange-300' : 'text-[var(--text)]'}`}>
           {String(seconds).padStart(2, '0')}
         </span>
         <span className="text-sm text-[var(--text-dim)]">s</span>

@@ -175,7 +175,7 @@ function ChampionColumn({
               <div className="font-mono text-2xl font-black text-[var(--primary-container)] mt-2">
                 {Math.round((topTeam.championshipOdds || 0) * 100)}%
               </div>
-              <div className="text-[9px] text-slate-400 uppercase tracking-widest mt-0.5">
+              <div className="text-[9px] text-[var(--secondary)] uppercase tracking-widest mt-0.5">
                 Market favorite
               </div>
               {topTeam.championshipMarket && (
@@ -188,7 +188,7 @@ function ChampionColumn({
               )}
             </>
           ) : (
-            <div className="text-[10px] text-slate-400 italic mt-2">No leader yet</div>
+            <div className="text-[10px] text-[var(--secondary)] italic mt-2">No leader yet</div>
           )}
         </div>
       </div>

@@ -139,18 +139,18 @@ export default function HeadToHead({ profiles }: HeadToHeadProps) {
               <h4 className="font-heading font-black text-lg text-white uppercase tracking-tight">{leftProfile.name}</h4>
               <div className="flex items-center justify-center gap-1 mt-1">
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: CONFEDERATION_COLORS[leftProfile.country.confederation] }} />
-                <span className="text-[9px] text-slate-400 uppercase tracking-widest">{leftProfile.country.confederation}</span>
+                <span className="text-[9px] text-[var(--secondary)] uppercase tracking-widest">{leftProfile.country.confederation}</span>
               </div>
             </div>
             <div className="px-4">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">vs</span>
+              <span className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">vs</span>
             </div>
             <div className="text-center flex-1">
               <div className="mb-2"><CountryFlag country={rightProfile.country} className="w-16 h-11" width={80} /></div>
               <h4 className="font-heading font-black text-lg text-white uppercase tracking-tight">{rightProfile.name}</h4>
               <div className="flex items-center justify-center gap-1 mt-1">
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: CONFEDERATION_COLORS[rightProfile.country.confederation] }} />
-                <span className="text-[9px] text-slate-400 uppercase tracking-widest">{rightProfile.country.confederation}</span>
+                <span className="text-[9px] text-[var(--secondary)] uppercase tracking-widest">{rightProfile.country.confederation}</span>
               </div>
             </div>
           </div>

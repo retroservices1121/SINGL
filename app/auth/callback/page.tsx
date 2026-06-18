@@ -49,7 +49,7 @@ export default function AuthCallbackPage() {
           <>
             <h1 className="text-2xl font-semibold">Sign-in failed</h1>
             <p className="text-red-300 text-sm">{error}</p>
-            <button onClick={() => router.replace('/')} className="px-4 py-2 rounded-lg bg-white text-black">
+            <button onClick={() => router.replace('/')} className="px-4 py-2 rounded-lg bg-[var(--primary-container)] text-white">
               Back home
             </button>
           </>

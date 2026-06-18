@@ -210,8 +210,8 @@ export default function PickEm({ profiles }: PickEmProps) {
         <div className="absolute -right-8 -top-8 w-32 h-32 bg-[var(--primary-container)]/20 rounded-full blur-2xl" />
         <span className="material-symbols-outlined text-4xl text-[var(--primary-container)] mb-2">emoji_events</span>
         <h2 className="font-heading font-black text-2xl text-white uppercase tracking-tight">Pick&apos;em Challenge</h2>
-        <p className="text-sm text-slate-400 mt-1">Predict the World Cup &mdash; Free to play</p>
-        <p className="text-[10px] text-slate-500 mt-2 max-w-md mx-auto leading-relaxed">
+        <p className="text-sm text-[var(--secondary)] mt-1">Predict the World Cup &mdash; Free to play</p>
+        <p className="text-[10px] text-[var(--secondary)] mt-2 max-w-md mx-auto leading-relaxed">
           Signed in? Your bracket is saved and scored — correct group winners (+25) and champion (+200) earn points toward
           the SPREDD Oracle leaderboard and $SPRDD rewards. Locks at kickoff June 11.
         </p>

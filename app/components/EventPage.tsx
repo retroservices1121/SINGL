@@ -531,7 +531,7 @@ export default function EventPage({ event }: EventPageProps) {
                 {event.title}
               </h1>
               {fifa && (
-                <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">
+                <p className="text-sm text-[var(--secondary)] font-bold uppercase tracking-widest">
                   USA &middot; Mexico &middot; Canada &middot; June 11 &ndash; July 19, 2026
                 </p>
               )}

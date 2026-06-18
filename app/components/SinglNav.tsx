@@ -97,7 +97,7 @@ export default function SinglNav() {
   );
 
   return (
-    <nav className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-[var(--surface-container)]">
+    <nav className="bg-[var(--surface)]/80 backdrop-blur-md sticky top-0 z-50 border-b border-[var(--surface-container)]">
       <div className="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto gap-4">
         <Link href="/" className="shrink-0">
           <Image src="/singls-logo.png" alt="SINGL" width={160} height={50} priority className="h-9 w-auto" />
@@ -129,7 +129,7 @@ export default function SinglNav() {
             </button>
             {tournamentOpen && (
               <div className="absolute left-0 top-full pt-2 z-50">
-                <div className="min-w-[160px] rounded-lg bg-white shadow-ambient border border-[var(--surface-container)] py-1.5">
+                <div className="min-w-[160px] rounded-lg bg-[var(--surface-container-lowest)] shadow-ambient border border-[var(--surface-container)] py-1.5">
                   {TOURNAMENT_NAV.map(item => {
                     const active = pathname.startsWith(item.href);
                     return (
@@ -189,7 +189,7 @@ export default function SinglNav() {
       {/* Mobile menu panel — full list of pages, since the inline nav row is
           desktop-only. Closes on navigation (pathname effect) and Escape. */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-[var(--surface-container)] bg-white max-h-[80vh] overflow-y-auto">
+        <div className="md:hidden border-t border-[var(--surface-container)] bg-[var(--surface-container-lowest)] max-h-[80vh] overflow-y-auto">
           <div className="flex flex-col px-4 py-3">
             {LEAD_NAV.map(item => (
               <Link

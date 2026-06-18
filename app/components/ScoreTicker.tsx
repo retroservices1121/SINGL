@@ -47,14 +47,14 @@ function GameChip({ game }: { game: Game }) {
         </span>
         {game.awayScore !== null && (
           <span className={`font-mono text-sm font-bold ${
-            game.awayWinner ? 'text-white' : 'text-slate-400'
+            game.awayWinner ? 'text-white' : 'text-[var(--secondary)]'
           }`}>
             {game.awayScore}
           </span>
         )}
       </div>
 
-      <span className="text-[9px] text-slate-600">@</span>
+      <span className="text-[9px] text-[var(--secondary)]">@</span>
 
       {/* Home team */}
       <div className="flex items-center gap-1.5">
@@ -68,7 +68,7 @@ function GameChip({ game }: { game: Game }) {
         </span>
         {game.homeScore !== null && (
           <span className={`font-mono text-sm font-bold ${
-            game.homeWinner ? 'text-white' : 'text-slate-400'
+            game.homeWinner ? 'text-white' : 'text-[var(--secondary)]'
           }`}>
             {game.homeScore}
           </span>
@@ -77,11 +77,11 @@ function GameChip({ game }: { game: Game }) {
 
       {/* Broadcast */}
       {game.broadcast && (
-        <span className="text-[8px] text-slate-600 font-bold">{game.broadcast}</span>
+        <span className="text-[8px] text-[var(--secondary)] font-bold">{game.broadcast}</span>
       )}
 
       {/* Divider */}
-      <span className="text-slate-700">|</span>
+      <span className="text-[var(--secondary)]">|</span>
     </div>
   );
 }

@@ -89,7 +89,7 @@ function TwitterCardManager({ secret, markets }: { secret: string; markets: { ti
   return (
     <div className="bg-[#16213e] rounded-xl p-5 mb-6 border border-gray-700">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">Twitter Card Images</h2>
+        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--secondary)]">Twitter Card Images</h2>
         <button
           onClick={() => setExpanded(!expanded)}
           className="text-xs text-orange-400 hover:text-orange-300 cursor-pointer"
@@ -97,7 +97,7 @@ function TwitterCardManager({ secret, markets }: { secret: string; markets: { ti
           {expanded ? 'Collapse' : `Manage (${Object.keys(images).length} custom)`}
         </button>
       </div>
-      <p className="text-xs text-gray-500 mb-3">
+      <p className="text-xs text-[var(--secondary)] mb-3">
         Paste an image URL to override the auto-generated Twitter card for a market. Leave blank to use the default.
       </p>
 
@@ -298,7 +298,7 @@ export default function AdminPage() {
       <div className="min-h-screen bg-[#1a1a2e] flex items-center justify-center p-4">
         <div className="bg-[#16213e] rounded-2xl p-8 max-w-sm w-full shadow-xl">
           <h1 className="text-2xl font-bold text-white mb-1">SINGL Admin</h1>
-          <p className="text-gray-400 text-sm mb-6">Enter your admin secret to continue</p>
+          <p className="text-[var(--secondary)] text-sm mb-6">Enter your admin secret to continue</p>
           <input
             type="password"
             value={secret}
@@ -329,7 +329,7 @@ export default function AdminPage() {
 
         {/* Current active event */}
         <div className="bg-[#16213e] rounded-xl p-5 mb-6 border border-gray-700">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Current Active Event</h2>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--secondary)] mb-3">Current Active Event</h2>
           {active?.event ? (
             <div>
               {/* Editable title */}
@@ -369,15 +369,15 @@ export default function AdminPage() {
                   Update Title
                 </button>
               </div>
-              <p className="text-sm text-gray-400">Slug: {active.activeEventSlug}</p>
-              <p className="text-sm text-gray-400">{active.event.markets?.length || 0} markets</p>
+              <p className="text-sm text-[var(--secondary)]">Slug: {active.activeEventSlug}</p>
+              <p className="text-sm text-[var(--secondary)]">{active.event.markets?.length || 0} markets</p>
 
               {/* Search terms editor — drives both AGG market discovery
                   (listVenueEvents) and the YouTube/Twitter crons. Add several
                   variants ('2026 FIFA World Cup', 'FIFA World Cup', 'World
                   Cup 2026') to pull every matching AGG parent event. */}
               <div className="mt-3">
-                <label className="text-xs font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                <label className="text-xs font-bold uppercase tracking-wider text-[var(--secondary)] block mb-1">
                   Search Terms (AGG event discovery + YouTube/Twitter)
                 </label>
                 <div className="flex gap-2">
@@ -417,7 +417,7 @@ export default function AdminPage() {
                     Save
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Comma-separated. Each term hits AGG /search and the YouTube/Twitter crons.</p>
+                <p className="text-xs text-[var(--secondary)] mt-1">Comma-separated. Each term hits AGG /search and the YouTube/Twitter crons.</p>
               </div>
 
               {/* Cron triggers */}
@@ -508,23 +508,23 @@ export default function AdminPage() {
               </div>
             </div>
           ) : (
-            <p className="text-gray-500">No active event set</p>
+            <p className="text-[var(--secondary)]">No active event set</p>
           )}
         </div>
 
         {/* Trading Stats */}
         {tradingStats && (
           <div className="bg-[#16213e] rounded-xl p-5 mb-6 border border-gray-700">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Trading Stats</h2>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--secondary)] mb-3">Trading Stats</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="block text-xs text-gray-400 mb-1">Total Volume</span>
+                <span className="block text-xs text-[var(--secondary)] mb-1">Total Volume</span>
                 <span className="text-2xl font-bold text-orange-400 font-mono">
                   ${tradingStats.totalVolume >= 1000 ? `${(tradingStats.totalVolume / 1000).toFixed(1)}K` : tradingStats.totalVolume.toFixed(2)}
                 </span>
               </div>
               <div>
-                <span className="block text-xs text-gray-400 mb-1">Total Traders</span>
+                <span className="block text-xs text-[var(--secondary)] mb-1">Total Traders</span>
                 <span className="text-2xl font-bold text-white font-mono">{tradingStats.totalTraders}</span>
               </div>
             </div>
@@ -538,7 +538,7 @@ export default function AdminPage() {
 
         {/* Search */}
         <div className="bg-[#16213e] rounded-xl p-5 mb-6 border border-gray-700">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Search AGG Markets Events</h2>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--secondary)] mb-3">Search AGG Markets Events</h2>
           <div className="flex gap-2">
             <input
               type="text"
@@ -572,7 +572,7 @@ export default function AdminPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <h3 className="font-semibold text-white">{event.title}</h3>
-                    {event.subtitle && <p className="text-sm text-gray-400 mt-0.5">{event.subtitle}</p>}
+                    {event.subtitle && <p className="text-sm text-[var(--secondary)] mt-0.5">{event.subtitle}</p>}
                     {(() => {
                       const activeCount = event.markets.filter(m => m.status !== 'finalized' && m.status !== 'settled').length;
                       return (
@@ -580,7 +580,7 @@ export default function AdminPage() {
                           <span className={activeCount > 0 ? 'text-green-400' : 'text-red-400'}>
                             {activeCount} active
                           </span>
-                          <span className="text-gray-500"> / {event.marketCount} total markets</span>
+                          <span className="text-[var(--secondary)]"> / {event.marketCount} total markets</span>
                         </p>
                       );
                     })()}
@@ -610,11 +610,11 @@ export default function AdminPage() {
                       <div key={m.ticker} className="flex items-center justify-between text-sm bg-[#0f3460] rounded-lg px-3 py-2">
                         <span className="text-gray-300 truncate flex-1 mr-3">{m.title}</span>
                         <div className="flex items-center gap-3 text-xs">
-                          <span className={m.status === 'finalized' || m.status === 'settled' ? 'text-gray-500' : 'text-green-400'}>
+                          <span className={m.status === 'finalized' || m.status === 'settled' ? 'text-[var(--secondary)]' : 'text-green-400'}>
                             {m.status || 'active'}
                           </span>
                           {m.yesBid && (
-                            <span className="text-gray-400 font-mono">
+                            <span className="text-[var(--secondary)] font-mono">
                               Yes: {(parseFloat(m.yesBid) * 100).toFixed(0)}c
                             </span>
                           )}
@@ -629,7 +629,7 @@ export default function AdminPage() {
         )}
 
         {searching && (
-          <div className="text-center py-12 text-gray-400">Searching AGG venues…</div>
+          <div className="text-center py-12 text-[var(--secondary)]">Searching AGG venues…</div>
         )}
       </div>
     </div>

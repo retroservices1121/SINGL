@@ -93,9 +93,9 @@ export default function GoldenBootTracker({ markets }: GoldenBootTrackerProps) {
                   <div className="flex-1">
                     <h4 className="font-heading font-black text-xl uppercase tracking-tight">{topCandidate.name}</h4>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[10px] text-slate-400">{topCandidate.club}</span>
-                      <span className="text-[10px] text-slate-500">&middot;</span>
-                      <span className="text-[10px] text-slate-400">{topCandidate.position}</span>
+                      <span className="text-[10px] text-[var(--secondary)]">{topCandidate.club}</span>
+                      <span className="text-[10px] text-[var(--secondary)]">&middot;</span>
+                      <span className="text-[10px] text-[var(--secondary)]">{topCandidate.position}</span>
                     </div>
                   </div>
                   {topCandidate.marketOdds !== null && (
@@ -103,7 +103,7 @@ export default function GoldenBootTracker({ markets }: GoldenBootTrackerProps) {
                       <div className="font-mono text-3xl font-bold text-[var(--primary-container)]">
                         {Math.round(topCandidate.marketOdds * 100)}%
                       </div>
-                      <div className="text-[9px] text-slate-400">to win</div>
+                      <div className="text-[9px] text-[var(--secondary)]">to win</div>
                     </div>
                   )}
                 </div>

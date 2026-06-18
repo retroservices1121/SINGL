@@ -212,17 +212,17 @@ export default function BuyPanel({ yesOutcomeId, noOutcomeId, yesPriceFallback, 
 
       {/* Errors / status */}
       {localError && (
-        <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-md text-[10px] text-red-700">
+        <div className="px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-md text-[10px] text-red-300">
           {localError}
         </div>
       )}
       {sessionError && !localError && (
-        <div className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-md text-[10px] text-amber-700">
+        <div className="px-3 py-2 bg-amber-500/10 border border-amber-500/30 rounded-md text-[10px] text-amber-300">
           {sessionError}
         </div>
       )}
       {confirmed && (
-        <div className="px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-md text-[10px] text-emerald-700 flex items-center gap-2">
+        <div className="px-3 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-md text-[10px] text-emerald-300 flex items-center gap-2">
           <span className="material-symbols-outlined text-sm">check_circle</span>
           Order submitted · <span className="font-mono">{confirmed.slice(0, 10)}…</span>
         </div>

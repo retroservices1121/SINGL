@@ -9,11 +9,11 @@ interface NewsFeedProps {
 function sentimentBadge(sentiment: string) {
   switch (sentiment?.toLowerCase()) {
     case 'positive':
-      return { bg: 'bg-green-100', text: 'text-green-700', label: 'Bullish' };
+      return { bg: 'bg-green-500/10', text: 'text-green-300', label: 'Bullish' };
     case 'negative':
-      return { bg: 'bg-red-100', text: 'text-red-700', label: 'Bearish' };
+      return { bg: 'bg-red-500/10', text: 'text-red-300', label: 'Bearish' };
     default:
-      return { bg: 'bg-slate-200', text: 'text-slate-600', label: 'Neutral' };
+      return { bg: 'bg-[var(--surface-container)]', text: 'text-[var(--secondary)]', label: 'Neutral' };
   }
 }
 

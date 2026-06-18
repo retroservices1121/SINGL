@@ -154,19 +154,19 @@ export default function TradePanel() {
           <p className="text-xs text-[var(--secondary)] leading-snug">{market.title}</p>
 
           {authenticated && !ready && !initializing && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+            <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-300">
               <span className="material-symbols-outlined text-sm">warning</span>
               <span>Trading session not ready. Please wait for auto-provisioning.</span>
             </div>
           )}
           {authenticated && initializing && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
+            <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 border border-blue-500/30 rounded-lg text-xs text-blue-300">
               <Spinner size="sm" />
               <span>Setting up trading session...</span>
             </div>
           )}
           {sessionError && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
+            <div className="flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-300">
               <span className="material-symbols-outlined text-sm">error</span>
               <span>{sessionError}</span>
             </div>
@@ -230,7 +230,7 @@ export default function TradePanel() {
           </div>
 
           {localError && (
-            <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
+            <div className="px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-300">
               {localError}
             </div>
           )}

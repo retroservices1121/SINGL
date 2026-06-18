@@ -136,7 +136,7 @@ export default function TutorialOverlay() {
 
       {/* Card */}
       <div
-        className={`relative z-10 w-[90vw] max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 ${exiting ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
+        className={`relative z-10 w-[90vw] max-w-md bg-[var(--surface-container-lowest)] rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 ${exiting ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
       >
         {/* Progress bar */}
         <div className="h-1 bg-[var(--surface-container-high)]">
