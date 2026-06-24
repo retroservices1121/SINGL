@@ -74,7 +74,16 @@ export default function AggProvider({ children }: { children: React.ReactNode })
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <AggHooksProvider client={client}>
+        {/* config.general.theme drives AGG's *runtime* theming. AGG
+            components read `theme` from this UI config (useAggUiConfig →
+            isDarkTheme = theme === 'dark') and pick surface/text colors
+            in JS — it is NOT derived from the `dark` class on <body>.
+            defaultAggUiConfig.general.theme is "light", so without this
+            every AGG surface (trade panel, orderbook, market tiles)
+            renders white no matter what CSS variables we override. Our
+            globals.css partner-theme block only re-skins the CSS custom
+            properties; this flips AGG's JS theme switch to match. */}
+        <AggHooksProvider client={client} config={{ general: { theme: 'dark' } }}>
           {/* ToastProvider surfaces AGG's internal validation /
               save errors (e.g. ProfileModal's "username must be ≥ 3
               chars") as visible toasts. Without it, those errors fall
