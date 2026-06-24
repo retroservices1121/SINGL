@@ -34,7 +34,14 @@
   --agg-gradient-brand-hover: linear-gradient(90deg, #fc741d, #fea65a);
 }
 
-:where(.dark .agg-root.partner-theme:not(.light), .agg-root.partner-theme.dark) {
+/* NOTE: do NOT wrap this in :where(). The light block above is
+   `.agg-root.partner-theme` (specificity 0,2,0); :where() zeroes a
+   selector's specificity, so a :where()-wrapped dark block loses the
+   cascade to the light block and every AGG surface renders light even
+   though <body> carries `dark`. Keep these selectors un-wrapped so
+   `.agg-root.partner-theme.dark` (0,3,0) beats the light block. */
+.dark .agg-root.partner-theme:not(.light),
+.agg-root.partner-theme.dark {
   --agg-color-primary: #fc6404;
   --agg-color-primary-hover: #fc741d;
   --agg-color-secondary: #0a0a0e;
