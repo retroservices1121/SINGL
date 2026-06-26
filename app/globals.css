@@ -79,7 +79,16 @@
    (body always carries `dark`), so forcing dark everywhere is correct,
    and !important beats AGG's :root light defaults, its .agg-root.dark
    greys, and any data-agg-theme scoping — on inline wrappers AND
-   portaled modals/dropdowns (which also carry `agg-root`). */
+   portaled modals/dropdowns (which also carry `agg-root`).
+
+   Also target :root — AGG's Tailwind tokens are `--color-agg-*: var(
+   --agg-color-*)` defined on :root, and they resolve THERE (at <html>),
+   where only AGG's light defaults exist. Overriding on `.agg-root`
+   (=<body>) alone is too low: --color-agg-secondary/-primary already
+   computed to #fff / #536dfe at :root and inherit that literal down,
+   so AGG cards stay white and the Sign-in button stays blue. Pinning
+   :root too makes the Tailwind tokens resolve to our brand. */
+:root,
 .agg-root {
   --agg-color-primary: #fc6404 !important;
   --agg-color-primary-hover: #fc741d !important;
