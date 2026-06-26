@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { useSearch } from '@agg-build/hooks';
 import { EventListItem } from '@agg-build/ui';
 import { useRouter } from 'next/navigation';
@@ -25,6 +26,13 @@ const SEARCH_QUERY = 'FIFA World Cup';
 const FIFA_RE = /world cup|fifa/i;
 const NOT_FIFA_RE = /esports|league of legends|\blol\b|lol:|dota|\bnba\b|\bnhl\b|\bnfl\b|\bmlb\b|world series|cricket|\bicc\b|\bt20\b|\bmls\b|champions league|europa league|rugby/i;
 
+// Each EventListItem fetches its event from agg.market AND opens a live
+// price subscription, so mounting all ~70+ at once fires hundreds of
+// slow (~3s) agg.market calls in parallel and chokes the page. Render
+// the first batch, then reveal more as the user scrolls.
+const BATCH = 12;
+const PRELOAD_MARGIN = '600px';
+
 export default function HomeClient() {
   const router = useRouter();
   // AGG's /search caps page size around 100; pull the full slate (not a
@@ -39,6 +47,21 @@ export default function HomeClient() {
   const fifaEvents = (events ?? []).filter(
     ev => FIFA_RE.test(ev.title || '') && !NOT_FIFA_RE.test(ev.title || ''),
   );
+
+  // Incremental reveal: only mount `count` cards; a bottom sentinel bumps
+  // the count as it scrolls into view, so off-screen cards don't fetch.
+  const [count, setCount] = useState(BATCH);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      entries => { if (entries.some(e => e.isIntersecting)) setCount(c => c + BATCH); },
+      { rootMargin: PRELOAD_MARGIN },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [count, fifaEvents.length]);
 
   // EventListItem takes `href` directly for the card link (no per-item
   // getter like HomePage has). onEventClick fires on body click; the
@@ -108,7 +131,7 @@ export default function HomeClient() {
           gridTemplateColumns: 'repeat(auto-fill, minmax(min(360px, 100%), 1fr))',
         }}
       >
-        {fifaEvents.map(ev => (
+        {fifaEvents.slice(0, count).map(ev => (
           <EventListItem
             key={ev.id}
             eventId={ev.id}
@@ -122,6 +145,9 @@ export default function HomeClient() {
           />
         ))}
       </div>
+
+      {/* Sentinel: scrolling near it mounts the next batch of cards. */}
+      {count < fifaEvents.length && <div ref={sentinelRef} aria-hidden style={{ height: 1 }} />}
     </main>
   );
 }
