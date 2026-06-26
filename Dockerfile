@@ -27,7 +27,15 @@ ENV NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=$NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
 RUN npx prisma generate
-RUN npm run build
+
+# Cache-bust the build layer on every commit. Symptom this fixes: Railway
+# kept serving a frozen client bundle (identical /_next chunk hashes across
+# commits) because the `npm run build` layer was a Docker cache hit and the
+# new source was never recompiled — deploys "succeeded" but only re-shipped
+# the last actually-built image. RAILWAY_GIT_COMMIT_SHA changes every commit,
+# so referencing it immediately before the build forces a real recompile.
+ARG RAILWAY_GIT_COMMIT_SHA=dev
+RUN echo "Building commit ${RAILWAY_GIT_COMMIT_SHA}" && npm run build
 
 EXPOSE 3000
 
