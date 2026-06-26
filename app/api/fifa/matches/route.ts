@@ -23,13 +23,16 @@ export async function GET() {
   const now = Date.now();
   const cached = await readPersisted();
 
+  // Shared, non-personalized data — let the browser/edge cache it briefly so
+  // repeat loads & quick navigation skip the round-trip entirely.
+  const CACHE = 'public, s-maxage=30, stale-while-revalidate=120';
   if (cached) {
     // Serve the shared cache instantly; refresh in the background if stale.
     if (now - cached.ts >= FRESH_MS) void rebuild(now);
-    return NextResponse.json({ matches: cached.matches });
+    return NextResponse.json({ matches: cached.matches }, { headers: { 'Cache-Control': CACHE } });
   }
 
   // First ever load — nothing cached yet. Build now (slow), persist, return.
   const matches = await rebuild(now);
-  return NextResponse.json({ matches: Array.isArray(matches) ? matches : [] });
+  return NextResponse.json({ matches: Array.isArray(matches) ? matches : [] }, { headers: { 'Cache-Control': CACHE } });
 }

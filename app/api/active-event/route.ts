@@ -187,10 +187,12 @@ export async function GET() {
   // it instantly. If it's gone stale, refresh in the background so the
   // next request gets fresh data — but this request never waits on the
   // AGG fan-out. Only the very first (cold) load blocks.
+  // Shared event config — safe to cache at the browser/edge for a minute.
+  const CACHE = 'public, s-maxage=60, stale-while-revalidate=300';
   if (cached) {
     if (Date.now() - cached.ts >= CACHE_TTL_MS) void refresh();
-    return NextResponse.json(cached.payload);
+    return NextResponse.json(cached.payload, { headers: { 'Cache-Control': CACHE } });
   }
   const payload = await refresh();
-  return NextResponse.json(payload);
+  return NextResponse.json(payload, { headers: { 'Cache-Control': CACHE } });
 }

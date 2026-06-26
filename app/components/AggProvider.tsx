@@ -38,7 +38,21 @@ const wagmiConfig = createConfig({
   },
 });
 
-const queryClient = new QueryClient();
+// React Query is what the AGG hooks (useSearch, useVenueEvent, EventListItem)
+// run on. With the default config (staleTime 0, refetchOnWindowFocus true)
+// every component mount, re-render, and tab-focus refires the slow ~3s
+// agg.market calls. Cache data for a minute, keep it 10 min for back-nav,
+// and stop refetching on focus — cuts redundant agg traffic dramatically.
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      gcTime: 10 * 60_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 function AuthMethods({ children }: { children: React.ReactNode }) {
   const siwe = useSiweAuthMethod({ statement: 'Sign in to SINGL' });
