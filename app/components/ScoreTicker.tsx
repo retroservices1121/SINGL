@@ -119,7 +119,7 @@ export default function ScoreTicker() {
 
   return (
     <div
-      className="bg-[var(--on-surface)] border-b border-white/5 overflow-hidden relative"
+      className="bg-[var(--surface-container-high)] border-b border-white/5 overflow-hidden relative"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >

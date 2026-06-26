@@ -152,7 +152,7 @@ export default function MarketClient({ address }: { address: `0x${string}` }) {
             <div className="bg-[var(--surface-container-lowest)] rounded-xl p-5 shadow-ambient space-y-3">
               <div className="flex gap-2">
                 {(['buy', 'sell'] as const).map(t => (
-                  <button key={t} onClick={() => setMode(t)} className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-widest cursor-pointer ${mode === t ? 'bg-[var(--on-surface)] text-white' : 'bg-[var(--surface-container-low)] text-[var(--secondary)]'}`}>{t}</button>
+                  <button key={t} onClick={() => setMode(t)} className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-widest cursor-pointer ${mode === t ? 'bg-[var(--primary-container)] text-white' : 'bg-[var(--surface-container-low)] text-[var(--secondary)]'}`}>{t}</button>
                 ))}
               </div>
               <div className="flex gap-2">

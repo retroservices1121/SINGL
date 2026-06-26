@@ -368,7 +368,7 @@ function FinalFourSection({
                   >
                     <div className="flex items-center gap-2">
                       {team.seed > 0 && (
-                        <span className="text-[9px] font-bold text-white bg-[var(--on-surface)] px-1.5 py-0.5 rounded">
+                        <span className="text-[9px] font-bold text-white bg-[var(--surface-container-high)] px-1.5 py-0.5 rounded">
                           {team.seed}
                         </span>
                       )}
@@ -449,7 +449,7 @@ function FinalFourSection({
                   >
                     <div className="flex items-center gap-2">
                       {team.seed > 0 && (
-                        <span className="text-[9px] font-bold text-white bg-[var(--on-surface)] px-1.5 py-0.5 rounded">
+                        <span className="text-[9px] font-bold text-white bg-[var(--surface-container-high)] px-1.5 py-0.5 rounded">
                           {team.seed}
                         </span>
                       )}
@@ -480,7 +480,7 @@ function FinalFourSection({
               if (!topTeam) return null;
               return (
                 <div
-                  className="max-w-sm mx-auto bg-[var(--on-surface)] rounded-xl p-5 text-white text-center cursor-pointer hover:scale-[1.02] transition-all relative overflow-hidden"
+                  className="max-w-sm mx-auto bg-[var(--surface-container-high)] rounded-xl p-5 text-white text-center cursor-pointer hover:scale-[1.02] transition-all relative overflow-hidden"
                   onClick={() => topTeam.championshipMarket && openTrade(topTeam.championshipMarket, 'yes')}
                 >
                   <div className="absolute -right-6 -top-6 w-24 h-24 bg-[var(--primary-container)]/20 rounded-full blur-2xl" />
@@ -599,7 +599,7 @@ function PathCalculator({ teams }: { teams: TeamProfile[] }) {
             })}
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-[var(--on-surface)] rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-[var(--surface-container-high)] rounded-lg">
             <span className="text-xs text-[var(--secondary)] uppercase tracking-widest">Championship Probability</span>
             <span className="font-mono text-xl font-bold text-[var(--primary-container)]">
               {Math.round((selectedTeam.championshipOdds || 0) * 100)}%

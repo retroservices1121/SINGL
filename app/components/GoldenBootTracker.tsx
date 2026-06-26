@@ -80,7 +80,7 @@ export default function GoldenBootTracker({ markets }: GoldenBootTrackerProps) {
           {/* Featured candidate */}
           {topCandidate && (
             <div
-              className="bg-[var(--on-surface)] rounded-xl p-5 text-white relative overflow-hidden cursor-pointer hover:scale-[1.02] transition-all"
+              className="bg-[var(--surface-container-high)] rounded-xl p-5 text-white relative overflow-hidden cursor-pointer hover:scale-[1.02] transition-all"
               onClick={() => topCandidate.market && openTrade(topCandidate.market, 'yes')}
             >
               <div className="absolute -right-8 -top-8 w-32 h-32 bg-[var(--primary-container)]/20 rounded-full blur-2xl" />

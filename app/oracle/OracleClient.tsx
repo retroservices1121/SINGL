@@ -234,7 +234,7 @@ export default function OracleClient() {
 
           {/* Rewards + claim strip */}
           {(totalUnclaimed > 0n || claimableBig > 0n) && (
-            <div className="bg-[var(--on-surface)] rounded-xl p-4">
+            <div className="bg-[var(--surface-container-high)] rounded-xl p-4">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <div className="text-[10px] font-bold text-[var(--secondary)] uppercase tracking-widest">SPRDD Rewards</div>

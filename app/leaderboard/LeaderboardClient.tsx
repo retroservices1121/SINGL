@@ -145,7 +145,7 @@ export default function LeaderboardClient() {
           )}
 
           {/* Table */}
-          <div className="bg-[var(--on-surface)] text-white px-8 py-4 rounded-t-lg flex justify-between items-center font-heading font-bold uppercase text-xs tracking-[0.2em]">
+          <div className="bg-[var(--surface-container-high)] text-white px-8 py-4 rounded-t-lg flex justify-between items-center font-heading font-bold uppercase text-xs tracking-[0.2em]">
             <div className="w-16">Rank</div>
             <div className="flex-1 px-4">Player</div>
             <div className="w-32 text-right">Streak</div>
@@ -220,7 +220,7 @@ export default function LeaderboardClient() {
             </div>
             <Link
               href="/oracle"
-              className="bg-[var(--on-surface)] text-white px-8 py-3 rounded-md font-heading font-bold uppercase tracking-widest text-xs hover:bg-[var(--surface-container-highest)] transition-all flex items-center gap-2"
+              className="bg-[var(--surface-container-high)] text-white px-8 py-3 rounded-md font-heading font-bold uppercase tracking-widest text-xs hover:bg-[var(--surface-container-highest)] transition-all flex items-center gap-2"
             >
               Make Today&apos;s Picks
               <span className="material-symbols-outlined text-xs">arrow_forward</span>

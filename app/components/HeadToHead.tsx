@@ -133,7 +133,7 @@ export default function HeadToHead({ profiles }: HeadToHeadProps) {
       {leftProfile && rightProfile && (
         <div className="bg-[var(--surface-container-lowest)] rounded-xl shadow-ambient overflow-hidden">
           {/* Flags & names */}
-          <div className="flex items-center justify-between px-6 py-5 bg-[var(--on-surface)]">
+          <div className="flex items-center justify-between px-6 py-5 bg-[var(--surface-container-high)]">
             <div className="text-center flex-1">
               <div className="mb-2"><CountryFlag country={leftProfile.country} className="w-16 h-11" width={80} /></div>
               <h4 className="font-heading font-black text-lg text-white uppercase tracking-tight">{leftProfile.name}</h4>

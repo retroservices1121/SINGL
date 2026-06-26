@@ -107,7 +107,7 @@ export default function TeamCard({ team, index, onSelect }: TeamCardProps) {
 
   // Determine rank badge color
   const rankColor = index === 0 ? 'bg-[var(--primary-container)] text-white'
-    : index < 4 ? 'bg-[var(--on-surface)] text-white'
+    : index < 4 ? 'bg-[var(--primary-fixed-dim)] text-white'
     : 'bg-[var(--surface-container-high)] text-[var(--secondary)]';
 
   return (
@@ -139,7 +139,7 @@ export default function TeamCard({ team, index, onSelect }: TeamCardProps) {
             </div>
             <div className="flex items-center gap-2">
               {team.seed && (
-                <span className="text-[9px] font-bold text-white bg-[var(--on-surface)] px-1.5 py-0.5 rounded">
+                <span className="text-[9px] font-bold text-white bg-[var(--surface-container-high)] px-1.5 py-0.5 rounded">
                   {team.seed}-seed
                 </span>
               )}

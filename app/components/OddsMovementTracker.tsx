@@ -91,7 +91,7 @@ function MoverCard({ mover }: { mover: Mover }) {
           </div>
           <div className="flex items-center gap-2">
             {team.seed && (
-              <span className="text-[9px] font-bold text-white bg-[var(--on-surface)] px-1 py-0.5 rounded">{team.seed}</span>
+              <span className="text-[9px] font-bold text-white bg-[var(--surface-container-high)] px-1 py-0.5 rounded">{team.seed}</span>
             )}
             {team.region && (
               <span className="text-[9px] text-[var(--secondary)] uppercase tracking-widest">{team.region}</span>

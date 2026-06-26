@@ -159,7 +159,7 @@ function ChampionColumn({
         Champion
       </h4>
       <div className="flex-1 flex items-center justify-center min-h-[520px]">
-        <div className="w-full text-center rounded-xl border-2 border-[var(--primary-container)] bg-[var(--on-surface)] p-4 shadow-ambient relative overflow-hidden">
+        <div className="w-full text-center rounded-xl border-2 border-[var(--primary-container)] bg-[var(--surface-container-high)] p-4 shadow-ambient relative overflow-hidden">
           <div className="absolute -right-6 -top-6 w-20 h-20 bg-[var(--primary-container)]/20 rounded-full blur-xl" />
           <span className="material-symbols-outlined text-3xl text-[var(--primary-container)]">
             emoji_events

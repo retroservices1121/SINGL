@@ -288,7 +288,7 @@ function DetailBody() {
                           onClick={() => setSelectedOutcomeId(o.id)}
                           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                             active
-                              ? 'bg-[var(--on-surface)] text-white'
+                              ? 'bg-[var(--primary-container)] text-white'
                               : 'bg-[var(--surface-container-high)] text-[var(--secondary)] hover:text-[var(--on-surface)]'
                           }`}
                         >

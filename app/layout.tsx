@@ -35,9 +35,6 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
         />
-        {/* Deploy probe — unique per push so we can confirm singl.market
-            actually picks up new builds. Safe to remove once deploys flow. */}
-        <meta name="deploy-probe" content="DPLY-PROBE-DARK2" />
       </head>
       {/* `agg-root partner-theme` activates AGG's CSS variable block in
           globals.css. Required for any drop-in AGG component (Connect

@@ -73,7 +73,7 @@ function ShareButton({ slug, title }: { slug: string; title: string }) {
 
   return (
     <div className="flex items-center gap-1.5 shrink-0">
-      <button onClick={shareOnX} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[var(--on-surface)] text-white rounded-md hover:opacity-90 transition-all cursor-pointer">
+      <button onClick={shareOnX} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[var(--surface-container-high)] text-white rounded-md hover:opacity-90 transition-all cursor-pointer">
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
         Share
       </button>
@@ -248,7 +248,7 @@ function PlatformFilter({ markets, platform, setPlatform }: {
           onClick={() => setPlatform(p.key)}
           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             platform === p.key
-              ? 'bg-[var(--on-surface)] text-white'
+              ? 'bg-[var(--primary-container)] text-white'
               : 'bg-[var(--surface-container-high)] text-[var(--secondary)] hover:bg-[var(--surface-container-highest)]'
           }`}
         >
@@ -512,7 +512,7 @@ export default function EventPage({ event }: EventPageProps) {
   return (
     <div className="min-h-screen bg-[var(--surface)]">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-[var(--on-surface)] px-6 py-12 mb-0">
+      <section className="relative overflow-hidden bg-[var(--surface-container-high)] px-6 py-12 mb-0">
         <div className="absolute inset-0 bg-gradient-to-r from-[var(--on-surface)] via-[var(--on-surface)]/90 to-transparent z-[1]" />
         {fifa ? <SoccerPitchBackground /> : <BasketballCourtBackground />}
         {event.imageUrl && (

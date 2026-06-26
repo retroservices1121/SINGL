@@ -55,7 +55,7 @@ export default function CountryCard({ profile, index, onSelect }: CountryCardPro
   const confColor = CONFEDERATION_COLORS[profile.country.confederation] || '#666';
 
   const rankColor = index === 0 ? 'bg-[var(--primary-container)] text-white'
-    : index < 4 ? 'bg-[var(--on-surface)] text-white'
+    : index < 4 ? 'bg-[var(--primary-fixed-dim)] text-white'
     : 'bg-[var(--surface-container-high)] text-[var(--secondary)]';
 
   return (

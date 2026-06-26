@@ -206,7 +206,7 @@ export default function PickEm({ profiles }: PickEmProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-[var(--on-surface)] rounded-xl p-6 text-center relative overflow-hidden">
+      <div className="bg-[var(--surface-container-high)] rounded-xl p-6 text-center relative overflow-hidden">
         <div className="absolute -right-8 -top-8 w-32 h-32 bg-[var(--primary-container)]/20 rounded-full blur-2xl" />
         <span className="material-symbols-outlined text-4xl text-[var(--primary-container)] mb-2">emoji_events</span>
         <h2 className="font-heading font-black text-2xl text-white uppercase tracking-tight">Pick&apos;em Challenge</h2>
@@ -371,7 +371,7 @@ export default function PickEm({ profiles }: PickEmProps) {
 
             <div className="flex gap-3 mt-4">
               <button onClick={shareOnX}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[var(--on-surface)] text-white rounded-lg text-xs font-bold cursor-pointer hover:opacity-90">
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[var(--surface-container-high)] text-white rounded-lg text-xs font-bold cursor-pointer hover:opacity-90">
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
                 Share on X
               </button>

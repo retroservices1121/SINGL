@@ -1,0 +1,133 @@
+
+> singls@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.223:3000
+- Environments: .env
+
+✓ Starting...
+✓ Ready in 15.2s
+[cron] Scheduled markets every 30min
+[cron] Scheduled news every 30min
+[cron] Scheduled youtube every 60min
+[cron] Scheduled twitter every 15min
+[cron] Scheduled tiktok every 60min
+○ Compiling /api/cron/prices ...
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to C:\Users\josep\AppData\Local\Temp\next-panic-cf791a774d19357e0a91dcdbe1aa3af0.log.
+
+To help make Turbopack better, report this error by ]8;;https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20failed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg&body=Turbopack%20version%3A%20%6023c46498%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0Afailed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg%0A%0ACaused%20by%3A%0A-%20Incorrect%20function.%20%28os%20error%201%29%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace\clicking here.]8;;\
+-----
+
+ GET /api/cron/tiktok?secret=dev-secret 500 in 8.9s (compile: 8.5s, render: 438ms)
+ GET /api/cron/prices?secret=dev-secret 500 in 8.9s (compile: 8.9s, render: 60ms)
+ GET /api/cron/news?secret=dev-secret 500 in 8.9s (compile: 8.9s, render: 43ms)
+ GET /api/cron/twitter?secret=dev-secret 500 in 8.9s (compile: 8.9s, render: 27ms)
+ GET /api/cron/youtube?secret=dev-secret 500 in 8.9s (compile: 8.9s, render: 14ms)
+[cron] tiktok error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] youtube error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] markets error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] news error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+○ Compiling /leaderboard ...
+✓ Finished writing to filesystem cache in 18.3s
+✓ Finished writing to filesystem cache in 43s
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to C:\Users\josep\AppData\Local\Temp\next-panic-cf791a774d19357e0a91dcdbe1aa3af0.log.
+
+To help make Turbopack better, report this error by ]8;;https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20failed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg&body=Turbopack%20version%3A%20%6023c46498%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0Afailed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg%0A%0ACaused%20by%3A%0A-%20Incorrect%20function.%20%28os%20error%201%29%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace\clicking here.]8;;\
+-----
+
+ GET /api/cron/twitter?secret=dev-secret 500 in 1007ms (compile: 725ms, render: 282ms)
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to C:\Users\josep\AppData\Local\Temp\next-panic-cf791a774d19357e0a91dcdbe1aa3af0.log.
+
+To help make Turbopack better, report this error by ]8;;https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20failed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg&body=Turbopack%20version%3A%20%6023c46498%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0Afailed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg%0A%0ACaused%20by%3A%0A-%20Incorrect%20function.%20%28os%20error%201%29%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace\clicking here.]8;;\
+-----
+
+ GET /api/cron/news?secret=dev-secret 500 in 814ms (compile: 627ms, render: 187ms)
+ GET /api/cron/prices?secret=dev-secret 500 in 821ms (compile: 769ms, render: 53ms)
+ GET /api/cron/twitter?secret=dev-secret 500 in 814ms (compile: 780ms, render: 34ms)
+[cron] news error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] markets error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to C:\Users\josep\AppData\Local\Temp\next-panic-cf791a774d19357e0a91dcdbe1aa3af0.log.
+
+To help make Turbopack better, report this error by ]8;;https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20failed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg&body=Turbopack%20version%3A%20%6023c46498%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0Afailed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg%0A%0ACaused%20by%3A%0A-%20Incorrect%20function.%20%28os%20error%201%29%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace\clicking here.]8;;\
+-----
+
+ GET /api/cron/twitter?secret=dev-secret 500 in 634ms (compile: 438ms, render: 196ms)
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to C:\Users\josep\AppData\Local\Temp\next-panic-cf791a774d19357e0a91dcdbe1aa3af0.log.
+
+To help make Turbopack better, report this error by ]8;;https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20failed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg&body=Turbopack%20version%3A%20%6023c46498%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0Afailed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg%0A%0ACaused%20by%3A%0A-%20Incorrect%20function.%20%28os%20error%201%29%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace\clicking here.]8;;\
+-----
+
+ GET /api/cron/twitter?secret=dev-secret 500 in 598ms (compile: 349ms, render: 249ms)
+ GET /api/cron/youtube?secret=dev-secret 500 in 650ms (compile: 525ms, render: 125ms)
+ GET /api/cron/news?secret=dev-secret 500 in 603ms (compile: 499ms, render: 105ms)
+ GET /api/cron/prices?secret=dev-secret 500 in 620ms (compile: 534ms, render: 86ms)
+ GET /api/cron/tiktok?secret=dev-secret 500 in 622ms (compile: 556ms, render: 66ms)
+[cron] youtube error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] markets error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] news error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] tiktok error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to C:\Users\josep\AppData\Local\Temp\next-panic-cf791a774d19357e0a91dcdbe1aa3af0.log.
+
+To help make Turbopack better, report this error by ]8;;https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20failed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg&body=Turbopack%20version%3A%20%6023c46498%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0Afailed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg%0A%0ACaused%20by%3A%0A-%20Incorrect%20function.%20%28os%20error%201%29%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace\clicking here.]8;;\
+-----
+
+ GET /api/cron/twitter?secret=dev-secret 500 in 654ms (compile: 422ms, render: 232ms)
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to C:\Users\josep\AppData\Local\Temp\next-panic-cf791a774d19357e0a91dcdbe1aa3af0.log.
+
+To help make Turbopack better, report this error by ]8;;https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20failed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg&body=Turbopack%20version%3A%20%6023c46498%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0Afailed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg%0A%0ACaused%20by%3A%0A-%20Incorrect%20function.%20%28os%20error%201%29%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace\clicking here.]8;;\
+-----
+
+ GET /api/cron/prices?secret=dev-secret 500 in 110ms (compile: 69ms, render: 40ms)
+ GET /api/cron/news?secret=dev-secret 500 in 75ms (compile: 58ms, render: 17ms)
+ GET /api/cron/twitter?secret=dev-secret 500 in 76ms (compile: 63ms, render: 13ms)
+[cron] markets error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] news error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to C:\Users\josep\AppData\Local\Temp\next-panic-cf791a774d19357e0a91dcdbe1aa3af0.log.
+
+To help make Turbopack better, report this error by ]8;;https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20failed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg&body=Turbopack%20version%3A%20%6023c46498%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0Afailed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg%0A%0ACaused%20by%3A%0A-%20Incorrect%20function.%20%28os%20error%201%29%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace\clicking here.]8;;\
+-----
+
+ GET /api/cron/twitter?secret=dev-secret 500 in 99ms (compile: 72ms, render: 26ms)
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to C:\Users\josep\AppData\Local\Temp\next-panic-cf791a774d19357e0a91dcdbe1aa3af0.log.
+
+To help make Turbopack better, report this error by ]8;;https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20failed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg&body=Turbopack%20version%3A%20%6023c46498%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0Afailed%20to%20create%20junction%20point%20to%20..%2F..%2F..%2Fnode_modules%2Fpg%0A%0ACaused%20by%3A%0A-%20Incorrect%20function.%20%28os%20error%201%29%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace\clicking here.]8;;\
+-----
+
+ GET /api/cron/youtube?secret=dev-secret 500 in 65ms (compile: 48ms, render: 16ms)
+[cron] youtube error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/tiktok?secret=dev-secret 500 in 69ms (compile: 49ms, render: 21ms)
+ GET /api/cron/news?secret=dev-secret 500 in 109ms (compile: 64ms, render: 44ms)
+[cron] tiktok error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/prices?secret=dev-secret 500 in 111ms (compile: 84ms, render: 27ms)
+ GET /api/cron/twitter?secret=dev-secret 500 in 111ms (compile: 96ms, render: 14ms)
+[cron] news error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] markets error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON

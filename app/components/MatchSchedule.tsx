@@ -227,7 +227,7 @@ export default function MatchSchedule({ profiles }: MatchScheduleProps) {
           <button
             onClick={() => setGroupFilter(null)}
             className={`shrink-0 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest cursor-pointer ${
-              !groupFilter ? 'bg-[var(--on-surface)] text-white' : 'bg-[var(--surface-container-high)] text-[var(--secondary)]'
+              !groupFilter ? 'bg-[var(--primary-container)] text-white' : 'bg-[var(--surface-container-high)] text-[var(--secondary)]'
             }`}
           >All Groups</button>
           {'ABCDEFGHIJKL'.split('').map(g => (
@@ -235,7 +235,7 @@ export default function MatchSchedule({ profiles }: MatchScheduleProps) {
               key={g}
               onClick={() => setGroupFilter(g)}
               className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer ${
-                groupFilter === g ? 'bg-[var(--on-surface)] text-white' : 'bg-[var(--surface-container-high)] text-[var(--secondary)]'
+                groupFilter === g ? 'bg-[var(--primary-container)] text-white' : 'bg-[var(--surface-container-high)] text-[var(--secondary)]'
               }`}
             >{g}</button>
           ))}

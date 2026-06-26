@@ -1,0 +1,2963 @@
+▲ Next.js 16.1.6 (webpack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.223:3000
+- Environments: .env
+
+✓ Starting...
+✓ Ready in 20.7s
+○ Compiling / ...
+[cron] Scheduled markets every 30min
+[cron] Scheduled news every 30min
+[cron] Scheduled youtube every 60min
+[cron] Scheduled twitter every 15min
+[cron] Scheduled tiktok every 60min
+⨯ ./node_modules/@solana-program/system/dist/src/index.mjs:1:1
+Module not found: Can't resolve '@solana/kit'
+> 1 | import { getEnumEncoder, getU32Encoder, getEnumDecoder, getU32Decoder, combineCodec, getStructEncoder, getAddressEncoder, getU64Encoder, getStructDecoder, getAddressDecoder, getU64Decoder, decodeAccount, assertAccountExists, fetchEncodedAccount, assertAccountsExist, fetchEncodedAccounts, containsBytes, isProgramError, transformEncoder, addEncoderSizePrefix, getUtf8Encoder, addDecoderSizePrefix, getUtf8Decoder, BASE_ACCOUNT_SIZE, AccountRole, upgradeRoleToSigner, isTransactionSigner as isTransactionSigner$1 } from '@solana/kit';
+    | ^
+  2 |
+  3 | // src/generated/accounts/nonce.ts
+  4 | var NonceState = /* @__PURE__ */ ((NonceState2) => {
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./node_modules/@coinbase/cdp-sdk/_esm/actions/solana/transfer.js
+./node_modules/@coinbase/cdp-sdk/_esm/accounts/solana/toSolanaAccount.js
+./node_modules/@coinbase/cdp-sdk/_esm/client/solana/solana.js
+./node_modules/@coinbase/cdp-sdk/_esm/client/cdp.js
+./node_modules/@coinbase/cdp-sdk/_esm/index.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/interface/payment/charge.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/interface/payment/index.node.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/index.node.js
+./node_modules/@wagmi/connectors/dist/esm/baseAccount.js
+./node_modules/@wagmi/connectors/dist/esm/exports/index.js
+./node_modules/wagmi/dist/esm/exports/connectors.js
+./app/components/AggProvider.tsx
+./app/components/Providers.tsx
+⨯ ./node_modules/@solana-program/system/dist/src/index.mjs:1:1
+Module not found: Can't resolve '@solana/kit'
+> 1 | import { getEnumEncoder, getU32Encoder, getEnumDecoder, getU32Decoder, combineCodec, getStructEncoder, getAddressEncoder, getU64Encoder, getStructDecoder, getAddressDecoder, getU64Decoder, decodeAccount, assertAccountExists, fetchEncodedAccount, assertAccountsExist, fetchEncodedAccounts, containsBytes, isProgramError, transformEncoder, addEncoderSizePrefix, getUtf8Encoder, addDecoderSizePrefix, getUtf8Decoder, BASE_ACCOUNT_SIZE, AccountRole, upgradeRoleToSigner, isTransactionSigner as isTransactionSigner$1 } from '@solana/kit';
+    | ^
+  2 |
+  3 | // src/generated/accounts/nonce.ts
+  4 | var NonceState = /* @__PURE__ */ ((NonceState2) => {
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./node_modules/@coinbase/cdp-sdk/_esm/actions/solana/transfer.js
+./node_modules/@coinbase/cdp-sdk/_esm/accounts/solana/toSolanaAccount.js
+./node_modules/@coinbase/cdp-sdk/_esm/client/solana/solana.js
+./node_modules/@coinbase/cdp-sdk/_esm/client/cdp.js
+./node_modules/@coinbase/cdp-sdk/_esm/index.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/interface/payment/charge.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/interface/payment/index.node.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/index.node.js
+./node_modules/@wagmi/connectors/dist/esm/baseAccount.js
+./node_modules/@wagmi/connectors/dist/esm/exports/index.js
+./node_modules/wagmi/dist/esm/exports/connectors.js
+./app/components/AggProvider.tsx
+./app/components/Providers.tsx
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'F:\SINGL\singls\.next\dev\cache\webpack\client-development-fallback\0.pack.gz_' -> 'F:\SINGL\singls\.next\dev\cache\webpack\client-development-fallback\0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'F:\SINGL\singls\.next\dev\cache\webpack\client-development-fallback\0.pack.gz_' -> 'F:\SINGL\singls\.next\dev\cache\webpack\client-development-fallback\0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'F:\SINGL\singls\.next\dev\cache\webpack\client-development-fallback\0.pack.gz_' -> 'F:\SINGL\singls\.next\dev\cache\webpack\client-development-fallback\0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'F:\SINGL\singls\.next\dev\cache\webpack\client-development-fallback\0.pack.gz_' -> 'F:\SINGL\singls\.next\dev\cache\webpack\client-development-fallback\0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'F:\SINGL\singls\.next\dev\cache\webpack\client-development-fallback\0.pack.gz_' -> 'F:\SINGL\singls\.next\dev\cache\webpack\client-development-fallback\0.pack.gz'
+⨯ ./node_modules/@solana-program/system/dist/src/index.mjs:1:1
+Module not found: Can't resolve '@solana/kit'
+> 1 | import { getEnumEncoder, getU32Encoder, getEnumDecoder, getU32Decoder, combineCodec, getStructEncoder, getAddressEncoder, getU64Encoder, getStructDecoder, getAddressDecoder, getU64Decoder, decodeAccount, assertAccountExists, fetchEncodedAccount, assertAccountsExist, fetchEncodedAccounts, containsBytes, isProgramError, transformEncoder, addEncoderSizePrefix, getUtf8Encoder, addDecoderSizePrefix, getUtf8Decoder, BASE_ACCOUNT_SIZE, AccountRole, upgradeRoleToSigner, isTransactionSigner as isTransactionSigner$1 } from '@solana/kit';
+    | ^
+  2 |
+  3 | // src/generated/accounts/nonce.ts
+  4 | var NonceState = /* @__PURE__ */ ((NonceState2) => {
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./node_modules/@coinbase/cdp-sdk/_esm/actions/solana/transfer.js
+./node_modules/@coinbase/cdp-sdk/_esm/accounts/solana/toSolanaAccount.js
+./node_modules/@coinbase/cdp-sdk/_esm/client/solana/solana.js
+./node_modules/@coinbase/cdp-sdk/_esm/client/cdp.js
+./node_modules/@coinbase/cdp-sdk/_esm/index.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/interface/payment/charge.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/interface/payment/index.node.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/index.node.js
+./node_modules/@wagmi/connectors/dist/esm/baseAccount.js
+./node_modules/@wagmi/connectors/dist/esm/exports/index.js
+./node_modules/wagmi/dist/esm/exports/connectors.js
+./app/components/AggProvider.tsx
+./app/components/Providers.tsx
+ GET /api/cron/prices?secret=dev-secret 500 in 3.2min (compile: 3.2min, render: 1902ms)
+ GET /api/cron/twitter?secret=dev-secret 500 in 3.2min (compile: 3.2min, render: 1894ms)
+ GET / 500 in 3.7min (compile: 3.7min, render: 1894ms)
+ GET /api/cron/news?secret=dev-secret 500 in 3.2min (compile: 3.2min, render: 1894ms)
+ GET /api/cron/youtube?secret=dev-secret 500 in 3.2min (compile: 3.2min, render: 1894ms)
+ GET /api/cron/tiktok?secret=dev-secret 500 in 3.2min (compile: 3.2min, render: 1894ms)
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] markets error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] tiktok error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] news error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] youtube error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/twitter?secret=dev-secret 500 in 200ms (compile: 70ms, render: 129ms)
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/twitter?secret=dev-secret 500 in 53ms (compile: 33ms, render: 20ms)
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/prices?secret=dev-secret 500 in 134ms (compile: 90ms, render: 44ms)
+ GET /api/cron/news?secret=dev-secret 500 in 108ms (compile: 68ms, render: 39ms)
+[cron] markets error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] news error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/twitter?secret=dev-secret 500 in 42ms (compile: 25ms, render: 17ms)
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/news?secret=dev-secret 500 in 94ms (compile: 41ms, render: 52ms)
+ GET /api/cron/prices?secret=dev-secret 500 in 301ms (compile: 41ms, render: 261ms)
+ GET /api/cron/twitter?secret=dev-secret 500 in 278ms (compile: 18ms, render: 261ms)
+[cron] news error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] markets error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/tiktok?secret=dev-secret 500 in 425ms (compile: 312ms, render: 113ms)
+ GET /api/cron/youtube?secret=dev-secret 500 in 429ms (compile: 315ms, render: 114ms)
+[cron] tiktok error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] youtube error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/twitter?secret=dev-secret 500 in 165ms (compile: 45ms, render: 120ms)
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/prices?secret=dev-secret 500 in 358ms (compile: 123ms, render: 235ms)
+ GET /api/cron/twitter?secret=dev-secret 500 in 347ms (compile: 114ms, render: 233ms)
+ GET /api/cron/news?secret=dev-secret 500 in 345ms (compile: 112ms, render: 234ms)
+[cron] markets error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] news error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/twitter?secret=dev-secret 500 in 477ms (compile: 156ms, render: 321ms)
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/youtube?secret=dev-secret 500 in 873ms (compile: 209ms, render: 664ms)
+ GET /api/cron/twitter?secret=dev-secret 500 in 841ms (compile: 183ms, render: 658ms)
+ GET /api/cron/prices?secret=dev-secret 500 in 842ms (compile: 184ms, render: 658ms)
+ GET /api/cron/news?secret=dev-secret 500 in 840ms (compile: 183ms, render: 657ms)
+ GET /api/cron/tiktok?secret=dev-secret 500 in 844ms (compile: 185ms, render: 659ms)
+[cron] youtube error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] markets error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] news error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] tiktok error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/twitter?secret=dev-secret 500 in 767ms (compile: 558ms, render: 209ms)
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/prices?secret=dev-secret 500 in 219ms (compile: 91ms, render: 128ms)
+ GET /api/cron/news?secret=dev-secret 500 in 218ms (compile: 68ms, render: 150ms)
+ GET /api/cron/twitter?secret=dev-secret 500 in 223ms (compile: 66ms, render: 157ms)
+[cron] news error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] markets error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/twitter?secret=dev-secret 500 in 90ms (compile: 23ms, render: 67ms)
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/youtube?secret=dev-secret 500 in 56ms (compile: 28ms, render: 28ms)
+[cron] youtube error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/tiktok?secret=dev-secret 500 in 59ms (compile: 20ms, render: 39ms)
+[cron] tiktok error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/prices?secret=dev-secret 500 in 155ms (compile: 97ms, render: 58ms)
+[cron] markets error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/news?secret=dev-secret 500 in 169ms (compile: 148ms, render: 21ms)
+[cron] news error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/twitter?secret=dev-secret 500 in 153ms (compile: 135ms, render: 18ms)
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET /api/cron/twitter?secret=dev-secret 500 in 80ms (compile: 41ms, render: 40ms)
+[cron] twitter error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ GET / 500 in 985ms (compile: 337ms, render: 647ms)
+⨯ ./node_modules/@solana-program/system/dist/src/index.mjs:1:1
+Module not found: Can't resolve '@solana/kit'
+> 1 | import { getEnumEncoder, getU32Encoder, getEnumDecoder, getU32Decoder, combineCodec, getStructEncoder, getAddressEncoder, getU64Encoder, getStructDecoder, getAddressDecoder, getU64Decoder, decodeAccount, assertAccountExists, fetchEncodedAccount, assertAccountsExist, fetchEncodedAccounts, containsBytes, isProgramError, transformEncoder, addEncoderSizePrefix, getUtf8Encoder, addDecoderSizePrefix, getUtf8Decoder, BASE_ACCOUNT_SIZE, AccountRole, upgradeRoleToSigner, isTransactionSigner as isTransactionSigner$1 } from '@solana/kit';
+    | ^
+  2 |
+  3 | // src/generated/accounts/nonce.ts
+  4 | var NonceState = /* @__PURE__ */ ((NonceState2) => {
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./node_modules/@coinbase/cdp-sdk/_esm/actions/solana/transfer.js
+./node_modules/@coinbase/cdp-sdk/_esm/accounts/solana/toSolanaAccount.js
+./node_modules/@coinbase/cdp-sdk/_esm/client/solana/solana.js
+./node_modules/@coinbase/cdp-sdk/_esm/client/cdp.js
+./node_modules/@coinbase/cdp-sdk/_esm/index.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/interface/payment/charge.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/interface/payment/index.node.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/index.node.js
+./node_modules/@wagmi/connectors/dist/esm/baseAccount.js
+./node_modules/@wagmi/connectors/dist/esm/exports/index.js
+./node_modules/wagmi/dist/esm/exports/connectors.js
+./app/components/AggProvider.tsx
+./app/components/Providers.tsx
+ GET /markets 500 in 52s (compile: 52s, render: 152ms)
+⨯ ./node_modules/@solana-program/system/dist/src/index.mjs:1:1
+Module not found: Can't resolve '@solana/kit'
+> 1 | import { getEnumEncoder, getU32Encoder, getEnumDecoder, getU32Decoder, combineCodec, getStructEncoder, getAddressEncoder, getU64Encoder, getStructDecoder, getAddressDecoder, getU64Decoder, decodeAccount, assertAccountExists, fetchEncodedAccount, assertAccountsExist, fetchEncodedAccounts, containsBytes, isProgramError, transformEncoder, addEncoderSizePrefix, getUtf8Encoder, addDecoderSizePrefix, getUtf8Decoder, BASE_ACCOUNT_SIZE, AccountRole, upgradeRoleToSigner, isTransactionSigner as isTransactionSigner$1 } from '@solana/kit';
+    | ^
+  2 |
+  3 | // src/generated/accounts/nonce.ts
+  4 | var NonceState = /* @__PURE__ */ ((NonceState2) => {
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./node_modules/@coinbase/cdp-sdk/_esm/actions/solana/transfer.js
+./node_modules/@coinbase/cdp-sdk/_esm/accounts/solana/toSolanaAccount.js
+./node_modules/@coinbase/cdp-sdk/_esm/client/solana/solana.js
+./node_modules/@coinbase/cdp-sdk/_esm/client/cdp.js
+./node_modules/@coinbase/cdp-sdk/_esm/index.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/interface/payment/charge.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/interface/payment/index.node.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/index.node.js
+./node_modules/@wagmi/connectors/dist/esm/baseAccount.js
+./node_modules/@wagmi/connectors/dist/esm/exports/index.js
+./node_modules/wagmi/dist/esm/exports/connectors.js
+./app/components/AggProvider.tsx
+./app/components/Providers.tsx
+ GET /leaderboard 500 in 17.1s (compile: 17.0s, render: 136ms)
+⨯ ./node_modules/@solana-program/system/dist/src/index.mjs:1:1
+Module not found: Can't resolve '@solana/kit'
+> 1 | import { getEnumEncoder, getU32Encoder, getEnumDecoder, getU32Decoder, combineCodec, getStructEncoder, getAddressEncoder, getU64Encoder, getStructDecoder, getAddressDecoder, getU64Decoder, decodeAccount, assertAccountExists, fetchEncodedAccount, assertAccountsExist, fetchEncodedAccounts, containsBytes, isProgramError, transformEncoder, addEncoderSizePrefix, getUtf8Encoder, addDecoderSizePrefix, getUtf8Decoder, BASE_ACCOUNT_SIZE, AccountRole, upgradeRoleToSigner, isTransactionSigner as isTransactionSigner$1 } from '@solana/kit';
+    | ^
+  2 |
+  3 | // src/generated/accounts/nonce.ts
+  4 | var NonceState = /* @__PURE__ */ ((NonceState2) => {
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./node_modules/@coinbase/cdp-sdk/_esm/actions/solana/transfer.js
+./node_modules/@coinbase/cdp-sdk/_esm/accounts/solana/toSolanaAccount.js
+./node_modules/@coinbase/cdp-sdk/_esm/client/solana/solana.js
+./node_modules/@coinbase/cdp-sdk/_esm/client/cdp.js
+./node_modules/@coinbase/cdp-sdk/_esm/index.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/interface/payment/charge.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/interface/payment/index.node.js
+./node_modules/@wagmi/connectors/node_modules/@base-org/account/dist/index.node.js
+./node_modules/@wagmi/connectors/dist/esm/baseAccount.js
+./node_modules/@wagmi/connectors/dist/esm/exports/index.js
+./node_modules/wagmi/dist/esm/exports/connectors.js
+./app/components/AggProvider.tsx
+./app/components/Providers.tsx
+ GET /schedule 500 in 7.0s (compile: 6.9s, render: 77ms)
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 19.0s (compile: 17.7s, render: 1351ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 19.6s (compile: 17.7s, render: 1943ms)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+ GET /api/cron/news?secret=dev-secret 200 in 24.1s (compile: 17.8s, render: 6.3s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 2.5s (compile: 279ms, render: 2.2s)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+○ Compiling /api/cron/twitter ...
+[tiktok] Found 0 TikTok URLs for "2026 FIFA World Cup"
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+[tiktok] Found 0 TikTok URLs for "FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "World Cup 2026"
+[tiktok] Found 0 TikTok URLs for "World Cup Winner"
+[tiktok] Found 0 TikTok URLs for "World Cup Golden Boot"
+ GET /api/cron/youtube?secret=dev-secret 500 in 14.5s (compile: 13.7s, render: 844ms)
+ GET /api/cron/twitter?secret=dev-secret 500 in 14.4s (compile: 13.5s, render: 842ms)
+ GET /api/cron/tiktok?secret=dev-secret 200 in 14.4s (compile: 13.6s, render: 843ms)
+[cron] youtube: FAIL {"error":"YOUTUBE_API_KEY not set"}
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[cron] tiktok: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 16.0s (compile: 13.6s, render: 2.5s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+ GET /api/cron/news?secret=dev-secret 200 in 19.7s (compile: 13.5s, render: 6.1s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 5.0s (compile: 420ms, render: 4.6s)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 1524ms (compile: 102ms, render: 1422ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 5.1s (compile: 369ms, render: 4.7s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+ GET /api/cron/news?secret=dev-secret 200 in 7.2s (compile: 34ms, render: 7.2s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 2.5s (compile: 216ms, render: 2.3s)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.siteConfig.findUnique()` invocation:
+
+
+Can't reach database server at trolley.proxy.rlwy.net
+    at async GET (app\api\cron\youtube\route.ts:15:18)
+  13 |
+  14 |   // Only fetch for the active event
+> 15 |   const config = await prisma.siteConfig.findUnique({ where: { key: 'activeEventSlug' } });
+     |                  ^
+  16 |   if (!config) {
+  17 |     return NextResponse.json({ error: 'No active event' }, { status: 404 });
+  18 |   } {
+  code: 'P1001',
+  meta: [Object],
+  clientVersion: '7.4.2'
+}
+ GET /api/cron/youtube?secret=dev-secret 500 in 2.5s (compile: 261ms, render: 2.2s)
+[cron] youtube error: Unexpected end of JSON input
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.siteConfig.findUnique()` invocation:
+
+
+Can't reach database server at trolley.proxy.rlwy.net
+    at async GET (app\api\cron\prices\route.ts:17:18)
+  15 |   }
+  16 |
+> 17 |   const config = await prisma.siteConfig.findUnique({ where: { key: 'activeEventSlug' } });
+     |                  ^
+  18 |   if (!config) return NextResponse.json({ error: 'No active event' }, { status: 404 });
+  19 |
+  20 |   const event = await prisma.event.findUnique({ {
+  code: 'P1001',
+  meta: [Object],
+  clientVersion: '7.4.2'
+}
+ GET /api/cron/prices?secret=dev-secret 500 in 306ms (compile: 59ms, render: 246ms)
+[cron] markets error: Unexpected end of JSON input
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.siteConfig.findUnique()` invocation:
+
+
+Can't reach database server at trolley.proxy.rlwy.net
+    at async GET (app\api\cron\tiktok\route.ts:14:18)
+  12 |   }
+  13 |
+> 14 |   const config = await prisma.siteConfig.findUnique({ where: { key: 'activeEventSlug' } });
+     |                  ^
+  15 |   if (!config) {
+  16 |     return NextResponse.json({ error: 'No active event' }, { status: 404 });
+  17 |   } {
+  code: 'P1001',
+  meta: [Object],
+  clientVersion: '7.4.2'
+}
+ GET /api/cron/tiktok?secret=dev-secret 500 in 699ms (compile: 313ms, render: 386ms)
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.siteConfig.findUnique()` invocation:
+
+
+Can't reach database server at trolley.proxy.rlwy.net
+    at async GET (app\api\cron\twitter\route.ts:15:18)
+  13 |
+  14 |   // Only fetch for the active event
+> 15 |   const config = await prisma.siteConfig.findUnique({ where: { key: 'activeEventSlug' } });
+     |                  ^
+  16 |   if (!config) {
+  17 |     return NextResponse.json({ error: 'No active event' }, { status: 404 });
+  18 |   } {
+  code: 'P1001',
+  meta: [Object],
+  clientVersion: '7.4.2'
+}
+ GET /api/cron/twitter?secret=dev-secret 500 in 865ms (compile: 324ms, render: 540ms)
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.siteConfig.findUnique()` invocation:
+
+
+Can't reach database server at trolley.proxy.rlwy.net
+    at async GET (app\api\cron\news\route.ts:14:18)
+  12 |   }
+  13 |
+> 14 |   const config = await prisma.siteConfig.findUnique({ where: { key: 'activeEventSlug' } });
+     |                  ^
+  15 |   if (!config) {
+  16 |     return NextResponse.json({ error: 'No active event' }, { status: 404 });
+  17 |   } {
+  code: 'P1001',
+  meta: [Object],
+  clientVersion: '7.4.2'
+}
+ GET /api/cron/news?secret=dev-secret 500 in 1126ms (compile: 400ms, render: 726ms)
+[cron] tiktok error: Unexpected end of JSON input
+[cron] twitter error: Unexpected end of JSON input
+[cron] news error: Unexpected end of JSON input
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 2.6s (compile: 353ms, render: 2.3s)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 3.4s (compile: 179ms, render: 3.2s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 2.2s (compile: 113ms, render: 2.1s)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 6.4s (compile: 44ms, render: 6.3s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 1128ms (compile: 25ms, render: 1104ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[tiktok] Found 0 TikTok URLs for "2026 FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "World Cup 2026"
+[tiktok] Found 0 TikTok URLs for "World Cup Winner"
+[tiktok] Found 0 TikTok URLs for "World Cup Golden Boot"
+ GET /api/cron/tiktok?secret=dev-secret 200 in 680ms (compile: 48ms, render: 632ms)
+ GET /api/cron/youtube?secret=dev-secret 500 in 1101ms (compile: 216ms, render: 885ms)
+[cron] tiktok: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+[cron] youtube: FAIL {"error":"YOUTUBE_API_KEY not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 2.6s (compile: 101ms, render: 2.5s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 373ms (compile: 35ms, render: 339ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 5.8s (compile: 12ms, render: 5.8s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 2.9s (compile: 283ms, render: 2.7s)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 4.2s (compile: 179ms, render: 4.0s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 896ms (compile: 91ms, render: 805ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 5.2s (compile: 34ms, render: 5.2s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 3.1s (compile: 390ms, render: 2.7s)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/youtube?secret=dev-secret 500 in 1547ms (compile: 175ms, render: 1372ms)
+[cron] youtube: FAIL {"error":"YOUTUBE_API_KEY not set"}
+[tiktok] Found 0 TikTok URLs for "2026 FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "World Cup 2026"
+[tiktok] Found 0 TikTok URLs for "World Cup Winner"
+[tiktok] Found 0 TikTok URLs for "World Cup Golden Boot"
+ GET /api/cron/tiktok?secret=dev-secret 200 in 844ms (compile: 112ms, render: 733ms)
+[cron] tiktok: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 3.4s (compile: 53ms, render: 3.4s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 483ms (compile: 136ms, render: 347ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 5.9s (compile: 56ms, render: 5.9s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 1312ms (compile: 97ms, render: 1215ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 15.3s (compile: 99ms, render: 15.2s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 1621ms (compile: 177ms, render: 1444ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 7.6s (compile: 83ms, render: 7.6s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 2.2s (compile: 173ms, render: 2.1s)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/youtube?secret=dev-secret 500 in 2.7s (compile: 302ms, render: 2.4s)
+[tiktok] Found 0 TikTok URLs for "2026 FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "World Cup 2026"
+[tiktok] Found 0 TikTok URLs for "World Cup Winner"
+[tiktok] Found 0 TikTok URLs for "World Cup Golden Boot"
+ GET /api/cron/tiktok?secret=dev-secret 200 in 1895ms (compile: 83ms, render: 1812ms)
+[cron] youtube: FAIL {"error":"YOUTUBE_API_KEY not set"}
+[cron] tiktok: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 5.1s (compile: 170ms, render: 4.9s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 863ms (compile: 56ms, render: 807ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 6.9s (compile: 35ms, render: 6.9s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 2.8s (compile: 211ms, render: 2.6s)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 3.7s (compile: 32ms, render: 3.7s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 893ms (compile: 49ms, render: 844ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 5.7s (compile: 18ms, render: 5.7s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 1042ms (compile: 33ms, render: 1009ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/youtube?secret=dev-secret 500 in 353ms (compile: 25ms, render: 328ms)
+[cron] youtube: FAIL {"error":"YOUTUBE_API_KEY not set"}
+[tiktok] Found 0 TikTok URLs for "2026 FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "World Cup 2026"
+[tiktok] Found 0 TikTok URLs for "World Cup Winner"
+[tiktok] Found 0 TikTok URLs for "World Cup Golden Boot"
+ GET /api/cron/tiktok?secret=dev-secret 200 in 129ms (compile: 21ms, render: 108ms)
+[cron] tiktok: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 16.9s (compile: 49ms, render: 16.8s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 650ms (compile: 17ms, render: 633ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.9s (compile: 54ms, render: 4.9s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 843ms (compile: 30ms, render: 813ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 2.8s (compile: 15ms, render: 2.8s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 431ms (compile: 28ms, render: 404ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.5s (compile: 9ms, render: 4.5s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 980ms (compile: 44ms, render: 937ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/youtube?secret=dev-secret 500 in 661ms (compile: 9ms, render: 652ms)
+[cron] youtube: FAIL {"error":"YOUTUBE_API_KEY not set"}
+[tiktok] Found 0 TikTok URLs for "2026 FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "World Cup 2026"
+[tiktok] Found 0 TikTok URLs for "World Cup Winner"
+[tiktok] Found 0 TikTok URLs for "World Cup Golden Boot"
+ GET /api/cron/tiktok?secret=dev-secret 200 in 125ms (compile: 7ms, render: 117ms)
+[cron] tiktok: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 2.2s (compile: 10ms, render: 2.1s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 878ms (compile: 32ms, render: 845ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.9s (compile: 13ms, render: 4.9s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 1067ms (compile: 9ms, render: 1058ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 11.2s (compile: 8ms, render: 11.2s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 633ms (compile: 4ms, render: 629ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.6s (compile: 42ms, render: 4.6s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 945ms (compile: 15ms, render: 931ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/youtube?secret=dev-secret 500 in 876ms (compile: 11ms, render: 865ms)
+[cron] youtube: FAIL {"error":"YOUTUBE_API_KEY not set"}
+[tiktok] Found 0 TikTok URLs for "2026 FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "World Cup 2026"
+[tiktok] Found 0 TikTok URLs for "World Cup Winner"
+[tiktok] Found 0 TikTok URLs for "World Cup Golden Boot"
+ GET /api/cron/tiktok?secret=dev-secret 200 in 141ms (compile: 7ms, render: 135ms)
+[cron] tiktok: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 1964ms (compile: 11ms, render: 1953ms)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 616ms (compile: 8ms, render: 608ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.6s (compile: 6ms, render: 4.5s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 750ms (compile: 14ms, render: 736ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 2.5s (compile: 9ms, render: 2.5s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 650ms (compile: 10ms, render: 640ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.9s (compile: 8ms, render: 4.9s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 846ms (compile: 22ms, render: 824ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/youtube?secret=dev-secret 500 in 909ms (compile: 15ms, render: 893ms)
+[cron] youtube: FAIL {"error":"YOUTUBE_API_KEY not set"}
+[tiktok] Found 0 TikTok URLs for "2026 FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "World Cup 2026"
+[tiktok] Found 0 TikTok URLs for "World Cup Winner"
+[tiktok] Found 0 TikTok URLs for "World Cup Golden Boot"
+ GET /api/cron/tiktok?secret=dev-secret 200 in 146ms (compile: 6ms, render: 140ms)
+[cron] tiktok: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 2.3s (compile: 6ms, render: 2.3s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 433ms (compile: 8ms, render: 425ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.3s (compile: 10ms, render: 4.3s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 600ms (compile: 9ms, render: 591ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 2.5s (compile: 17ms, render: 2.5s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 740ms (compile: 7ms, render: 733ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 5.5s (compile: 9ms, render: 5.4s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 1195ms (compile: 25ms, render: 1170ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/youtube?secret=dev-secret 500 in 663ms (compile: 13ms, render: 650ms)
+[cron] youtube: FAIL {"error":"YOUTUBE_API_KEY not set"}
+[tiktok] Found 0 TikTok URLs for "2026 FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "World Cup 2026"
+[tiktok] Found 0 TikTok URLs for "World Cup Winner"
+[tiktok] Found 0 TikTok URLs for "World Cup Golden Boot"
+ GET /api/cron/tiktok?secret=dev-secret 200 in 169ms (compile: 8ms, render: 161ms)
+[cron] tiktok: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 2.2s (compile: 7ms, render: 2.2s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 717ms (compile: 7ms, render: 710ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.9s (compile: 6ms, render: 4.9s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 910ms (compile: 14ms, render: 897ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 2.5s (compile: 6ms, render: 2.5s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 716ms (compile: 7ms, render: 709ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.8s (compile: 11ms, render: 4.8s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 927ms (compile: 10ms, render: 917ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/youtube?secret=dev-secret 500 in 707ms (compile: 14ms, render: 693ms)
+[cron] youtube: FAIL {"error":"YOUTUBE_API_KEY not set"}
+[tiktok] Found 0 TikTok URLs for "2026 FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "World Cup 2026"
+[tiktok] Found 0 TikTok URLs for "World Cup Winner"
+[tiktok] Found 0 TikTok URLs for "World Cup Golden Boot"
+ GET /api/cron/tiktok?secret=dev-secret 200 in 205ms (compile: 20ms, render: 185ms)
+[cron] tiktok: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 4.1s (compile: 6ms, render: 4.1s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 336ms (compile: 4ms, render: 332ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.4s (compile: 11ms, render: 4.4s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 1030ms (compile: 43ms, render: 986ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 1944ms (compile: 12ms, render: 1932ms)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 711ms (compile: 9ms, render: 702ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.7s (compile: 11ms, render: 4.6s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 1047ms (compile: 24ms, render: 1023ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/youtube?secret=dev-secret 500 in 948ms (compile: 21ms, render: 927ms)
+[cron] youtube: FAIL {"error":"YOUTUBE_API_KEY not set"}
+[tiktok] Found 0 TikTok URLs for "2026 FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "World Cup 2026"
+[tiktok] Found 0 TikTok URLs for "World Cup Winner"
+[tiktok] Found 0 TikTok URLs for "World Cup Golden Boot"
+ GET /api/cron/tiktok?secret=dev-secret 200 in 224ms (compile: 5ms, render: 219ms)
+[cron] tiktok: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 1891ms (compile: 5ms, render: 1886ms)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 494ms (compile: 14ms, render: 479ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.3s (compile: 5ms, render: 4.3s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 1234ms (compile: 12ms, render: 1222ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 6.9s (compile: 17ms, render: 6.8s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 611ms (compile: 14ms, render: 597ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 5.9s (compile: 9ms, render: 5.9s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 998ms (compile: 17ms, render: 981ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/youtube?secret=dev-secret 500 in 880ms (compile: 6ms, render: 874ms)
+[cron] youtube: FAIL {"error":"YOUTUBE_API_KEY not set"}
+[tiktok] Found 0 TikTok URLs for "2026 FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "World Cup 2026"
+[tiktok] Found 0 TikTok URLs for "World Cup Winner"
+[tiktok] Found 0 TikTok URLs for "World Cup Golden Boot"
+ GET /api/cron/tiktok?secret=dev-secret 200 in 233ms (compile: 18ms, render: 215ms)
+[cron] tiktok: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 1615ms (compile: 5ms, render: 1610ms)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 442ms (compile: 10ms, render: 433ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.6s (compile: 5ms, render: 4.6s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 1068ms (compile: 25ms, render: 1044ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 2.2s (compile: 21ms, render: 2.2s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 701ms (compile: 11ms, render: 690ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.7s (compile: 11ms, render: 4.7s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 672ms (compile: 12ms, render: 661ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/youtube?secret=dev-secret 500 in 769ms (compile: 6ms, render: 763ms)
+[cron] youtube: FAIL {"error":"YOUTUBE_API_KEY not set"}
+[tiktok] Found 0 TikTok URLs for "2026 FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "World Cup 2026"
+[tiktok] Found 0 TikTok URLs for "World Cup Winner"
+[tiktok] Found 0 TikTok URLs for "World Cup Golden Boot"
+ GET /api/cron/tiktok?secret=dev-secret 200 in 260ms (compile: 13ms, render: 247ms)
+[cron] tiktok: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 7.6s (compile: 6ms, render: 7.6s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 612ms (compile: 8ms, render: 603ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.6s (compile: 11ms, render: 4.6s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 472ms (compile: 12ms, render: 460ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 1941ms (compile: 14ms, render: 1927ms)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 615ms (compile: 10ms, render: 605ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.7s (compile: 4ms, render: 4.7s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 717ms (compile: 5ms, render: 712ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/youtube?secret=dev-secret 500 in 793ms (compile: 33ms, render: 759ms)
+[cron] youtube: FAIL {"error":"YOUTUBE_API_KEY not set"}
+[tiktok] Found 0 TikTok URLs for "2026 FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "FIFA World Cup"
+[tiktok] Found 0 TikTok URLs for "World Cup 2026"
+[tiktok] Found 0 TikTok URLs for "World Cup Winner"
+[tiktok] Found 0 TikTok URLs for "World Cup Golden Boot"
+ GET /api/cron/tiktok?secret=dev-secret 200 in 268ms (compile: 11ms, render: 257ms)
+[cron] tiktok: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 1814ms (compile: 27ms, render: 1787ms)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 731ms (compile: 16ms, render: 715ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 4.4s (compile: 9ms, render: 4.4s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 852ms (compile: 8ms, render: 844ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+[listVenueEvents] /search failed for "2026 FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at GET (app\api\cron\prices\route.ts:28:56)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "FIFA World Cup": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup 2026": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Winner": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+[listVenueEvents] /search failed for "World Cup Golden Boot": Error: NEXT_PUBLIC_AGG_APP_ID is not set
+    at aggFetch (app\lib\aggServer.ts:39:22)
+    at listVenueEvents (app\lib\aggServer.ts:266:21)
+    at async GET (app\api\cron\prices\route.ts:28:35)
+  37 |
+  38 | export async function aggFetch<T>(path: string, opts: AggFetchOptions = {}): Promise<T> {
+> 39 |   if (!APP_ID) throw new Error('NEXT_PUBLIC_AGG_APP_ID is not set');
+     |                      ^
+  40 |   if (!SERVER_KEY) throw new Error('AGG_SERVER_API_KEY is not set');
+  41 |
+  42 |   const url = `${BASE_URL}${path}${buildQuery(opts.query)}`;
+ GET /api/cron/prices?secret=dev-secret 200 in 9.4s (compile: 25ms, render: 9.4s)
+[cron] markets: OK {"success":true,"updatedMarkets":0,"newMarketsAdded":0,"totalMarkets":0,"note":"sync-only — pricing is live via WebSocket from AGG"}
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 579ms (compile: 7ms, render: 572ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}
+ GET /api/cron/news?secret=dev-secret 200 in 5.5s (compile: 20ms, render: 5.5s)
+[cron] news: OK {"success":true,"event":"2026 FIFA World Cup","searchTerms":["2026 FIFA World Cup","FIFA World Cup","World Cup 2026","World Cup Winner","World Cup Gol
+Twitter cron error: Error: GAME_TWITTER_ACCESS_TOKEN not set
+    at fetchEventXPosts (app\lib\virtuals.ts:51:11)
+    at GET (app\api\cron\twitter\route.ts:26:41)
+  49 |   const token = process.env.GAME_TWITTER_ACCESS_TOKEN;
+  50 |   if (!token) {
+> 51 |     throw new Error('GAME_TWITTER_ACCESS_TOKEN not set');
+     |           ^
+  52 |   }
+  53 |
+  54 |   const allPosts: XPostData[] = [];
+ GET /api/cron/twitter?secret=dev-secret 500 in 911ms (compile: 13ms, render: 899ms)
+[cron] twitter: FAIL {"error":"GAME_TWITTER_ACCESS_TOKEN not set"}

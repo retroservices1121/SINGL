@@ -140,7 +140,7 @@ export default function UpsetAlertBanner({ markets, previousPrices }: UpsetAlert
               key={alert.market.venueMarketId}
               className={`shrink-0 w-60 p-4 rounded-xl transition-all cursor-pointer hover:scale-[1.02] ${
                 alert.severity === 'major'
-                  ? 'bg-[var(--on-surface)] text-white'
+                  ? 'bg-[var(--primary-container)] text-white'
                   : alert.severity === 'moderate'
                     ? 'bg-[var(--primary-fixed)] border border-[var(--primary-container)]'
                     : 'bg-[var(--surface-container-low)]'
