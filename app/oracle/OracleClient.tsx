@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
 import PageShell from '@/app/components/PageShell';
 import Spinner from '@/app/components/ui/Spinner';
 import CountryFlag from '@/app/components/CountryFlag';
@@ -306,18 +305,6 @@ export default function OracleClient() {
               ))}
             </div>
           )}
-
-          {/* Bracket cross-link */}
-          <Link
-            href="/pickem"
-            className="block bg-[var(--surface-container-lowest)] rounded-xl shadow-ambient p-5 text-center hover:scale-[1.01] transition-all no-underline"
-          >
-            <span className="material-symbols-outlined text-2xl text-[var(--primary-container)]">account_tree</span>
-            <h4 className="font-heading font-black text-sm text-[var(--on-surface)] uppercase tracking-tight">
-              Fill your bracket → +200 pts for the champion
-            </h4>
-            <p className="text-[10px] text-[var(--secondary)] mt-1">Group winners + champion. Locks at kickoff June 11.</p>
-          </Link>
         </div>
       )}
     </PageShell>

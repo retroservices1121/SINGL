@@ -26,12 +26,9 @@ const TOURNAMENT_NAV: NavItem[] = [
   { href: '/groups', label: 'Groups' },
   { href: '/schedule', label: 'Schedule' },
   { href: '/bracket', label: 'Bracket' },
-  { href: '/h2h', label: 'H2H' },
-  { href: '/squads', label: 'Squads' },
 ];
 const TRAIL_NAV: NavItem[] = [
   { href: '/oracle', label: 'Oracle' },
-  { href: '/pickem', label: "Pick'em" },
   { href: '/leaderboard', label: 'Ranks' },
   { href: '/profile', label: 'Profile' },
 ];

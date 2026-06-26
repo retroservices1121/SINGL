@@ -25,7 +25,7 @@ const EMPTY_STATE: State = {
 // Module-level singleton cache.
 //
 // Every SINGL FIFA-tab page (countries / groups / schedule / bracket /
-// h2h / squads / pickem / news) calls useActiveEvent on mount. Without
+// news) calls useActiveEvent on mount. Without
 // a shared cache, each page navigation would refire /api/active-event,
 // re-parse markets, and re-build profiles — visibly slow on every
 // click. The state below lives for the entire SPA session: the first

@@ -37,9 +37,6 @@ import GroupStageTable from './GroupStageTable';
 import WorldCupBracket from './WorldCupBracket';
 import MatchSchedule from './MatchSchedule';
 import GoldenBootTracker from './GoldenBootTracker';
-import HeadToHead from './HeadToHead';
-import SquadRoster from './SquadRoster';
-import PickEm from './PickEm';
 
 interface EventPageProps {
   event: EventData;
@@ -54,7 +51,7 @@ function isFIFAEvent(event: EventData): boolean {
 }
 
 type NCAViewMode = 'teams' | 'markets' | 'bracket';
-type FIFAViewMode = 'countries' | 'markets' | 'groups' | 'bracket' | 'schedule' | 'awards' | 'h2h' | 'squads' | 'pickem';
+type FIFAViewMode = 'countries' | 'markets' | 'groups' | 'bracket' | 'schedule' | 'awards';
 
 function ShareButton({ slug, title }: { slug: string; title: string }) {
   const [copied, setCopied] = useState(false);
@@ -157,9 +154,6 @@ function FIFAViewToggle({ view, setView }: { view: FIFAViewMode; setView: (v: FI
     { key: 'bracket', label: 'Bracket', icon: 'account_tree' },
     { key: 'schedule', label: 'Schedule', icon: 'calendar_month' },
     { key: 'awards', label: 'Awards', icon: 'emoji_events' },
-    { key: 'h2h', label: 'H2H', icon: 'compare_arrows' },
-    { key: 'squads', label: 'Squads', icon: 'person' },
-    { key: 'pickem', label: "Pick'em", icon: 'sports_score' },
   ];
 
   return (
@@ -288,9 +282,6 @@ function FIFAEventPage({ event }: EventPageProps) {
       case 'bracket': return 'Knockout Bracket';
       case 'schedule': return 'Match Schedule';
       case 'awards': return 'Awards & Golden Boot';
-      case 'h2h': return 'Head to Head';
-      case 'squads': return 'Squad Rosters';
-      case 'pickem': return "Pick'em Challenge";
     }
   };
 
@@ -372,27 +363,6 @@ function FIFAEventPage({ event }: EventPageProps) {
       {view === 'awards' && (
         <section className="mb-8">
           <GoldenBootTracker markets={parsedMarkets} />
-        </section>
-      )}
-
-      {/* Head to Head View */}
-      {view === 'h2h' && (
-        <section className="mb-8">
-          <HeadToHead profiles={countryProfiles} />
-        </section>
-      )}
-
-      {/* Squads View */}
-      {view === 'squads' && (
-        <section className="mb-8">
-          <SquadRoster profiles={countryProfiles} />
-        </section>
-      )}
-
-      {/* Pick'em View */}
-      {view === 'pickem' && (
-        <section className="mb-8">
-          <PickEm profiles={countryProfiles} />
         </section>
       )}
 

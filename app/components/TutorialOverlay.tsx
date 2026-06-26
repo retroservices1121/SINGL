@@ -45,21 +45,6 @@ const STEPS: TutorialStep[] = [
     icon: 'calendar_month',
   },
   {
-    title: 'Pick\'em Challenge',
-    description: 'Play the free Pick\'em game. Predict which teams advance from each group, then pick your knockout bracket all the way to the champion. Share your picks on X and compete with friends.',
-    icon: 'sports_score',
-  },
-  {
-    title: 'Head to Head',
-    description: 'Compare any two countries side by side in the "H2H" tab. See odds, group placement, and historical matchup context to inform your trades.',
-    icon: 'compare_arrows',
-  },
-  {
-    title: 'Squad Rosters',
-    description: 'Browse full squad rosters for every country in the "Squads" tab. See who\'s been called up and how deep each team runs.',
-    icon: 'person',
-  },
-  {
     title: 'Golden Boot & Awards',
     description: 'The "Awards" tab tracks Golden Boot contenders and other individual award markets. See which players are tipped for top scorer honors.',
     icon: 'emoji_events',

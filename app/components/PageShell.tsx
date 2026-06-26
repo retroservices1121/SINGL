@@ -11,7 +11,7 @@ interface Props {
 }
 
 // Standard chrome for every SINGL surface (countries / groups / schedule
-// / bracket / h2h / squads / pickem / news / videos). Wraps content with
+// / bracket / news / videos). Wraps content with
 // SinglNav + the same max-w-screen-2xl container the AGG-themed home and
 // event pages use so the layout doesn't jump between routes.
 export default function PageShell({ title, subtitle, actions, children }: Props) {
