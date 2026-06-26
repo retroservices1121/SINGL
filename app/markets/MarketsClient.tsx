@@ -14,6 +14,17 @@ import {
 interface MarketCard { address: `0x${string}`; question: string; priceYes: number; status: number; }
 const STATUS = ['Open', 'Closed', 'Resolved'];
 
+// Design-preview only: visiting /markets?preview=1 renders the full
+// marketplace UI (faucet + create form + cards) with these mock markets,
+// even before the Base Sepolia contracts are live. Normal visitors still
+// see the "launching soon" placeholder. Nothing here is on-chain.
+const PREVIEW_MARKETS: MarketCard[] = [
+  { address: '0x1111111111111111111111111111111111111111', question: 'Will Argentina win the 2026 World Cup?', priceYes: 0.62, status: 0 },
+  { address: '0x2222222222222222222222222222222222222222', question: 'Will the USA reach the quarter-finals?', priceYes: 0.28, status: 0 },
+  { address: '0x3333333333333333333333333333333333333333', question: 'Top scorer: will a player net 7+ goals this tournament?', priceYes: 0.41, status: 0 },
+  { address: '0x4444444444444444444444444444444444444444', question: 'Will the final go to a penalty shootout?', priceYes: 0.18, status: 1 },
+];
+
 export default function MarketsClient() {
   const { address, isConnected, chainId } = useAccount();
   const publicClient = usePublicClient({ chainId: MARKETS_CHAIN_ID });
@@ -26,6 +37,13 @@ export default function MarketsClient() {
   const [pts, setPts] = useState<bigint | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [preview, setPreview] = useState(false);
+
+  // Design-preview flag from the URL (?preview=1). Read on mount so it
+  // doesn't affect SSR / normal visitors.
+  useEffect(() => {
+    if (typeof window !== 'undefined') setPreview(new URLSearchParams(window.location.search).has('preview'));
+  }, []);
 
   const loadPts = useCallback(async () => {
     if (!publicClient || !isMarketplaceLive || !address) return;
@@ -52,7 +70,8 @@ export default function MarketsClient() {
   };
 
   const load = useCallback(async () => {
-    if (!publicClient || !isMarketplaceLive) { setMarkets([]); return; }
+    if (!isMarketplaceLive) { setMarkets(preview ? PREVIEW_MARKETS : []); return; }
+    if (!publicClient) { setMarkets([]); return; }
     try {
       const count = await publicClient.readContract({ address: FACTORY_ADDRESS as `0x${string}`, abi: FACTORY_ABI, functionName: 'marketCount' }) as bigint;
       const addrs = await Promise.all(
@@ -69,7 +88,7 @@ export default function MarketsClient() {
       }));
       setMarkets(cards.reverse());
     } catch { setMarkets([]); }
-  }, [publicClient]);
+  }, [publicClient, preview]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -118,12 +137,17 @@ export default function MarketsClient() {
     <PageShell title="Markets" subtitle="Create & trade any market">
       <div className="flex justify-end mb-4"><MarketWalletBar /></div>
 
-      {!isMarketplaceLive ? (
+      {!isMarketplaceLive && !preview ? (
         <div className="py-24 text-center text-sm text-[var(--secondary)]">
           Marketplace launching soon — contracts deploying to Base Sepolia.
         </div>
       ) : (
         <div className="space-y-8">
+          {preview && !isMarketplaceLive && (
+            <div className="rounded-xl border border-dashed border-[var(--primary-container)] bg-[var(--primary-fixed)] px-4 py-2 text-center text-[11px] font-bold uppercase tracking-widest text-[var(--primary)]">
+              Design preview · mock data · contracts not yet deployed
+            </div>
+          )}
           {/* Testnet faucet — trade with free points, no real money. */}
           <div className="bg-[var(--primary-fixed)] rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 border border-[var(--primary-container)]">
             <div>
