@@ -59,6 +59,41 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────────
+   AGG dark-surface enforcement — the real fix for the white cards.
+
+   AGG cards/panels paint with `bg-agg-secondary` → var(--color-agg-
+   secondary) → var(--agg-color-secondary). They render WHITE whenever
+   that variable resolves to a light value on the card element. The
+   partner-theme blocks above only bind when an element carries BOTH
+   `partner-theme` AND `dark`; but AGG renders its own page/trade/modal/
+   dropdown roots as `agg-root [rootClassName]` and applies its own
+   theme scoping, so many AGG surfaces sit on a plain `.agg-root`
+   wrapper that never matches `.agg-root.partner-theme.dark` and falls
+   back to AGG's light defaults (#fff) — hence white cards and the blue
+   #536dfe primary on the Sign-in button.
+
+   Setting the runtime config (general.theme:'dark') only flips AGG's
+   JS isDarkTheme flag, which controls a few inline icon/text colors —
+   NOT the CSS-painted surface backgrounds. So we pin the AGG palette to
+   our brand on EVERY `.agg-root` with !important. This app is dark-only
+   (body always carries `dark`), so forcing dark everywhere is correct,
+   and !important beats AGG's :root light defaults, its .agg-root.dark
+   greys, and any data-agg-theme scoping — on inline wrappers AND
+   portaled modals/dropdowns (which also carry `agg-root`). */
+.agg-root {
+  --agg-color-primary: #fc6404 !important;
+  --agg-color-primary-hover: #fc741d !important;
+  --agg-color-secondary: #0a0a0e !important;
+  --agg-color-secondary-hover: #16161a !important;
+  --agg-color-border: #2e2e31 !important;
+  --agg-color-foreground: #fafafa !important;
+  --agg-color-muted-foreground: #8e8e90 !important;
+  --agg-color-on-primary: #000000 !important;
+  --agg-gradient-brand: linear-gradient(90deg, #fc6404, #fe9943) !important;
+  --agg-gradient-brand-hover: linear-gradient(90deg, #fc741d, #fea65a) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
    SINGL tokens — colors that overlap AGG's palette are bound to AGG's
    values so our custom UI matches AGG components automatically. The
    Material-3 surface ladder is kept because AGG only ships 2 surface
